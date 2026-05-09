@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+.playwright-cli/
+output/playwright/
+.DS_Store
+.env
+.env.*
+npm-debug.log*

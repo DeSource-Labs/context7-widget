@@ -1,0 +1,103 @@
+name: Scan upstream Context7 widget
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - id: scan
+        run: npm run scan:upstream
+      - name: Commit upstream snapshot
+        if: steps.scan.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add upstream/context7-widget.latest.js upstream/context7-widget.normalized.js upstream/context7-widget.metadata.json upstream/context7-widget.sha256
+          git commit -m "chore: update upstream context7 widget snapshot"
+          git push
+      - name: Open compatibility issue
+        if: steps.scan.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = 'upstream-change';
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: label
+              });
+            } catch (error) {
+              if (error.status === 404) {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label,
+                  color: 'fb923c',
+                  description: 'Context7 upstream widget changed'
+                });
+              } else {
+                throw error;
+              }
+            }
+
+            const title = 'Upstream Context7 widget changed';
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: label,
+              state: 'open',
+              per_page: 20
+            });
+
+            const body = [
+              'The daily scanner detected a change in the official Context7 widget.',
+              '',
+              `- Upstream: ${process.env.UPSTREAM_URL}`,
+              `- Previous SHA: ${process.env.PREVIOUS_SHA || 'none'}`,
+              `- Current SHA: ${process.env.CURRENT_SHA}`,
+              `- Snapshot: ${process.env.SNAPSHOT_PATH}`,
+              '',
+              'Compatibility checklist:',
+              '',
+              '- Review the upstream diff in `upstream/context7-widget.latest.js`.',
+              '- Check request payload and streaming frame changes.',
+              '- Run local tests and one manual browser smoke test.',
+              '- Update this widget if the protocol or UI contract changed.'
+            ].join('\n');
+
+            if (existing.data.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.data[0].number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: [label]
+              });
+            }
+        env:
+          CURRENT_SHA: ${{ steps.scan.outputs.current_sha }}
+          PREVIOUS_SHA: ${{ steps.scan.outputs.previous_sha }}
+          SNAPSHOT_PATH: ${{ steps.scan.outputs.snapshot_path }}
+          UPSTREAM_URL: ${{ steps.scan.outputs.upstream_url }}

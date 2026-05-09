@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <title>Context7 Widget Themed Example</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      }
+
+      body {
+        background: #050505;
+        color: #fafafa;
+        margin: 0;
+        min-height: 100vh;
+      }
+
+      main {
+        display: grid;
+        gap: 28px;
+        max-width: 900px;
+        padding: 64px;
+      }
+
+      h1 {
+        font-size: clamp(42px, 8vw, 96px);
+        line-height: 0.95;
+        margin: 0;
+      }
+
+      p {
+        color: #a1a1aa;
+        font-size: 20px;
+        line-height: 1.5;
+        margin: 0;
+        max-width: 640px;
+      }
+
+      button {
+        background: #ef4444;
+        border: 0;
+        color: white;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+        min-height: 44px;
+        padding: 0 16px;
+        width: max-content;
+      }
+
+      context7-widget {
+        --c7-accent: #ef4444;
+        --c7-border-color: rgba(255, 255, 255, 0.16);
+        --c7-control-background: #050505;
+        --c7-control-border: rgba(255, 255, 255, 0.24);
+        --c7-footer-background: #080808;
+        --c7-header-background: #080808;
+        --c7-launcher-radius: 6px;
+        --c7-message-assistant-background: #151515;
+        --c7-panel-background: #050505;
+        --c7-panel-color: #f8fafc;
+        --c7-panel-radius: 6px;
+        --c7-panel-shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
+      }
+
+      context7-widget::part(panel) {
+        backdrop-filter: blur(16px);
+      }
+
+      context7-widget::part(send-button),
+      context7-widget::part(input) {
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Native-looking docs chat</h1>
+      <p>
+        The widget uses the same Context7 backend, but its surfaces, radius,
+        typography, and controls can follow the host design system.
+      </p>
+      <button id="docs-chat">Ask documentation</button>
+    </main>
+
+    <script
+      async
+      src="../dist/widget.js"
+      data-library="/vercel/next.js"
+      data-theme="dark"
+      data-custom-trigger="#docs-chat"
+    ></script>
+  </body>
+</html>
