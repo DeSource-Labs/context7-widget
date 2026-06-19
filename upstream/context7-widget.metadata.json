@@ -1,8 +1,8 @@
 {
-  "checkedAt": "2026-06-13T04:48:13.210Z",
-  "contentLength": 21261,
-  "etag": "W/\"756d1ca3abaee734f7cd815cdc5b33b7\"",
-  "lastModified": "Fri, 12 Jun 2026 14:58:17 GMT",
-  "sha256": "9b2158fe727763e351fea77d4e037693a5ceef0ee5f1138fa41c58fb7f0340ce",
+  "checkedAt": "2026-06-19T04:53:36.864Z",
+  "contentLength": 21372,
+  "etag": "W/\"1f8ceb18322bddb335dbe72fd6b056f5\"",
+  "lastModified": "Thu, 18 Jun 2026 13:31:14 GMT",
+  "sha256": "ce3857137430317f6aace6e5fa83d67be2abe97b7e5a7fcc85775bb96aa817dc",
   "upstreamUrl": "https://context7.com/widget.js"
 }
