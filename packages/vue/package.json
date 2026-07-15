@@ -1,0 +1,46 @@
+{
+  "name": "@desource/context7-widget-vue",
+  "version": "0.1.0",
+  "description": "Vue 3 bindings for the themeable Context7 widget.",
+  "license": "MIT",
+  "type": "module",
+  "private": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "types": "./dist/index.d.ts",
+  "sideEffects": [
+    "./dist/styles.css"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "pnpm clean && pnpm build:js && pnpm build:css",
+    "build:css": "sass src/styles.scss dist/styles.css --no-source-map",
+    "build:js": "tsup src/index.ts --format esm --dts --sourcemap --external vue --out-dir dist",
+    "lint": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@desource/context7-widget": "workspace:*"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "sass": "^1.93.2",
+    "tsup": "^8.5.1",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.10",
+    "vue": "^3.5.25"
+  }
+}

@@ -1,0 +1,9 @@
+Context7 Widget is a DeSource Labs compatibility project for the Context7 chat
+widget install flow.
+
+Context7 is published by Upstash under the MIT License:
+https://github.com/upstash/context7/blob/master/LICENSE
+
+This project preserves compatibility with the publicly distributed Context7
+widget behavior and hosted chat endpoint, but is not the official Context7
+widget distribution.

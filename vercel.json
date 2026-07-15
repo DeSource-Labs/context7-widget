@@ -1,0 +1,5 @@
+{
+  "buildCommand": "pnpm --filter @desource/context7-widget-site build",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "outputDirectory": "apps/site/.output/public"
+}

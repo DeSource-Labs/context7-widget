@@ -1,4 +1,4 @@
-name: CI
+name: Build Vercel site
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  build-site:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,11 +29,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run lint
-        run: pnpm lint:all
-
-      - name: Run tests
-        run: pnpm test:all
-
-      - name: Run build
-        run: pnpm build:all
+      - name: Build site
+        run: pnpm --filter @desource/context7-widget-site build

@@ -573,6 +573,16 @@ export const widgetStyles = `
       right: 16px;
     }
 
+    .c7-composer {
+      gap: 6px;
+      padding: 10px;
+    }
+
+    .c7-input {
+      font-size: 14px;
+      padding-inline: 10px;
+    }
+
     :host([position="bottom-left"]) .c7-launcher,
     :host([position="top-left"]) .c7-launcher,
     :host([data-position="bottom-left"]) .c7-launcher,

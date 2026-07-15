@@ -7,3 +7,5 @@ output/playwright/
 .env
 .env.*
 npm-debug.log*
+.nuxt
+.output

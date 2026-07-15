@@ -1,0 +1,25 @@
+{
+  "name": "@desource/context7-widget-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm run prepare:deps && nuxt generate",
+    "dev": "pnpm run prepare:deps && nuxt dev",
+    "lint": "pnpm run prepare:deps && nuxt typecheck",
+    "prepare:deps": "pnpm --filter @desource/context7-widget build && pnpm --filter @desource/context7-widget-vue build && node scripts/sync-widget.mjs",
+    "preview": "nuxt preview"
+  },
+  "dependencies": {
+    "@desource/context7-widget": "workspace:*",
+    "@desource/context7-widget-vue": "workspace:*",
+    "lucide-vue-next": "^0.561.0",
+    "nuxt": "^4.2.2",
+    "vue": "^3.5.25"
+  },
+  "devDependencies": {
+    "sass": "^1.93.2",
+    "typescript": "~5.9.3",
+    "vue-tsc": "^3.1.8"
+  }
+}

@@ -1,3 +1,12 @@
+export {
+  buildContext7WidgetScriptTag,
+  createContext7Widget,
+  getContext7Widget,
+  getContext7WidgetApi,
+  mountContext7Widget,
+  setContext7WidgetAttributes,
+  toContext7WidgetAttributes
+} from "./helpers";
 export { mountContext7WidgetFromScript } from "./loader";
 export { renderMarkdown } from "./markdown";
 export { streamContext7Response, Context7TransportError } from "./transport";
@@ -12,5 +21,9 @@ export type {
   Context7ToolResult,
   Context7WidgetApi,
   Context7WidgetConfig,
-  Context7WidgetEventDetail
+  Context7WidgetEventDetail,
+  Context7WidgetEventName,
+  Context7WidgetOptions,
+  Context7WidgetScriptOptions,
+  Context7WidgetTarget
 } from "./types";

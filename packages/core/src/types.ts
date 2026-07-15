@@ -8,10 +8,36 @@ export type Context7Position =
 
 export type Context7Theme = "auto" | "light" | "dark";
 
+export type Context7WidgetEventName =
+  | "c7:ready"
+  | "c7:open"
+  | "c7:close"
+  | "c7:question"
+  | "c7:first-token"
+  | "c7:answer"
+  | "c7:answer-complete"
+  | "c7:tool-call"
+  | "c7:tool-result"
+  | "c7:error";
+
 export interface Context7Message {
   id: string;
   role: Context7Role;
   content: string;
+}
+
+export interface Context7WidgetOptions {
+  apiUrl?: string;
+  color?: string;
+  customTrigger?: string;
+  hideDefaultButton?: boolean;
+  initialMessage?: string;
+  library: string;
+  placeholder?: string;
+  position?: Context7Position;
+  theme?: Context7Theme;
+  title?: string;
+  widgetId?: string;
 }
 
 export interface Context7WidgetConfig {
@@ -26,6 +52,16 @@ export interface Context7WidgetConfig {
   theme: Context7Theme;
   title: string;
   widgetId: string;
+}
+
+export type Context7WidgetTarget = Element | DocumentFragment | string;
+
+export interface Context7WidgetScriptOptions extends Context7WidgetOptions {
+  async?: boolean;
+  defer?: boolean;
+  id?: string;
+  nonce?: string;
+  src?: string;
 }
 
 export interface Context7ToolCall {

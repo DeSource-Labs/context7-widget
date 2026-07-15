@@ -10,5 +10,6 @@
     "skipLibCheck": true,
     "noEmit": true,
     "types": ["vitest/globals"]
-  }
+  },
+  "include": ["src", "tests", "vitest.config.ts"]
 }

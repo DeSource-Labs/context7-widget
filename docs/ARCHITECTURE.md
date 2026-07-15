@@ -9,17 +9,21 @@ https://context7.com/api/v2/widget/chat
 ```
 
 That boundary keeps integration simple and maintenance realistic. The project
-owns the client UX, styling contract, loader, event API, and compatibility
-monitoring. Context7 still owns library claiming, allowed-domain validation,
-retrieval, model behavior, and the streaming protocol.
+owns the client UX, styling contract, loader, typed helper APIs, Vue bindings,
+Nuxt information site, event API, and compatibility monitoring. Context7 still
+owns library claiming, allowed-domain validation, retrieval, model behavior, and
+the streaming protocol.
 
-## Deliverables
+## Workspace Deliverables
 
-- `dist/widget.js`: zero-build browser loader for script-tag replacement.
-- `dist/index.mjs`: module build for frameworks and custom integrations.
+- `packages/core/dist/widget.js`: zero-build browser loader for script-tag replacement.
+- `packages/core/dist/index.js`: core TypeScript module build for frameworks and custom
+  integrations.
 - `context7-widget` custom element: the canonical runtime surface.
+- `packages/vue`: Vue 3 component, composable, plugin helper, and SCSS output.
+- `apps/site`: Nuxt static site for `context7.desource-labs.org`.
 - `scripts/scan-upstream.mjs`: daily upstream byte and hash monitor.
-- GitHub Actions: CI, scheduled scanner, and static widget publishing.
+- GitHub Actions: monorepo CI, Vercel site build check, and scheduled scanner.
 
 ## Runtime Shape
 
@@ -43,6 +47,9 @@ The custom element attaches an open shadow root. Open shadow DOM is intentional:
 host applications can inspect the element while stable customization should use
 CSS custom properties, `::part()`, attributes, events, and the global API.
 
+The core package is import-safe during SSR, but widget creation and mounting are
+browser-only operations.
+
 ## Compatibility Contract
 
 The loader supports the official attributes:
@@ -65,6 +72,28 @@ It also adds:
 The default `data-api-url` is `https://context7.com`, not the script origin. This
 is what makes replacing only `https://context7.com/widget.js` with
 `https://context7.desource-labs.org/widget.js` work.
+
+## Package Boundaries
+
+`packages/core` / `@desource/context7-widget` owns:
+
+- the custom element;
+- script mounting;
+- stream transport compatibility;
+- markdown rendering;
+- DOM event names and payload types;
+- framework-agnostic helper functions.
+
+`@desource/context7-widget-vue` owns:
+
+- a typed `Context7Widget` Vue component;
+- a `useContext7Widget` composable;
+- an optional plugin helper;
+- Vue event mapping from `c7:*` DOM events;
+- SCSS-built convenience styles.
+
+The Vue package depends on the core package and does not duplicate widget
+transport, styling, or loader internals.
 
 ## Styling Contract
 
@@ -112,6 +141,12 @@ Events bubble and are composed, so host pages can listen at `document` level:
 
 Every event includes `detail.library`, `detail.widgetId`, and `detail.widget`.
 Question and answer events include the current message payload where relevant.
+
+## Site Hosting
+
+`apps/site` is a Nuxt static app. Its build runs the core and Vue package builds,
+copies `packages/core/dist/widget.js` to `apps/site/public/widget.js`, then generates
+`.output/public`. `vercel.json` points Vercel at that output directory.
 
 ## Maintenance Strategy
 

@@ -15,10 +15,12 @@ import type {
 const registry = new Map<string, HTMLElement>();
 const DEFAULT_INITIAL_MESSAGE =
   "Hello! I'm here to help you with documentation for **{library}**.\n\nAsk me about features, code examples, setup, configuration, API details, or best practices.";
+const BaseHTMLElement =
+  typeof HTMLElement === "undefined" ? (class {} as typeof HTMLElement) : HTMLElement;
 
 let globalApiInstalled = false;
 
-export class Context7WidgetElement extends HTMLElement {
+export class Context7WidgetElement extends BaseHTMLElement {
   static observedAttributes = [
     "api-url",
     "color",
@@ -307,7 +309,9 @@ export class Context7WidgetElement extends HTMLElement {
     }
 
     if (this.config.hideDefaultButton) {
-      this.setAttribute("hide-default-button", "");
+      if (!this.hasAttribute("hide-default-button")) {
+        this.setAttribute("hide-default-button", "");
+      }
     } else if (!isTruthyAttribute(this.getAttribute("data-hide-default-button"))) {
       this.removeAttribute("hide-default-button");
     }
@@ -512,6 +516,7 @@ export class Context7WidgetElement extends HTMLElement {
 }
 
 export function defineContext7Widget(tagName = "context7-widget"): void {
+  if (typeof customElements === "undefined") return;
   if (customElements.get(tagName)) return;
   customElements.define(tagName, Context7WidgetElement);
 }

@@ -25,6 +25,63 @@ Replacement:
 Keep your Context7 allowed-domain configuration unchanged. The browser request
 still goes to Context7 by default.
 
+## Core TypeScript
+
+```ts
+import {
+  defineContext7Widget,
+  mountContext7Widget,
+  buildContext7WidgetScriptTag
+} from "@desource/context7-widget";
+
+defineContext7Widget();
+
+mountContext7Widget({
+  library: "/vercel/next.js",
+  theme: "auto",
+  position: "bottom-right"
+});
+
+const script = buildContext7WidgetScriptTag({
+  library: "/vercel/next.js",
+  color: "#10b981"
+});
+```
+
+## Vue
+
+```vue
+<template>
+  <Context7Widget
+    library="/vercel/next.js"
+    color="#10b981"
+    custom-trigger="#docs-chat"
+    hide-default-button
+    @question="trackQuestion"
+    @answer-complete="trackAnswer"
+  />
+</template>
+
+<script setup lang="ts">
+import { Context7Widget } from "@desource/context7-widget-vue";
+</script>
+```
+
+Composable:
+
+```ts
+import { useContext7Widget } from "@desource/context7-widget-vue";
+
+const docs = useContext7Widget({
+  autoMount: true,
+  library: "/vercel/next.js",
+  widgetId: "docs"
+});
+
+docs.open();
+await docs.send("Show middleware examples");
+```
+
 ## Next.js App Router
 
 Add the script in `app/layout.tsx`:
@@ -95,22 +152,6 @@ document.addEventListener("c7:answer-complete", (event) => {
     library: event.detail.library
   });
 });
-```
-
-## Module Usage
-
-```ts
-import { defineContext7Widget } from "@desource-labs/context7-widget";
-
-defineContext7Widget();
-```
-
-```html
-<context7-widget
-  library="/vercel/next.js"
-  theme="auto"
-  position="bottom-right"
-></context7-widget>
 ```
 
 ## CSP

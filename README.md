@@ -1,16 +1,18 @@
 # Context7 Widget
 
-A themeable, Context7-compatible chat widget for teams that want the official
-`https://context7.com/widget.js` install path, but need the UI to feel native
-inside polished product and documentation sites.
+A themeable, Context7-compatible widget system for teams that like the official
+`https://context7.com/widget.js` install path, but need the UI to feel native in
+polished product and documentation sites.
 
-The goal is intentionally narrow:
+This repository now ships three surfaces:
 
-- keep migration to a one-line script URL replacement;
-- keep the Context7 hosted chat protocol as the default backend;
-- expose durable styling hooks through CSS custom properties and shadow parts;
-- expose DOM events and a small imperative API for analytics and app logic;
-- monitor upstream `widget.js` changes so compatibility work is visible.
+- `https://context7.desource-labs.org/widget.js`: one-line script replacement.
+- `@desource/context7-widget`: core TypeScript package and custom element.
+- `@desource/context7-widget-vue`: Vue 3 component, composable, plugin helper,
+  typed events, and SCSS-built helper styles.
+
+The Nuxt information site lives in `apps/site` and is designed for Vercel static
+hosting at `context7.desource-labs.org`.
 
 ## Quick Start
 
@@ -38,20 +40,78 @@ Existing official attributes continue to work:
 ```
 
 The widget still calls `https://context7.com/api/v2/widget/chat` by default.
-Use `data-api-url` only if you intentionally run a compatible proxy:
+Use `data-api-url` only if you intentionally run a compatible proxy.
 
-```html
-<script
-  async
-  src="https://context7.desource-labs.org/widget.js"
-  data-library="/vercel/next.js"
-  data-api-url="https://context7.com"
-></script>
+## Core Package
+
+```bash
+pnpm add @desource/context7-widget
+```
+
+```ts
+import {
+  buildContext7WidgetScriptTag,
+  mountContext7Widget
+} from "@desource/context7-widget";
+
+mountContext7Widget({
+  color: "#10b981",
+  library: "/vercel/next.js",
+  theme: "auto"
+});
+
+const script = buildContext7WidgetScriptTag({
+  library: "/vercel/next.js",
+  customTrigger: "#docs-chat",
+  hideDefaultButton: true
+});
+```
+
+The core package exports the custom element, stream transport, markdown renderer,
+script-tag helpers, typed widget options, and the global API types.
+
+## Vue Package
+
+```bash
+pnpm add @desource/context7-widget-vue
+```
+
+```vue
+<template>
+  <Context7Widget
+    library="/vercel/next.js"
+    color="#10b981"
+    theme="auto"
+    @question="trackQuestion"
+  />
+</template>
+
+<script setup lang="ts">
+import { Context7Widget, type Context7WidgetEventDetail } from "@desource/context7-widget-vue";
+
+function trackQuestion(detail: Context7WidgetEventDetail) {
+  console.log(detail.question);
+}
+</script>
+```
+
+Composable:
+
+```ts
+import { useContext7Widget } from "@desource/context7-widget-vue";
+
+const docs = useContext7Widget({
+  autoMount: true,
+  library: "/vercel/next.js",
+  widgetId: "docs"
+});
+
+await docs.send("How do I customize the widget?");
 ```
 
 ## Styling
 
-You can theme through CSS custom properties:
+Theme through CSS custom properties:
 
 ```css
 context7-widget {
@@ -65,7 +125,7 @@ context7-widget {
 }
 ```
 
-Or through shadow parts when your design system needs direct component styling:
+Or use shadow parts when your design system needs direct component styling:
 
 ```css
 context7-widget::part(panel) {
@@ -77,10 +137,6 @@ context7-widget::part(send-button) {
   letter-spacing: 0.04em;
 }
 ```
-
-Important parts: `launcher`, `panel`, `header`, `title`, `close-button`,
-`messages`, `message`, `user-message`, `assistant-message`, `error-message`,
-`tool-call`, `composer`, `input`, `send-button`, `footer`, and `powered-by`.
 
 ## Events And API
 
@@ -97,15 +153,7 @@ The host element dispatches composed DOM events:
 - `c7:tool-result`
 - `c7:error`
 
-Example:
-
-```js
-document.addEventListener("c7:question", (event) => {
-  console.log("Context7 question", event.detail.question);
-});
-```
-
-The auto-loader also registers `window.Context7Widget`:
+The script loader also registers `window.Context7Widget`:
 
 ```js
 window.Context7Widget.open();
@@ -131,12 +179,21 @@ to your own UI:
 ## Local Development
 
 ```bash
-npm install
-npm run build
-npm test
+pnpm install
+pnpm lint:all
+pnpm test:all
+pnpm build:all
+pnpm dev:site
 ```
 
-Open `examples/themed.html` after building to inspect the local bundle.
+Useful workspaces:
+
+- core package: `packages/core` (`@desource/context7-widget`)
+- Vue package: `packages/vue`
+- Nuxt site: `apps/site`
+
+The site build syncs `packages/core/dist/widget.js` to
+`apps/site/public/widget.js` before Nuxt generates the static output.
 
 ## Maintenance
 
@@ -145,5 +202,5 @@ latest raw script in `upstream/context7-widget.latest.js`, and opens a GitHub
 issue when the upstream hash changes. Functional compatibility still depends on
 Context7's hosted backend, so behavior changes can happen without a script diff.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the project boundaries and
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for project boundaries and
 [docs/INTEGRATION.md](docs/INTEGRATION.md) for integration recipes.
