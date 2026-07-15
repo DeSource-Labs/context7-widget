@@ -17,7 +17,7 @@
         <p class="eyebrow">Integration examples</p>
         <h1>Use the widget like a product surface.</h1>
         <p>
-          Script tags, typed helpers, Vue components, modal flows, anchored triggers, presets, and CSS overrides
+          Script tags, typed helpers, Vue components, centered flows, anchored triggers, presets, and CSS overrides
           share one runtime contract.
         </p>
       </div>
@@ -33,27 +33,27 @@
     <section class="examples-section">
       <div class="section-heading">
         <p class="eyebrow">Position use cases</p>
-        <h2>Corner, modal, and anchored entry points.</h2>
+        <h2>Corner, centered, and anchored entry points.</h2>
         <p>
           Current Context7 installs are mostly fixed-corner docs widgets because the official script only exposes
-          that shape. This package keeps that path and adds focused modal and app-shell popover patterns.
+          that shape. This package keeps that path and adds focused centered-dialog and app-shell popover patterns.
         </p>
       </div>
 
       <div class="example-grid">
-        <article class="example-card example-card--modal">
+        <article class="example-card example-card--center">
           <div class="example-card__visual">
-            <button id="example-modal-trigger" class="example-trigger example-trigger--terminal" type="button">
+            <button id="example-center-trigger" class="example-trigger example-trigger--terminal" type="button">
               <Search :size="18" aria-hidden="true" />
-              Open modal help
+              Open centered help
             </button>
-            <div class="example-modal-preview">
+            <div class="example-center-preview">
               <span />
               <strong>Terminal preset</strong>
               <p>Centered dialog with backdrop and outside-click close.</p>
             </div>
           </div>
-          <CodeBlock id="example-modal-code" label="Modal script" :code="modalScript" />
+          <CodeBlock id="example-center-code" label="Centered script" :code="centerScript" />
         </article>
 
         <article class="example-card example-card--anchor">
@@ -132,14 +132,14 @@
 
     <Context7Widget
       close-on-outside-click
-      custom-trigger="#example-modal-trigger"
+      custom-trigger="#example-center-trigger"
       hide-default-button
       library="/desource-labs/context7-widget"
       panel-width="520px"
-      position="modal"
+      position="center"
       preset="terminal"
-      title="Modal Documentation Help"
-      widget-id="examples-modal"
+      title="Centered Documentation Help"
+      widget-id="examples-center"
     />
 
     <Context7Widget
@@ -161,7 +161,7 @@
 import { MessageSquare, Search } from "lucide-vue-next";
 import { Context7Widget } from "@desource/context7-widget-vue";
 
-const modalScript = `<button id="docs-help">Open modal help</button>
+const centerScript = `<button id="docs-help">Open centered help</button>
 
 <script
   async
@@ -169,7 +169,7 @@ const modalScript = `<button id="docs-help">Open modal help</button>
   data-library="/owner/repo"
   data-custom-trigger="#docs-help"
   data-hide-default-button="true"
-  data-position="modal"
+  data-position="center"
   data-preset="terminal"
   data-backdrop="true"
   data-close-on-outside-click="true"

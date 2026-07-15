@@ -158,7 +158,6 @@ const positions: Context7Position[] = [
   "top-right",
   "top-left",
   "center",
-  "modal",
   "anchor"
 ];
 const presets: Context7WidgetPreset[] = ["default", "minimal", "glass", "neo", "terminal", "brutalist"];

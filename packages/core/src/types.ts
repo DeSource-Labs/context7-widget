@@ -6,7 +6,6 @@ export type Context7Position =
   | "top-right"
   | "top-left"
   | "center"
-  | "modal"
   | "anchor";
 
 export type Context7AnchorPlacement =

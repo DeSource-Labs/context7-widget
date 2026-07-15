@@ -33,7 +33,7 @@ import { useContext7Widget } from '@desource/context7-widget-vue';
 const docs = useContext7Widget({
   autoMount: true,
   library: '/desource-labs/context7-widget',
-  position: 'modal',
+  position: 'center',
   preset: 'terminal',
   widgetId: 'docs'
 });

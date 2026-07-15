@@ -386,10 +386,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     if (this.launcher) this.launcher.setAttribute("aria-label", this.config.launcherLabel);
     if (this.panel) {
       this.panel.setAttribute("aria-label", this.config.title);
-      this.panel.setAttribute(
-        "aria-modal",
-        String(this.config.position === "center" || this.config.position === "modal")
-      );
+      this.panel.setAttribute("aria-modal", String(this.config.position === "center"));
     }
     if (this.footer) this.footer.hidden = !this.config.showPoweredBy;
   }
@@ -532,24 +529,21 @@ export class Context7WidgetElement extends BaseHTMLElement {
     const gap = 12;
     const margin = 12;
     let left = rect.right - panelWidth;
-    let top = rect.bottom + gap;
-    let origin = "top right";
+    let top = rect.top - panelHeight - gap;
+    let origin = "bottom right";
 
     switch (this.config.anchorPlacement) {
       case "bottom-start":
         left = rect.left;
-        top = rect.bottom + gap;
-        origin = "top left";
+        ({ top, origin } = resolveAnchorVerticalPosition(rect, panelHeight, viewportHeight, gap, margin, "left"));
         break;
       case "top-end":
         left = rect.right - panelWidth;
-        top = rect.top - panelHeight - gap;
-        origin = "bottom right";
+        ({ top, origin } = resolveAnchorVerticalPosition(rect, panelHeight, viewportHeight, gap, margin, "right"));
         break;
       case "top-start":
         left = rect.left;
-        top = rect.top - panelHeight - gap;
-        origin = "bottom left";
+        ({ top, origin } = resolveAnchorVerticalPosition(rect, panelHeight, viewportHeight, gap, margin, "left"));
         break;
       case "right":
         left = rect.right + gap;
@@ -564,8 +558,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
       case "bottom-end":
       default:
         left = rect.right - panelWidth;
-        top = rect.bottom + gap;
-        origin = "top right";
+        ({ top, origin } = resolveAnchorVerticalPosition(rect, panelHeight, viewportHeight, gap, margin, "right"));
         break;
     }
 
@@ -731,7 +724,7 @@ function readConfig(element: HTMLElement): Context7WidgetConfig {
     apiUrl: readAttribute(element, "api-url", "data-api-url") || "https://context7.com",
     backdrop: readBooleanAttribute(
       element,
-      position === "center" || position === "modal",
+      position === "center",
       "backdrop",
       "data-backdrop"
     ),
@@ -790,7 +783,6 @@ function normalizePosition(value: string): Context7Position {
     value === "top-left" ||
     value === "bottom-right" ||
     value === "center" ||
-    value === "modal" ||
     value === "anchor"
   ) {
     return value;
@@ -877,6 +869,34 @@ function syncStyleProperty(element: HTMLElement, name: string, value: string): v
   } else {
     element.style.removeProperty(name);
   }
+}
+
+function resolveAnchorVerticalPosition(
+  rect: DOMRect,
+  panelHeight: number,
+  viewportHeight: number,
+  gap: number,
+  margin: number,
+  horizontalOrigin: "left" | "right"
+): { origin: string; top: number } {
+  const above = rect.top - panelHeight - gap;
+  const below = rect.bottom + gap;
+  const spaceAbove = rect.top - margin - gap;
+  const spaceBelow = viewportHeight - rect.bottom - margin - gap;
+  const hasSpaceAbove = above >= margin;
+  const hasSpaceBelow = below + panelHeight <= viewportHeight - margin;
+
+  if (hasSpaceAbove || (!hasSpaceBelow && spaceAbove >= spaceBelow)) {
+    return {
+      origin: `bottom ${horizontalOrigin}`,
+      top: above
+    };
+  }
+
+  return {
+    origin: `top ${horizontalOrigin}`,
+    top: below
+  };
 }
 
 function clamp(value: number, min: number, max: number): number {

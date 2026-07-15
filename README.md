@@ -46,7 +46,7 @@ Use `data-api-url` only if you intentionally run a compatible proxy.
 Additional attributes cover product-app use cases that the official script does
 not expose:
 
-- `data-position`: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `center`, `modal`, or `anchor`.
+- `data-position`: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `center`, or `anchor`.
 - `data-anchor-placement`: `bottom-end`, `bottom-start`, `top-end`, `top-start`, `right`, or `left`.
 - `data-preset`: `default`, `minimal`, `glass`, `neo`, `terminal`, or `brutalist`.
 - `data-launcher-variant`: `icon`, `pill`, or `badge`.
@@ -72,7 +72,7 @@ mountContext7Widget({
   color: "#10b981",
   closeOnOutsideClick: true,
   library: "/vercel/next.js",
-  position: "modal",
+  position: "center",
   preset: "glass",
   theme: "auto"
 });
@@ -196,7 +196,7 @@ to your own UI:
 ></script>
 ```
 
-The Nuxt site includes live examples at `/examples` for modal, anchored, script,
+The Nuxt site includes live examples at `/examples` for centered, anchored, script,
 core, Vue component, and Vue composable integrations.
 
 ## Local Development

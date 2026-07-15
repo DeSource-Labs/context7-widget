@@ -536,8 +536,7 @@ export const widgetStyles = `
     transform-origin: top left;
   }
 
-  :host([position="center"]) .c7-panel,
-  :host([position="modal"]) .c7-panel {
+  :host([position="center"]) .c7-panel {
     bottom: auto;
     left: 50%;
     max-height: calc(100vh - 32px);
@@ -548,8 +547,7 @@ export const widgetStyles = `
     transform-origin: center;
   }
 
-  :host([open][position="center"]) .c7-panel,
-  :host([open][position="modal"]) .c7-panel {
+  :host([open][position="center"]) .c7-panel {
     transform: translate(-50%, -50%) scale(1);
   }
 
@@ -929,7 +927,6 @@ export const widgetStyles = `
     }
 
     :host([position="center"]) .c7-panel,
-    :host([position="modal"]) .c7-panel,
     :host([position="anchor"]) .c7-panel {
       border: 1px solid var(--c7-border-color);
       border-radius: var(--c7-panel-radius);
@@ -941,16 +938,14 @@ export const widgetStyles = `
       width: min(var(--c7-panel-width), calc(100vw - 24px));
     }
 
-    :host([position="center"]) .c7-panel,
-    :host([position="modal"]) .c7-panel {
+    :host([position="center"]) .c7-panel {
       left: 50%;
       top: 50%;
       transform: translate(-50%, -46%) scale(0.96);
       transform-origin: center;
     }
 
-    :host([open][position="center"]) .c7-panel,
-    :host([open][position="modal"]) .c7-panel {
+    :host([open][position="center"]) .c7-panel {
       transform: translate(-50%, -50%) scale(1);
     }
 

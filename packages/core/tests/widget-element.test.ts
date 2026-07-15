@@ -60,7 +60,7 @@ describe("Context7WidgetElement", () => {
     expect(widget.hasAttribute("open")).toBe(false);
   });
 
-  it("supports modal backdrop and preset attributes", () => {
+  it("supports center backdrop and preset attributes", () => {
     defineContext7Widget();
 
     const widget = document.createElement("context7-widget");
@@ -96,6 +96,51 @@ describe("Context7WidgetElement", () => {
     widget.removeAttribute("color");
     expect(widget.style.getPropertyValue("--c7-accent")).toBe("");
   });
+
+  it("positions anchor widgets above the opener when there is enough room", () => {
+    defineContext7Widget();
+    setViewportHeight(900);
+
+    const widget = document.createElement("context7-widget");
+    widget.setAttribute("library", "/vercel/next.js");
+    widget.setAttribute("position", "anchor");
+    document.body.append(widget);
+
+    const panel = widget.shadowRoot?.querySelector<HTMLElement>(".c7-panel");
+    const launcher = widget.shadowRoot?.querySelector<HTMLElement>("[data-c7-launcher]");
+    setElementSize(panel, 400, 300);
+    setElementRect(launcher, { bottom: 840, height: 56, left: 700, right: 840, top: 784, width: 140 });
+
+    launcher?.click();
+
+    expect(widget.style.getPropertyValue("--c7-anchor-top")).toBe("472px");
+    expect(widget.style.getPropertyValue("--c7-anchor-origin")).toBe("bottom right");
+  });
+
+  it("positions anchor widgets below the opener when there is not enough room above", () => {
+    defineContext7Widget();
+    setViewportHeight(900);
+
+    const trigger = document.createElement("button");
+    trigger.id = "ask";
+    document.body.append(trigger);
+
+    const widget = document.createElement("context7-widget");
+    widget.setAttribute("custom-trigger", "#ask");
+    widget.setAttribute("hide-default-button", "");
+    widget.setAttribute("library", "/vercel/next.js");
+    widget.setAttribute("position", "anchor");
+    document.body.append(widget);
+
+    const panel = widget.shadowRoot?.querySelector<HTMLElement>(".c7-panel");
+    setElementSize(panel, 400, 300);
+    setElementRect(trigger, { bottom: 88, height: 48, left: 80, right: 220, top: 40, width: 140 });
+
+    trigger.click();
+
+    expect(widget.style.getPropertyValue("--c7-anchor-top")).toBe("100px");
+    expect(widget.style.getPropertyValue("--c7-anchor-origin")).toBe("top right");
+  });
 });
 
 function stream(values: string[]): ReadableStream<Uint8Array> {
@@ -108,4 +153,36 @@ function stream(values: string[]): ReadableStream<Uint8Array> {
       controller.close();
     }
   });
+}
+
+function setViewportHeight(height: number): void {
+  Object.defineProperty(window, "innerHeight", {
+    configurable: true,
+    value: height
+  });
+}
+
+function setElementSize(element: HTMLElement | null | undefined, width: number, height: number): void {
+  if (!element) throw new Error("Expected element to exist.");
+  Object.defineProperty(element, "offsetHeight", {
+    configurable: true,
+    value: height
+  });
+  Object.defineProperty(element, "offsetWidth", {
+    configurable: true,
+    value: width
+  });
+}
+
+function setElementRect(
+  element: HTMLElement | null | undefined,
+  rect: Pick<DOMRect, "bottom" | "height" | "left" | "right" | "top" | "width">
+): void {
+  if (!element) throw new Error("Expected element to exist.");
+  element.getBoundingClientRect = () => ({
+    ...rect,
+    x: rect.left,
+    y: rect.top,
+    toJSON: () => rect
+  }) as DOMRect;
 }

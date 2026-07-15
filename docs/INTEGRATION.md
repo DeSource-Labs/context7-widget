@@ -39,7 +39,7 @@ defineContext7Widget();
 mountContext7Widget({
   library: "/vercel/next.js",
   theme: "auto",
-  position: "modal",
+  position: "center",
   preset: "glass",
   backdrop: true
 });
@@ -144,7 +144,7 @@ export default {
 
 ## Position And Presets
 
-Use fixed corners for conventional docs pages, `modal` or `center` when the user
+Use fixed corners for conventional docs pages, `center` when the user
 is intentionally asking for help, and `anchor` when the widget belongs to an app
 button, nav item, support menu, or command palette.
 
@@ -153,7 +153,7 @@ button, nav item, support menu, or command palette.
   async
   src="https://context7.desource-labs.org/widget.js"
   data-library="/vercel/next.js"
-  data-position="modal"
+  data-position="center"
   data-preset="terminal"
   data-backdrop="true"
   data-close-on-outside-click="true"

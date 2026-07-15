@@ -16,7 +16,7 @@ mountContext7Widget({
   library: "/vercel/next.js",
   color: "#10b981",
   theme: "auto",
-  position: "modal",
+  position: "center",
   preset: "glass",
   backdrop: true,
   closeOnOutsideClick: true
@@ -36,5 +36,5 @@ stream transport, markdown renderer, typed widget options, event payload types,
 and `./widget.js` for script hosting.
 
 Supported presets are `default`, `minimal`, `glass`, `neo`, `terminal`, and
-`brutalist`. Supported positions are fixed corners, `modal`/`center`, and
+`brutalist`. Supported positions are fixed corners, `center`, and
 `anchor` for trigger-attached popovers.

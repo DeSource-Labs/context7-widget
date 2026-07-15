@@ -1067,7 +1067,7 @@ select:disabled {
   position: relative;
 }
 
-.example-card--modal .example-card__visual {
+.example-card--center .example-card__visual {
   background:
     linear-gradient(145deg, rgba(57, 255, 136, 0.09), transparent 46%),
     rgba(247, 242, 232, 0.055);
@@ -1108,7 +1108,7 @@ select:disabled {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-.example-modal-preview {
+.example-center-preview {
   align-self: end;
   background: #030806;
   border: 1px solid rgba(57, 255, 136, 0.32);
