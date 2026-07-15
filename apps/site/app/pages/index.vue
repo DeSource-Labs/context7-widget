@@ -37,25 +37,6 @@
           </a>
         </div>
       </div>
-
-      <div class="hero__dock" aria-label="Package surfaces">
-        <a href="/widget.js">
-          <PanelRightOpen :size="18" aria-hidden="true" />
-          <span>/widget.js</span>
-        </a>
-        <a href="#paths">
-          <Braces :size="18" aria-hidden="true" />
-          <span>core npm</span>
-        </a>
-        <a href="#lab">
-          <Package :size="18" aria-hidden="true" />
-          <span>Vue package</span>
-        </a>
-        <a href="/examples">
-          <Waypoints :size="18" aria-hidden="true" />
-          <span>examples</span>
-        </a>
-      </div>
     </section>
 
     <section class="showcase-section">
@@ -179,7 +160,6 @@ import {
   Package,
   PanelRightOpen,
   SlidersHorizontal,
-  Waypoints,
   X
 } from "lucide-vue-next";
 

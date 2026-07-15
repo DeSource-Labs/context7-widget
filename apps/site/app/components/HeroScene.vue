@@ -1,14 +1,29 @@
 <template>
-  <div ref="scene" class="hero-scene" aria-hidden="true">
-    <div class="hero-scene__aurora" />
-    <div class="hero-scene__mesh" />
-    <div class="hero-scene__scanner" />
-    <div class="hero-scene__rail hero-scene__rail--left">
-      <span v-for="item in leftSignals" :key="item">{{ item }}</span>
-    </div>
-    <div class="hero-scene__rail hero-scene__rail--right">
-      <span v-for="item in rightSignals" :key="item">{{ item }}</span>
-    </div>
+  <div class="hero-scene" aria-hidden="true">
+    <GridScan
+      class="hero-scene__background"
+      lines-color="#265746"
+      scan-color="#7cffb2"
+      line-style="solid"
+      scan-direction="pingpong"
+      :bloom-intensity="0.34"
+      :bloom-smoothing="0.32"
+      :bloom-threshold="0.04"
+      :chromatic-aberration="0.0018"
+      :grid-scale="0.085"
+      :line-jitter="0.05"
+      :line-thickness="1.25"
+      :noise-intensity="0.012"
+      :scan-delay="0.9"
+      :scan-duration="2.8"
+      :scan-glow="0.92"
+      :scan-on-click="true"
+      :scan-opacity="0.76"
+      :scan-phase-taper="0.32"
+      :scan-softness="1.45"
+      :sensitivity="0.48"
+    />
+    <div class="hero-scene__shade" />
     <div class="hero-scene__stack">
       <div class="browser-frame browser-frame--script">
         <div class="browser-frame__top">
@@ -40,25 +55,5 @@
 </template>
 
 <script setup lang="ts">
-const scene = ref<HTMLElement | null>(null);
-
-const leftSignals = ["script", "core", "vue", "scss", "events", "shadow-parts"];
-const rightSignals = ["widget.js", "npm", "nuxt", "analytics", "themes", "vercel"];
-
-const handlePointerMove = (event: PointerEvent) => {
-  const element = scene.value;
-  if (!element) return;
-
-  const rect = element.getBoundingClientRect();
-  element.style.setProperty("--pointer-x", `${((event.clientX - rect.left) / rect.width) * 100}%`);
-  element.style.setProperty("--pointer-y", `${((event.clientY - rect.top) / rect.height) * 100}%`);
-};
-
-onMounted(() => {
-  scene.value?.addEventListener("pointermove", handlePointerMove);
-});
-
-onBeforeUnmount(() => {
-  scene.value?.removeEventListener("pointermove", handlePointerMove);
-});
+import GridScan from "./backgrounds/GridScan.vue";
 </script>

@@ -48,11 +48,7 @@ select {
 }
 
 main {
-  background:
-    linear-gradient(180deg, rgba(16, 21, 19, 0) 0, var(--bg) 760px),
-    radial-gradient(circle at 18% 42%, rgba(255, 180, 94, 0.1), transparent 28rem),
-    radial-gradient(circle at 86% 62%, rgba(122, 184, 255, 0.12), transparent 26rem),
-    var(--bg);
+  background: linear-gradient(180deg, #0a0f0c 0, var(--bg) 44rem, var(--bg) 100%);
   min-height: 100dvh;
   overflow: hidden;
 }
@@ -60,7 +56,7 @@ main {
 .hero {
   min-height: 92dvh;
   overflow: hidden;
-  padding: 1rem clamp(1rem, 3vw, 2rem) 4rem;
+  padding: 1rem clamp(1rem, 3vw, 2rem) clamp(4rem, 8dvh, 6rem);
   position: relative;
 }
 
@@ -73,6 +69,17 @@ main {
   pointer-events: none;
   position: absolute;
   right: 0;
+  z-index: 2;
+}
+
+.hero::before {
+  background:
+    radial-gradient(ellipse at 18% 48%, rgba(6, 10, 8, 0.68), transparent 34rem),
+    linear-gradient(90deg, rgba(6, 10, 8, 0.58), rgba(6, 10, 8, 0.2) 42%, transparent 68%);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
   z-index: 2;
 }
 
@@ -125,9 +132,10 @@ nav {
   display: grid;
   gap: 1.4rem;
   max-width: 820px;
-  padding-top: min(22dvh, 12rem);
+  padding-top: clamp(7rem, 18dvh, 12rem);
   position: relative;
   z-index: 3;
+  pointer-events: none;
 }
 
 .eyebrow {
@@ -177,46 +185,7 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-}
-
-.hero__dock {
-  backdrop-filter: blur(22px);
-  background: rgba(247, 242, 232, 0.07);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  bottom: 2rem;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
-  display: grid;
-  gap: 0.35rem;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  left: 50%;
-  max-width: min(860px, calc(100vw - 2rem));
-  padding: 0.45rem;
-  position: absolute;
-  transform: translateX(-50%);
-  width: 100%;
-  z-index: 5;
-
-  a {
-    align-items: center;
-    border-radius: 7px;
-    color: var(--muted);
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    min-height: 3rem;
-    text-decoration: none;
-  }
-
-  a:hover {
-    background: rgba(124, 255, 178, 0.11);
-    color: var(--ink);
-  }
-
-  svg {
-    color: var(--green);
-    flex: none;
-  }
+  pointer-events: all;
 }
 
 .button,
@@ -250,8 +219,8 @@ h3 {
 }
 
 .hero-scene {
-  --pointer-x: 68%;
-  --pointer-y: 35%;
+  --pointer-x: 64%;
+  --pointer-y: 34%;
   inset: 0;
   overflow: hidden;
   pointer-events: auto;
@@ -259,74 +228,36 @@ h3 {
   z-index: 1;
 }
 
-.hero-scene__aurora {
-  animation: aurora-drift 14s ease-in-out infinite alternate;
+.hero-scene__background,
+.hero-scene__shade {
+  inset: 0;
+  position: absolute;
+}
+
+.hero-scene__background {
+  background: #070b09;
+  height: 100%;
+  width: 100%;
+}
+
+.hero-scene__shade {
   background:
-    conic-gradient(from 120deg at 62% 42%, transparent, rgba(124, 255, 178, 0.2), transparent, rgba(255, 180, 94, 0.22), transparent),
-    radial-gradient(circle at 72% 28%, rgba(255, 111, 145, 0.14), transparent 22rem);
-  filter: blur(28px);
-  inset: -18%;
-  opacity: 0.9;
-  position: absolute;
-}
-
-.hero-scene__mesh {
-  background:
-    radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(124, 255, 178, 0.18), transparent 18rem),
-    linear-gradient(rgba(247, 242, 232, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(247, 242, 232, 0.05) 1px, transparent 1px);
-  background-size: auto, 48px 48px, 48px 48px;
-  inset: -2rem;
-  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
-  position: absolute;
-}
-
-.hero-scene__scanner {
-  animation: scanner-sweep 5.5s cubic-bezier(0.7, 0, 0.2, 1) infinite;
-  background: linear-gradient(90deg, transparent, rgba(124, 255, 178, 0.2), transparent);
-  bottom: 0;
-  position: absolute;
-  top: 0;
-  transform: translateX(-30vw) skewX(-18deg);
-  width: 16vw;
-}
-
-.hero-scene__rail {
-  display: grid;
-  gap: 0.75rem;
-  opacity: 0.7;
-  position: absolute;
-  top: 22%;
-
-  span {
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    color: var(--muted);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.75rem;
-    padding: 0.45rem 0.7rem;
-    width: max-content;
-  }
-}
-
-.hero-scene__rail--left {
-  animation: rail-left 18s linear infinite;
-  left: 3vw;
-}
-
-.hero-scene__rail--right {
-  animation: rail-right 20s linear infinite;
-  right: 4vw;
-  top: 18%;
+    radial-gradient(circle at 78% 22%, rgba(255, 177, 89, 0.16), transparent 26rem),
+    radial-gradient(circle at 56% 52%, rgba(57, 203, 255, 0.1), transparent 34rem),
+    radial-gradient(ellipse at 20% 48%, rgba(5, 8, 7, 0.62), transparent 34rem),
+    linear-gradient(90deg, rgba(5, 8, 7, 0.62), rgba(5, 8, 7, 0.18) 42%, transparent 68%),
+    linear-gradient(180deg, rgba(5, 8, 7, 0.12), rgba(5, 8, 7, 0.28) 82%, #101513 100%);
+  pointer-events: none;
 }
 
 .hero-scene__stack {
   height: 520px;
   perspective: 1100px;
   position: absolute;
-  right: clamp(-10rem, 5vw, 6rem);
+  right: clamp(-6rem, 4vw, 6rem);
   top: 18%;
   width: min(54vw, 720px);
+  pointer-events: none;
 }
 
 .browser-frame {
@@ -1324,50 +1255,6 @@ select:disabled {
   }
 }
 
-@keyframes rail-left {
-  from {
-    transform: translateY(-1rem);
-  }
-  to {
-    transform: translateY(5rem);
-  }
-}
-
-@keyframes rail-right {
-  from {
-    transform: translateY(4rem);
-  }
-  to {
-    transform: translateY(-2rem);
-  }
-}
-
-@keyframes aurora-drift {
-  from {
-    transform: rotate(-4deg) scale(1);
-  }
-  to {
-    transform: rotate(7deg) scale(1.12);
-  }
-}
-
-@keyframes scanner-sweep {
-  0% {
-    opacity: 0;
-    transform: translateX(-32vw) skewX(-18deg);
-  }
-  12% {
-    opacity: 1;
-  }
-  55% {
-    opacity: 0.9;
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(118vw) skewX(-18deg);
-  }
-}
-
 @keyframes float-a {
   0%,
   100% {
@@ -1461,7 +1348,11 @@ select:disabled {
 
   nav {
     justify-content: flex-end;
-    max-width: 12rem;
+    max-width: none;
+
+    a[href="#use-cases"] {
+      display: none;
+    }
   }
 
   .hero__content {
@@ -1470,10 +1361,6 @@ select:disabled {
 
   h1 {
     font-size: clamp(3.2rem, 18vw, 5rem);
-  }
-
-  .hero-scene__rail {
-    display: none;
   }
 
   .hero-scene__stack {
@@ -1485,17 +1372,6 @@ select:disabled {
   .browser-frame--script {
     min-width: 360px;
   }
-
-  .hero__dock {
-    bottom: 1rem;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    a {
-      justify-content: flex-start;
-      padding: 0 0.7rem;
-    }
-  }
-
   .showcase-stage {
     min-height: 790px;
   }

@@ -37,7 +37,7 @@ export default defineNuxtConfig({
   },
   vite: {
     optimizeDeps: {
-      include: ["lucide-vue-next"]
+      include: ["lucide-vue-next", "postprocessing", "three"]
     }
   },
   typescript: {
