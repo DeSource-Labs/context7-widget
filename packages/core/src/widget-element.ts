@@ -2,7 +2,6 @@ import { escapeHtml, renderMarkdown } from "./markdown";
 import { widgetStyles } from "./styles";
 import { Context7TransportError, streamContext7Response } from "./transport";
 import type {
-  Context7AnchorPlacement,
   Context7LauncherVariant,
   Context7Message,
   Context7Position,
@@ -25,13 +24,11 @@ let globalApiInstalled = false;
 
 export class Context7WidgetElement extends BaseHTMLElement {
   static observedAttributes = [
-    "anchor-placement",
     "api-url",
     "backdrop",
     "close-on-outside-click",
     "color",
     "custom-trigger",
-    "data-anchor-placement",
     "data-api-url",
     "data-backdrop",
     "data-close-on-outside-click",
@@ -369,7 +366,6 @@ export class Context7WidgetElement extends BaseHTMLElement {
     syncStyleProperty(this, "--c7-panel-height", this.config.panelHeight);
     syncStyleProperty(this, "--c7-panel-width", this.config.panelWidth);
 
-    syncHostAttribute(this, "anchor-placement", this.config.anchorPlacement);
     syncHostAttribute(this, "launcher-variant", this.config.launcherVariant);
     syncHostAttribute(this, "position", this.config.position);
     syncHostAttribute(this, "preset", this.config.preset);
@@ -529,38 +525,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     const gap = 12;
     const margin = 12;
     let left = rect.right - panelWidth;
-    let top = rect.top - panelHeight - gap;
-    let origin = "bottom right";
-
-    switch (this.config.anchorPlacement) {
-      case "bottom-start":
-        left = rect.left;
-        ({ top, origin } = resolveAnchorVerticalPosition(rect, panelHeight, viewportHeight, gap, margin, "left"));
-        break;
-      case "top-end":
-        left = rect.right - panelWidth;
-        ({ top, origin } = resolveAnchorVerticalPosition(rect, panelHeight, viewportHeight, gap, margin, "right"));
-        break;
-      case "top-start":
-        left = rect.left;
-        ({ top, origin } = resolveAnchorVerticalPosition(rect, panelHeight, viewportHeight, gap, margin, "left"));
-        break;
-      case "right":
-        left = rect.right + gap;
-        top = rect.top + rect.height / 2 - panelHeight / 2;
-        origin = "left center";
-        break;
-      case "left":
-        left = rect.left - panelWidth - gap;
-        top = rect.top + rect.height / 2 - panelHeight / 2;
-        origin = "right center";
-        break;
-      case "bottom-end":
-      default:
-        left = rect.right - panelWidth;
-        ({ top, origin } = resolveAnchorVerticalPosition(rect, panelHeight, viewportHeight, gap, margin, "right"));
-        break;
-    }
+    let { top, origin } = resolveAnchorVerticalPosition(rect, panelHeight, viewportHeight, gap, margin, "right");
 
     const maxLeft = Math.max(margin, viewportWidth - panelWidth - margin);
     const maxTop = Math.max(margin, viewportHeight - panelHeight - margin);
@@ -718,9 +683,6 @@ function readConfig(element: HTMLElement): Context7WidgetConfig {
   const library = readAttribute(element, "library", "data-library");
   const position = normalizePosition(readAttribute(element, "position", "data-position"));
   return {
-    anchorPlacement: normalizeAnchorPlacement(
-      readAttribute(element, "anchor-placement", "data-anchor-placement")
-    ),
     apiUrl: readAttribute(element, "api-url", "data-api-url") || "https://context7.com",
     backdrop: readBooleanAttribute(
       element,
@@ -789,20 +751,6 @@ function normalizePosition(value: string): Context7Position {
   }
 
   return "bottom-right";
-}
-
-function normalizeAnchorPlacement(value: string): Context7AnchorPlacement {
-  if (
-    value === "bottom-start" ||
-    value === "top-end" ||
-    value === "top-start" ||
-    value === "right" ||
-    value === "left"
-  ) {
-    return value;
-  }
-
-  return "bottom-end";
 }
 
 function normalizeLauncherVariant(value: string): Context7LauncherVariant {

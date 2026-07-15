@@ -47,7 +47,6 @@ Additional attributes cover product-app use cases that the official script does
 not expose:
 
 - `data-position`: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `center`, or `anchor`.
-- `data-anchor-placement`: `bottom-end`, `bottom-start`, `top-end`, `top-start`, `right`, or `left`.
 - `data-preset`: `default`, `minimal`, `glass`, `neo`, `terminal`, or `brutalist`.
 - `data-launcher-variant`: `icon`, `pill`, or `badge`.
 - `data-backdrop`, `data-close-on-outside-click`, `data-panel-width`, `data-panel-height`, and `data-show-powered-by`.
@@ -99,7 +98,6 @@ pnpm add @desource/context7-widget-vue
     library="/vercel/next.js"
     color="#10b981"
     position="anchor"
-    anchor-placement="bottom-end"
     preset="glass"
     theme="auto"
     @question="trackQuestion"

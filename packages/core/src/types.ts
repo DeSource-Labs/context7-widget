@@ -8,14 +8,6 @@ export type Context7Position =
   | "center"
   | "anchor";
 
-export type Context7AnchorPlacement =
-  | "bottom-end"
-  | "bottom-start"
-  | "top-end"
-  | "top-start"
-  | "right"
-  | "left";
-
 export type Context7LauncherVariant = "icon" | "pill" | "badge";
 
 export type Context7WidgetPreset =
@@ -47,7 +39,6 @@ export interface Context7Message {
 }
 
 export interface Context7WidgetOptions {
-  anchorPlacement?: Context7AnchorPlacement;
   apiUrl?: string;
   backdrop?: boolean;
   closeOnOutsideClick?: boolean;
@@ -71,7 +62,6 @@ export interface Context7WidgetOptions {
 }
 
 export interface Context7WidgetConfig {
-  anchorPlacement: Context7AnchorPlacement;
   apiUrl: string;
   backdrop: boolean;
   closeOnOutsideClick: boolean;

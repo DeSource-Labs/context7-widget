@@ -10,7 +10,6 @@ export { useContext7Widget } from "./useContext7Widget";
 export type { UseContext7WidgetOptions } from "./useContext7Widget";
 export type { UseContext7WidgetReturn } from "./useContext7Widget";
 export type {
-  Context7AnchorPlacement,
   Context7LauncherVariant,
   Context7Message,
   Context7Position,

@@ -143,7 +143,6 @@
     />
 
     <Context7Widget
-      anchor-placement="bottom-end"
       custom-trigger="#example-anchor-trigger"
       hide-default-button
       library="/desource-labs/context7-widget"
@@ -182,7 +181,6 @@ const anchorVue = `<button id="docs-trigger">Ask docs</button>
   custom-trigger="#docs-trigger"
   hide-default-button
   position="anchor"
-  anchor-placement="bottom-end"
   preset="glass"
   panel-height="420px"
   panel-width="420px"

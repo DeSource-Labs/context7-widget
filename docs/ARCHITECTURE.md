@@ -62,7 +62,6 @@ The loader supports the official attributes:
 
 It also adds:
 
-- `data-anchor-placement`
 - `data-api-url`
 - `data-backdrop`
 - `data-close-on-outside-click`

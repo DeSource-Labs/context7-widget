@@ -42,7 +42,6 @@ const widget = ref<Context7WidgetElement | null>(null);
 
 const widgetOptions = computed(() =>
   compactWidgetOptions({
-    anchorPlacement: props.anchorPlacement,
     apiUrl: props.apiUrl,
     backdrop: props.backdrop,
     closeOnOutsideClick: props.closeOnOutsideClick,

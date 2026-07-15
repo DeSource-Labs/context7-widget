@@ -26,8 +26,7 @@ const script = buildContext7WidgetScriptTag({
   library: "/vercel/next.js",
   customTrigger: "#docs-chat",
   hideDefaultButton: true,
-  position: "anchor",
-  anchorPlacement: "bottom-end"
+  position: "anchor"
 });
 ```
 

@@ -1,7 +1,6 @@
 import type { Context7WidgetOptions } from "@desource/context7-widget";
 
 const optionKeys = [
-  "anchorPlacement",
   "apiUrl",
   "backdrop",
   "closeOnOutsideClick",

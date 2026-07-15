@@ -9,7 +9,6 @@ Vue 3 bindings for `@desource/context7-widget`.
     color="#10b981"
     theme="auto"
     position="anchor"
-    anchor-placement="bottom-end"
     preset="glass"
     launcher-variant="pill"
     @question="trackQuestion"

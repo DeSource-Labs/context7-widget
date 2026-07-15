@@ -60,7 +60,6 @@ const script = buildContext7WidgetScriptTag({
     custom-trigger="#docs-chat"
     hide-default-button
     position="anchor"
-    anchor-placement="bottom-end"
     preset="glass"
     @question="trackQuestion"
     @answer-complete="trackAnswer"
@@ -138,7 +137,6 @@ export default {
   data-custom-trigger="#docs-chat"
   data-hide-default-button="true"
   data-position="anchor"
-  data-anchor-placement="bottom-end"
 ></script>
 ```
 

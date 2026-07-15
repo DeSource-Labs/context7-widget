@@ -12,7 +12,6 @@ export { renderMarkdown } from "./markdown";
 export { streamContext7Response, Context7TransportError } from "./transport";
 export { Context7WidgetElement, defineContext7Widget } from "./widget-element";
 export type {
-  Context7AnchorPlacement,
   Context7LauncherVariant,
   Context7Message,
   Context7Position,

@@ -111,7 +111,6 @@
     </div>
 
     <Context7Widget
-      anchor-placement="bottom-start"
       :backdrop="backdrop"
       :close-on-outside-click="closeOnOutsideClick"
       :color="color || undefined"
@@ -178,7 +177,6 @@ const events = reactive({ answer: 0, question: 0 });
 
 const scriptCode = computed(() =>
   buildContext7WidgetScriptTag({
-    anchorPlacement: "bottom-start",
     backdrop: backdrop.value,
     closeOnOutsideClick: closeOnOutsideClick.value,
     color: color.value || undefined,

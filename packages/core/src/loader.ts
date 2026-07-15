@@ -1,7 +1,6 @@
 import { defineContext7Widget } from "./widget-element";
 
 const ATTRIBUTE_MAP: Array<[scriptAttribute: string, widgetAttribute: string]> = [
-  ["data-anchor-placement", "anchor-placement"],
   ["data-api-url", "api-url"],
   ["data-backdrop", "backdrop"],
   ["data-close-on-outside-click", "close-on-outside-click"],
