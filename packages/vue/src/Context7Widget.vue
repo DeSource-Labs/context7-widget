@@ -8,15 +8,10 @@
 import {
   createContext7Widget,
   setContext7WidgetAttributes,
-  type Context7AnchorPlacement,
-  type Context7LauncherVariant,
-  type Context7Position,
-  type Context7Theme,
   type Context7WidgetElement,
   type Context7WidgetOptions,
-  type Context7WidgetPreset
 } from "@desource/context7-widget";
-import { computed, onBeforeUnmount, onMounted, ref, useAttrs, watch, type PropType } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, useAttrs, watch } from "vue";
 import { context7WidgetEvents, vueEventNames } from "./events";
 import { compactWidgetOptions } from "./options";
 import type { Context7WidgetExpose, Context7WidgetVueEvent } from "./component-types";
@@ -26,47 +21,7 @@ defineOptions({
   name: "Context7Widget"
 });
 
-const props = defineProps({
-  anchorPlacement: String as PropType<Context7AnchorPlacement>,
-  apiUrl: String,
-  backdrop: {
-    default: undefined,
-    type: Boolean as PropType<boolean | undefined>
-  },
-  closeOnOutsideClick: {
-    default: undefined,
-    type: Boolean as PropType<boolean | undefined>
-  },
-  color: String,
-  customTrigger: String,
-  defaultOpen: {
-    default: undefined,
-    type: Boolean as PropType<boolean | undefined>
-  },
-  hideDefaultButton: {
-    default: undefined,
-    type: Boolean as PropType<boolean | undefined>
-  },
-  initialMessage: String,
-  launcherLabel: String,
-  launcherVariant: String as PropType<Context7LauncherVariant>,
-  library: {
-    required: true,
-    type: String
-  },
-  panelHeight: String,
-  panelWidth: String,
-  placeholder: String,
-  position: String as PropType<Context7Position>,
-  preset: String as PropType<Context7WidgetPreset>,
-  showPoweredBy: {
-    default: undefined,
-    type: Boolean as PropType<boolean | undefined>
-  },
-  theme: String as PropType<Context7Theme>,
-  title: String,
-  widgetId: String
-});
+const props = defineProps<Context7WidgetOptions>();
 
 const emit = defineEmits([
   "answer",
@@ -82,7 +37,7 @@ const emit = defineEmits([
 ]);
 
 const attrs = useAttrs();
-const host = ref<HTMLElement | null>(null);
+const host = useTemplateRef('host');
 const widget = ref<Context7WidgetElement | null>(null);
 
 const widgetOptions = computed(() =>
@@ -156,7 +111,7 @@ watch(
 onMounted(mount);
 onBeforeUnmount(unmount);
 
-defineExpose({
+defineExpose<Context7WidgetExpose>({
   get element() {
     return widget.value;
   },
