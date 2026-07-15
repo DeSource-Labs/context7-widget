@@ -1,5 +1,5 @@
 {
-  "name": "@desource-labs/context7-widget",
+  "name": "@desource/context7-widget",
   "version": "0.1.0",
   "description": "Themeable Context7-compatible chat widget with a one-line replacement loader.",
   "license": "MIT",
@@ -21,7 +21,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "npm run clean && npm run build:esm && npm run build:widget && npm run copy:public",
+    "build": "pnpm clean && pnpm build:esm && pnpm build:widget && pnpm copy:public",
     "build:esm": "tsup src/index.ts --format esm --dts --sourcemap --out-dir dist",
     "build:widget": "esbuild src/auto.ts --bundle --format=iife --global-name=Context7WidgetLoader --minify --sourcemap --outfile=dist/widget.js",
     "copy:public": "node scripts/copy-public.mjs",
@@ -29,12 +29,13 @@
     "test": "vitest run",
     "scan:upstream": "node scripts/scan-upstream.mjs"
   },
+  "packageManager": "pnpm@11.10.0",
   "devDependencies": {
-    "@types/node": "^22.15.3",
-    "esbuild": "^0.25.4",
-    "jsdom": "^26.1.0",
-    "tsup": "^8.4.0",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.3"
+    "@types/node": "^26.1.1",
+    "esbuild": "^0.28.1",
+    "jsdom": "^29.1.1",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   }
 }
