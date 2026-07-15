@@ -44,7 +44,6 @@ export interface Context7WidgetOptions {
   color?: string;
   customTrigger?: string;
   defaultOpen?: boolean;
-  hideDefaultButton?: boolean;
   initialMessage?: string;
   launcherLabel?: string;
   launcherVariant?: Context7LauncherVariant;
@@ -66,7 +65,6 @@ export interface Context7WidgetConfig {
   color: string;
   customTrigger: string;
   defaultOpen: boolean;
-  hideDefaultButton: boolean;
   initialMessage: string;
   launcherLabel: string;
   launcherVariant: Context7LauncherVariant;

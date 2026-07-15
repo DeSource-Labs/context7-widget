@@ -33,7 +33,6 @@ export class Context7WidgetElement extends BaseHTMLElement {
     "data-color",
     "data-custom-trigger",
     "data-default-open",
-    "data-hide-default-button",
     "data-initial-message",
     "data-launcher-label",
     "data-launcher-variant",
@@ -49,7 +48,6 @@ export class Context7WidgetElement extends BaseHTMLElement {
     "data-welcome-message",
     "data-widget-id",
     "default-open",
-    "hide-default-button",
     "initial-message",
     "launcher-label",
     "launcher-variant",
@@ -369,7 +367,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     syncHostAttribute(this, "preset", this.config.preset);
     syncHostAttribute(this, "theme", this.config.theme);
     syncStateAttribute(this, "backdrop-active", this.config.backdrop);
-    syncStateAttribute(this, "hide-default-button", this.config.hideDefaultButton);
+    syncStateAttribute(this, "custom-trigger-active", Boolean(this.config.customTrigger));
     syncStateAttribute(this, "hide-powered-by", !this.config.showPoweredBy);
   }
 
@@ -696,12 +694,6 @@ function readConfig(element: HTMLElement): Context7WidgetConfig {
     color: readAttribute(element, "color", "data-color"),
     customTrigger: readAttribute(element, "custom-trigger", "data-custom-trigger"),
     defaultOpen: readBooleanAttribute(element, false, "default-open", "data-default-open"),
-    hideDefaultButton: readBooleanAttribute(
-      element,
-      false,
-      "hide-default-button",
-      "data-hide-default-button"
-    ),
     initialMessage:
       readAttribute(
         element,

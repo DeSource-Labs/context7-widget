@@ -6,7 +6,6 @@ const optionKeys = [
   "color",
   "customTrigger",
   "defaultOpen",
-  "hideDefaultButton",
   "initialMessage",
   "launcherLabel",
   "launcherVariant",

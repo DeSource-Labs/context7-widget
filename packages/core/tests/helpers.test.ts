@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   buildContext7WidgetScriptTag,
   mountContext7Widget,
+  setContext7WidgetAttributes,
   toContext7WidgetAttributes
 } from "../src";
 
@@ -14,14 +15,14 @@ describe("core helpers", () => {
     expect(
       toContext7WidgetAttributes({
         color: "#111827",
-        hideDefaultButton: true,
+        customTrigger: "#docs-chat",
         library: "/vercel/next.js",
         placeholder: "Ask docs",
         theme: "dark"
       })
     ).toEqual({
       color: "#111827",
-      "hide-default-button": "",
+      "custom-trigger": "#docs-chat",
       library: "/vercel/next.js",
       placeholder: "Ask docs",
       theme: "dark"
@@ -48,16 +49,29 @@ describe("core helpers", () => {
     expect(widget.getAttribute("widget-id")).toBe("docs");
   });
 
+  it("clears missing managed attributes when requested", () => {
+    const widget = document.createElement("context7-widget");
+
+    setContext7WidgetAttributes(widget, {
+      customTrigger: "#docs-chat",
+      library: "/desource-labs/context7-widget"
+    });
+    setContext7WidgetAttributes(widget, { library: "/desource-labs/context7-widget" }, true);
+
+    expect(widget.hasAttribute("custom-trigger")).toBe(false);
+    expect(widget.getAttribute("library")).toBe("/desource-labs/context7-widget");
+  });
+
   it("builds safe script tags for copy-paste installs", () => {
     expect(
       buildContext7WidgetScriptTag({
         color: "#16a34a",
-        hideDefaultButton: true,
+        customTrigger: "#docs-chat",
         library: "/desource-labs/context7-widget",
         placeholder: "Ask \"docs\""
       })
     ).toBe(
-      '<script src="https://context7.desource-labs.org/widget.js" async data-color="#16a34a" data-library="/desource-labs/context7-widget" data-placeholder="Ask &quot;docs&quot;" data-hide-default-button="true"></script>'
+      '<script src="https://context7.desource-labs.org/widget.js" async data-color="#16a34a" data-custom-trigger="#docs-chat" data-library="/desource-labs/context7-widget" data-placeholder="Ask &quot;docs&quot;"></script>'
     );
   });
 });

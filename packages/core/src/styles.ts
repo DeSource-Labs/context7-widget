@@ -477,8 +477,7 @@ export const widgetStyles = `
     top: 20px;
   }
 
-  :host([hide-default-button]) .c7-launcher,
-  :host([data-hide-default-button="true"]) .c7-launcher {
+  :host([custom-trigger-active]) .c7-launcher {
     display: none;
   }
 

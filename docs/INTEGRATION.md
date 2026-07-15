@@ -58,7 +58,6 @@ const script = buildContext7WidgetScriptTag({
     library="/vercel/next.js"
     color="#10b981"
     custom-trigger="#docs-chat"
-    hide-default-button
     position="anchor"
     preset="glass"
     @question="trackQuestion"
@@ -135,7 +134,6 @@ export default {
   src="https://context7.desource-labs.org/widget.js"
   data-library="/vercel/next.js"
   data-custom-trigger="#docs-chat"
-  data-hide-default-button="true"
   data-position="anchor"
 ></script>
 ```

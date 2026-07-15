@@ -59,7 +59,7 @@
             <div class="mini-widget__body">
               <span class="bubble bubble--assistant">Ask about setup, API usage, or styles.</span>
               <span class="bubble bubble--user">Use my own trigger?</span>
-              <span class="bubble bubble--assistant">Set data-custom-trigger and hide the default button.</span>
+              <span class="bubble bubble--assistant">Set data-custom-trigger; the launcher steps aside.</span>
             </div>
             <div class="mini-widget__input">
               <span>Ask about the docs...</span>
@@ -230,7 +230,7 @@ const useCases = [
     title: "Product instrumentation"
   },
   {
-    copy: "Hide the default launcher and bind the widget to a header button, command palette, or support menu item.",
+    copy: "Bind the widget to a header button, command palette, or support menu item; the launcher hides automatically.",
     number: "03",
     title: "Custom triggers"
   },

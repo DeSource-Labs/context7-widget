@@ -133,7 +133,6 @@
     <Context7Widget
       close-on-outside-click
       custom-trigger="#example-center-trigger"
-      hide-default-button
       library="/desource-labs/context7-widget"
       panel-width="520px"
       position="center"
@@ -144,7 +143,6 @@
 
     <Context7Widget
       custom-trigger="#example-anchor-trigger"
-      hide-default-button
       library="/desource-labs/context7-widget"
       panel-height="420px"
       panel-width="420px"
@@ -167,7 +165,6 @@ const centerScript = `<button id="docs-help">Open centered help</button>
   src="https://context7.desource-labs.org/widget.js"
   data-library="/owner/repo"
   data-custom-trigger="#docs-help"
-  data-hide-default-button="true"
   data-position="center"
   data-preset="terminal"
   data-backdrop="true"
@@ -179,7 +176,6 @@ const anchorVue = `<button id="docs-trigger">Ask docs</button>
 <Context7Widget
   library="/owner/repo"
   custom-trigger="#docs-trigger"
-  hide-default-button
   position="anchor"
   preset="glass"
   panel-height="420px"

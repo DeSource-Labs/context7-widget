@@ -47,7 +47,6 @@ const widgetOptions = computed(() =>
     color: props.color,
     customTrigger: props.customTrigger,
     defaultOpen: props.defaultOpen,
-    hideDefaultButton: props.hideDefaultButton,
     initialMessage: props.initialMessage,
     launcherLabel: props.launcherLabel,
     launcherVariant: props.launcherVariant,
@@ -100,7 +99,7 @@ watch(
   widgetOptions,
   (nextOptions) => {
     if (widget.value) {
-      setContext7WidgetAttributes(widget.value, nextOptions);
+      setContext7WidgetAttributes(widget.value, nextOptions, true);
     }
   },
   { deep: true }

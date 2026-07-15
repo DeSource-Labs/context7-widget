@@ -63,10 +63,6 @@ export function toContext7WidgetAttributes(options: Context7WidgetOptions): Reco
     attributes[attribute] = String(value);
   }
 
-  if (options.hideDefaultButton) {
-    attributes["hide-default-button"] = "";
-  }
-
   return attributes;
 }
 
@@ -90,11 +86,17 @@ export function mountContext7Widget(
 
 export function setContext7WidgetAttributes(
   widget: HTMLElement,
-  options: Partial<Context7WidgetOptions>
+  options: Partial<Context7WidgetOptions>,
+  clearMissing = false
 ): void {
   for (const [key, attribute] of OPTION_ATTRIBUTES) {
     const value = options[key];
-    if (value === undefined) continue;
+    if (value === undefined) {
+      if (clearMissing) {
+        widget.removeAttribute(attribute);
+      }
+      continue;
+    }
     if (typeof value === "boolean") {
       widget.setAttribute(attribute, String(value));
       continue;
@@ -104,12 +106,6 @@ export function setContext7WidgetAttributes(
     } else {
       widget.setAttribute(attribute, String(value));
     }
-  }
-
-  if (options.hideDefaultButton === true) {
-    widget.setAttribute("hide-default-button", "");
-  } else if (options.hideDefaultButton === false) {
-    widget.removeAttribute("hide-default-button");
   }
 }
 
@@ -151,10 +147,6 @@ export function buildContext7WidgetScriptTag(options: Context7WidgetScriptOption
       continue;
     }
     attributes[attribute] = String(value);
-  }
-
-  if (options.hideDefaultButton) {
-    attributes["data-hide-default-button"] = "true";
   }
 
   const serialized = Object.entries(attributes)

@@ -127,7 +127,6 @@ describe("Context7WidgetElement", () => {
 
     const widget = document.createElement("context7-widget");
     widget.setAttribute("custom-trigger", "#ask");
-    widget.setAttribute("hide-default-button", "");
     widget.setAttribute("library", "/vercel/next.js");
     widget.setAttribute("position", "anchor");
     document.body.append(widget);

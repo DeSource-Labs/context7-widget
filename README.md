@@ -78,8 +78,7 @@ mountContext7Widget({
 
 const script = buildContext7WidgetScriptTag({
   library: "/vercel/next.js",
-  customTrigger: "#docs-chat",
-  hideDefaultButton: true
+  customTrigger: "#docs-chat"
 });
 ```
 
@@ -179,8 +178,8 @@ window.Context7Widget.send("How do I configure middleware?");
 window.Context7Widget.close();
 ```
 
-Use `data-custom-trigger` and `data-hide-default-button` to connect the widget
-to your own UI:
+Use `data-custom-trigger` to connect the widget to your own UI. The built-in
+launcher is hidden automatically when a custom trigger is configured:
 
 ```html
 <button id="docs-chat">Ask docs</button>
@@ -190,7 +189,6 @@ to your own UI:
   src="https://context7.desource-labs.org/widget.js"
   data-library="/vercel/next.js"
   data-custom-trigger="#docs-chat"
-  data-hide-default-button="true"
 ></script>
 ```
 

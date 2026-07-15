@@ -42,11 +42,6 @@ export function mountContext7WidgetFromScript(script: HTMLScriptElement | null):
     widget.setAttribute(widgetAttribute, value);
   }
 
-  if (script.getAttribute("data-hide-default-button") === "true") {
-    widget.setAttribute("data-hide-default-button", "true");
-    widget.setAttribute("hide-default-button", "");
-  }
-
   script.dataset.c7Mounted = "true";
   document.body.append(widget);
   return widget;

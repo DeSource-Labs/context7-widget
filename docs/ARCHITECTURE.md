@@ -66,7 +66,6 @@ It also adds:
 - `data-close-on-outside-click`
 - `data-custom-trigger`
 - `data-default-open`
-- `data-hide-default-button`
 - `data-initial-message`
 - `data-launcher-label`
 - `data-launcher-variant`
