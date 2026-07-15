@@ -10,6 +10,7 @@
         <nav aria-label="Primary navigation">
           <a href="#paths">Paths</a>
           <a href="#lab">Lab</a>
+          <a href="/examples">Examples</a>
           <a href="#use-cases">Use cases</a>
         </nav>
       </header>
@@ -30,6 +31,10 @@
             <Github :size="18" aria-hidden="true" />
             GitHub
           </a>
+          <a class="button button--ghost" href="/examples">
+            <BookOpen :size="18" aria-hidden="true" />
+            Examples
+          </a>
         </div>
       </div>
 
@@ -46,9 +51,9 @@
           <Package :size="18" aria-hidden="true" />
           <span>Vue package</span>
         </a>
-        <a href="#use-cases">
+        <a href="/examples">
           <Waypoints :size="18" aria-hidden="true" />
-          <span>event API</span>
+          <span>examples</span>
         </a>
       </div>
     </section>
@@ -168,6 +173,7 @@ context7-widget::part(send-button) {
 <script setup lang="ts">
 import {
   ArrowUp,
+  BookOpen,
   Braces,
   Github,
   Package,

@@ -12,6 +12,8 @@ export { renderMarkdown } from "./markdown";
 export { streamContext7Response, Context7TransportError } from "./transport";
 export { Context7WidgetElement, defineContext7Widget } from "./widget-element";
 export type {
+  Context7AnchorPlacement,
+  Context7LauncherVariant,
   Context7Message,
   Context7Position,
   Context7Role,
@@ -24,6 +26,7 @@ export type {
   Context7WidgetEventDetail,
   Context7WidgetEventName,
   Context7WidgetOptions,
+  Context7WidgetPreset,
   Context7WidgetScriptOptions,
   Context7WidgetTarget
 } from "./types";

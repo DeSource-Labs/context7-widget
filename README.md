@@ -36,11 +36,24 @@ Existing official attributes continue to work:
   data-color="#111827"
   data-position="bottom-right"
   data-placeholder="Ask about the docs..."
+  data-welcome-message="Ask me about Next.js."
 ></script>
 ```
 
 The widget still calls `https://context7.com/api/v2/widget/chat` by default.
 Use `data-api-url` only if you intentionally run a compatible proxy.
+
+Additional attributes cover product-app use cases that the official script does
+not expose:
+
+- `data-position`: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `center`, `modal`, or `anchor`.
+- `data-anchor-placement`: `bottom-end`, `bottom-start`, `top-end`, `top-start`, `right`, or `left`.
+- `data-preset`: `default`, `minimal`, `glass`, `neo`, `terminal`, or `brutalist`.
+- `data-launcher-variant`: `icon`, `pill`, or `badge`.
+- `data-backdrop`, `data-close-on-outside-click`, `data-panel-width`, `data-panel-height`, and `data-show-powered-by`.
+
+If `data-color` / `color` is omitted, the selected preset owns the action color.
+Set `color` only when you want a brand override.
 
 ## Core Package
 
@@ -55,8 +68,12 @@ import {
 } from "@desource/context7-widget";
 
 mountContext7Widget({
+  backdrop: true,
   color: "#10b981",
+  closeOnOutsideClick: true,
   library: "/vercel/next.js",
+  position: "modal",
+  preset: "glass",
   theme: "auto"
 });
 
@@ -81,6 +98,9 @@ pnpm add @desource/context7-widget-vue
   <Context7Widget
     library="/vercel/next.js"
     color="#10b981"
+    position="anchor"
+    anchor-placement="bottom-end"
+    preset="glass"
     theme="auto"
     @question="trackQuestion"
   />
@@ -176,6 +196,9 @@ to your own UI:
 ></script>
 ```
 
+The Nuxt site includes live examples at `/examples` for modal, anchored, script,
+core, Vue component, and Vue composable integrations.
+
 ## Local Development
 
 ```bash
@@ -185,6 +208,9 @@ pnpm test:all
 pnpm build:all
 pnpm dev:site
 ```
+
+Core and Vue package builds use Vite 8. The Nuxt site build first builds both
+packages, then copies `packages/core/dist/widget.js` into `apps/site/public`.
 
 Useful workspaces:
 

@@ -2,6 +2,8 @@ import { escapeHtml, renderMarkdown } from "./markdown";
 import { widgetStyles } from "./styles";
 import { Context7TransportError, streamContext7Response } from "./transport";
 import type {
+  Context7AnchorPlacement,
+  Context7LauncherVariant,
   Context7Message,
   Context7Position,
   Context7Theme,
@@ -9,7 +11,8 @@ import type {
   Context7ToolResult,
   Context7WidgetApi,
   Context7WidgetConfig,
-  Context7WidgetEventDetail
+  Context7WidgetEventDetail,
+  Context7WidgetPreset
 } from "./types";
 
 const registry = new Map<string, HTMLElement>();
@@ -22,25 +25,46 @@ let globalApiInstalled = false;
 
 export class Context7WidgetElement extends BaseHTMLElement {
   static observedAttributes = [
+    "anchor-placement",
     "api-url",
+    "backdrop",
+    "close-on-outside-click",
     "color",
     "custom-trigger",
+    "data-anchor-placement",
     "data-api-url",
+    "data-backdrop",
+    "data-close-on-outside-click",
     "data-color",
     "data-custom-trigger",
+    "data-default-open",
     "data-hide-default-button",
     "data-initial-message",
+    "data-launcher-label",
+    "data-launcher-variant",
     "data-library",
+    "data-panel-height",
+    "data-panel-width",
     "data-placeholder",
     "data-position",
+    "data-preset",
+    "data-show-powered-by",
     "data-theme",
     "data-title",
+    "data-welcome-message",
     "data-widget-id",
+    "default-open",
     "hide-default-button",
     "initial-message",
+    "launcher-label",
+    "launcher-variant",
     "library",
+    "panel-height",
+    "panel-width",
     "placeholder",
     "position",
+    "preset",
+    "show-powered-by",
     "theme",
     "title",
     "widget-id"
@@ -54,12 +78,39 @@ export class Context7WidgetElement extends BaseHTMLElement {
   private messages: Context7Message[] = [];
   private registeredId = "";
   private readonly root: ShadowRoot;
+  private activeAnchorElement: Element | null = null;
   private toolCalls = new Map<string, HTMLElement>();
   private triggerElement: Element | null = null;
 
   private readonly onCustomTrigger = (event: Event) => {
     event.preventDefault();
+    this.activeAnchorElement = event.currentTarget instanceof Element ? event.currentTarget : this.triggerElement;
     this.toggle();
+  };
+
+  private readonly onLauncherClick = (event: Event) => {
+    this.activeAnchorElement = event.currentTarget instanceof Element ? event.currentTarget : this.launcher;
+    this.toggle();
+  };
+
+  private readonly onBackdropClick = (event: Event) => {
+    if (event.target === this.backdrop && this.config.closeOnOutsideClick) {
+      this.close();
+    }
+  };
+
+  private readonly onDocumentPointerDown = (event: Event) => {
+    if (!this.isOpen() || !this.config.closeOnOutsideClick) return;
+
+    const path = event.composedPath();
+    if (path.includes(this)) return;
+    if (this.triggerElement && path.includes(this.triggerElement)) return;
+
+    this.close();
+  };
+
+  private readonly onFloatingLayout = () => {
+    if (this.isOpen()) this.updateAnchorPosition();
   };
 
   private readonly onKeyDown = (event: KeyboardEvent) => {
@@ -82,13 +133,16 @@ export class Context7WidgetElement extends BaseHTMLElement {
   connectedCallback(): void {
     this.syncConfig();
     this.bindEvents();
+    this.bindCustomTrigger();
     this.resetConversation();
     this.register();
     this.emit("c7:ready");
+    if (this.config.defaultOpen) this.open();
   }
 
   disconnectedCallback(): void {
     this.abortController?.abort();
+    this.unbindFloatingListeners();
     this.unbindCustomTrigger();
     this.unregister();
   }
@@ -103,12 +157,22 @@ export class Context7WidgetElement extends BaseHTMLElement {
     if (this.messages.length <= 1 && previousLibrary !== this.config.library) {
       this.resetConversation();
     }
+
+    if (this.config.defaultOpen && !this.isOpen()) {
+      this.open();
+    } else if (this.isOpen()) {
+      this.unbindFloatingListeners();
+      this.bindFloatingListeners();
+      this.updateAnchorPosition();
+    }
   }
 
   open(): void {
     if (this.isOpen()) return;
     this.lastFocus = document.activeElement;
+    this.updateAnchorPosition();
     this.setAttribute("open", "");
+    this.bindFloatingListeners();
     this.emit("c7:open");
     window.setTimeout(() => this.input?.focus(), 20);
   }
@@ -116,6 +180,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
   close(): void {
     if (!this.isOpen()) return;
     this.removeAttribute("open");
+    this.unbindFloatingListeners();
     this.emit("c7:close");
 
     if (this.lastFocus instanceof HTMLElement) {
@@ -246,7 +311,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
   private renderShell(): void {
     this.root.innerHTML = `
       <style>${widgetStyles}</style>
-      <div class="c7-backdrop" part="backdrop"></div>
+      <div class="c7-backdrop" data-c7-backdrop part="backdrop"></div>
       <section
         aria-label="Context7 documentation chat"
         aria-modal="false"
@@ -268,7 +333,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
           <input class="c7-input" data-c7-input part="input" type="text" autocomplete="off" />
           <button class="c7-send" data-c7-send part="send-button" type="submit">Send</button>
         </form>
-        <footer class="c7-footer" part="footer">
+        <footer class="c7-footer" data-c7-footer part="footer">
           <a class="c7-powered" part="powered-by" href="https://context7.com" target="_blank" rel="noopener noreferrer">
             <span>Powered by</span>
             <span class="c7-mark" aria-hidden="true">7</span>
@@ -282,12 +347,14 @@ export class Context7WidgetElement extends BaseHTMLElement {
           <path d="M8 13h6" />
           <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-5l-5 3v-3H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h12" />
         </svg>
+        <span class="c7-launcher-label" data-c7-launcher-label></span>
       </button>
     `;
   }
 
   private bindEvents(): void {
-    this.launcher?.addEventListener("click", () => this.toggle());
+    this.backdrop?.addEventListener("click", this.onBackdropClick);
+    this.launcher?.addEventListener("click", this.onLauncherClick);
     this.closeButton?.addEventListener("click", () => this.close());
     this.form?.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -298,29 +365,33 @@ export class Context7WidgetElement extends BaseHTMLElement {
 
   private syncConfig(): void {
     this.config = readConfig(this);
-    this.style.setProperty("--c7-accent", this.config.color);
+    syncStyleProperty(this, "--c7-accent", this.config.color);
+    syncStyleProperty(this, "--c7-panel-height", this.config.panelHeight);
+    syncStyleProperty(this, "--c7-panel-width", this.config.panelWidth);
 
-    if (this.getAttribute("position") !== this.config.position) {
-      this.setAttribute("position", this.config.position);
-    }
-
-    if (this.getAttribute("theme") !== this.config.theme) {
-      this.setAttribute("theme", this.config.theme);
-    }
-
-    if (this.config.hideDefaultButton) {
-      if (!this.hasAttribute("hide-default-button")) {
-        this.setAttribute("hide-default-button", "");
-      }
-    } else if (!isTruthyAttribute(this.getAttribute("data-hide-default-button"))) {
-      this.removeAttribute("hide-default-button");
-    }
+    syncHostAttribute(this, "anchor-placement", this.config.anchorPlacement);
+    syncHostAttribute(this, "launcher-variant", this.config.launcherVariant);
+    syncHostAttribute(this, "position", this.config.position);
+    syncHostAttribute(this, "preset", this.config.preset);
+    syncHostAttribute(this, "theme", this.config.theme);
+    syncStateAttribute(this, "backdrop-active", this.config.backdrop);
+    syncStateAttribute(this, "hide-default-button", this.config.hideDefaultButton);
+    syncStateAttribute(this, "hide-powered-by", !this.config.showPoweredBy);
   }
 
   private updateStaticText(): void {
     if (this.titleElement) this.titleElement.textContent = this.config.title;
     if (this.input) this.input.placeholder = this.config.placeholder;
-    if (this.panel) this.panel.setAttribute("aria-label", this.config.title);
+    if (this.launcherLabelElement) this.launcherLabelElement.textContent = this.config.launcherLabel;
+    if (this.launcher) this.launcher.setAttribute("aria-label", this.config.launcherLabel);
+    if (this.panel) {
+      this.panel.setAttribute("aria-label", this.config.title);
+      this.panel.setAttribute(
+        "aria-modal",
+        String(this.config.position === "center" || this.config.position === "modal")
+      );
+    }
+    if (this.footer) this.footer.hidden = !this.config.showPoweredBy;
   }
 
   private resetConversation(): void {
@@ -431,6 +502,92 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.messagesElement.scrollTop = this.messagesElement.scrollHeight;
   }
 
+  private bindFloatingListeners(): void {
+    document.addEventListener("pointerdown", this.onDocumentPointerDown, true);
+
+    if (this.config.position === "anchor") {
+      window.addEventListener("resize", this.onFloatingLayout);
+      window.addEventListener("scroll", this.onFloatingLayout, true);
+    }
+  }
+
+  private unbindFloatingListeners(): void {
+    document.removeEventListener("pointerdown", this.onDocumentPointerDown, true);
+    window.removeEventListener("resize", this.onFloatingLayout);
+    window.removeEventListener("scroll", this.onFloatingLayout, true);
+  }
+
+  private updateAnchorPosition(): void {
+    if (this.config.position !== "anchor") return;
+
+    const anchor = this.getAnchorElement();
+    const panel = this.panel;
+    if (!anchor || !panel) return;
+
+    const rect = anchor.getBoundingClientRect();
+    const panelWidth = panel.offsetWidth || 400;
+    const panelHeight = panel.offsetHeight || 600;
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || panelWidth;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || panelHeight;
+    const gap = 12;
+    const margin = 12;
+    let left = rect.right - panelWidth;
+    let top = rect.bottom + gap;
+    let origin = "top right";
+
+    switch (this.config.anchorPlacement) {
+      case "bottom-start":
+        left = rect.left;
+        top = rect.bottom + gap;
+        origin = "top left";
+        break;
+      case "top-end":
+        left = rect.right - panelWidth;
+        top = rect.top - panelHeight - gap;
+        origin = "bottom right";
+        break;
+      case "top-start":
+        left = rect.left;
+        top = rect.top - panelHeight - gap;
+        origin = "bottom left";
+        break;
+      case "right":
+        left = rect.right + gap;
+        top = rect.top + rect.height / 2 - panelHeight / 2;
+        origin = "left center";
+        break;
+      case "left":
+        left = rect.left - panelWidth - gap;
+        top = rect.top + rect.height / 2 - panelHeight / 2;
+        origin = "right center";
+        break;
+      case "bottom-end":
+      default:
+        left = rect.right - panelWidth;
+        top = rect.bottom + gap;
+        origin = "top right";
+        break;
+    }
+
+    const maxLeft = Math.max(margin, viewportWidth - panelWidth - margin);
+    const maxTop = Math.max(margin, viewportHeight - panelHeight - margin);
+    left = clamp(left, margin, maxLeft);
+    top = clamp(top, margin, maxTop);
+
+    this.style.setProperty("--c7-anchor-left", `${left}px`);
+    this.style.setProperty("--c7-anchor-top", `${top}px`);
+    this.style.setProperty("--c7-anchor-origin", origin);
+  }
+
+  private getAnchorElement(): HTMLElement | null {
+    if (this.activeAnchorElement instanceof HTMLElement && this.activeAnchorElement.isConnected) {
+      return this.activeAnchorElement;
+    }
+
+    if (this.triggerElement instanceof HTMLElement) return this.triggerElement;
+    return this.launcher;
+  }
+
   private bindCustomTrigger(): void {
     this.unbindCustomTrigger();
 
@@ -441,6 +598,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
   }
 
   private unbindCustomTrigger(): void {
+    if (this.activeAnchorElement === this.triggerElement) {
+      this.activeAnchorElement = null;
+    }
     this.triggerElement?.removeEventListener("click", this.onCustomTrigger);
     this.triggerElement = null;
   }
@@ -486,6 +646,14 @@ export class Context7WidgetElement extends BaseHTMLElement {
     return this.root.querySelector("[data-c7-close]");
   }
 
+  private get backdrop(): HTMLElement | null {
+    return this.root.querySelector("[data-c7-backdrop]");
+  }
+
+  private get footer(): HTMLElement | null {
+    return this.root.querySelector("[data-c7-footer]");
+  }
+
   private get form(): HTMLFormElement | null {
     return this.root.querySelector("[data-c7-form]");
   }
@@ -496,6 +664,10 @@ export class Context7WidgetElement extends BaseHTMLElement {
 
   private get launcher(): HTMLButtonElement | null {
     return this.root.querySelector("[data-c7-launcher]");
+  }
+
+  private get launcherLabelElement(): HTMLElement | null {
+    return this.root.querySelector("[data-c7-launcher-label]");
   }
 
   private get messagesElement(): HTMLElement {
@@ -551,18 +723,52 @@ function asWidget(widget: HTMLElement | undefined): Context7WidgetElement | unde
 
 function readConfig(element: HTMLElement): Context7WidgetConfig {
   const library = readAttribute(element, "library", "data-library");
+  const position = normalizePosition(readAttribute(element, "position", "data-position"));
   return {
+    anchorPlacement: normalizeAnchorPlacement(
+      readAttribute(element, "anchor-placement", "data-anchor-placement")
+    ),
     apiUrl: readAttribute(element, "api-url", "data-api-url") || "https://context7.com",
-    color: readAttribute(element, "color", "data-color") || "#059669",
+    backdrop: readBooleanAttribute(
+      element,
+      position === "center" || position === "modal",
+      "backdrop",
+      "data-backdrop"
+    ),
+    closeOnOutsideClick: readBooleanAttribute(
+      element,
+      true,
+      "close-on-outside-click",
+      "data-close-on-outside-click"
+    ),
+    color: readAttribute(element, "color", "data-color"),
     customTrigger: readAttribute(element, "custom-trigger", "data-custom-trigger"),
-    hideDefaultButton:
-      element.hasAttribute("hide-default-button") ||
-      isTruthyAttribute(element.getAttribute("data-hide-default-button")),
+    defaultOpen: readBooleanAttribute(element, false, "default-open", "data-default-open"),
+    hideDefaultButton: readBooleanAttribute(
+      element,
+      false,
+      "hide-default-button",
+      "data-hide-default-button"
+    ),
     initialMessage:
-      readAttribute(element, "initial-message", "data-initial-message") || DEFAULT_INITIAL_MESSAGE,
+      readAttribute(
+        element,
+        "initial-message",
+        "data-initial-message",
+        "welcome-message",
+        "data-welcome-message"
+      ) || DEFAULT_INITIAL_MESSAGE,
+    launcherLabel: readAttribute(element, "launcher-label", "data-launcher-label") || "Ask Docs AI",
+    launcherVariant: normalizeLauncherVariant(
+      readAttribute(element, "launcher-variant", "data-launcher-variant")
+    ),
     library,
+    panelHeight: readAttribute(element, "panel-height", "data-panel-height"),
+    panelWidth: readAttribute(element, "panel-width", "data-panel-width"),
     placeholder: readAttribute(element, "placeholder", "data-placeholder") || "Ask about the docs...",
-    position: normalizePosition(readAttribute(element, "position", "data-position")),
+    position,
+    preset: normalizePreset(readAttribute(element, "preset", "data-preset")),
+    showPoweredBy: readBooleanAttribute(element, true, "show-powered-by", "data-show-powered-by"),
     theme: normalizeTheme(readAttribute(element, "theme", "data-theme")),
     title: readAttribute(element, "title", "data-title") || "Chat with Documentation",
     widgetId: readAttribute(element, "widget-id", "data-widget-id") || element.id || "default"
@@ -582,7 +788,10 @@ function normalizePosition(value: string): Context7Position {
     value === "bottom-left" ||
     value === "top-right" ||
     value === "top-left" ||
-    value === "bottom-right"
+    value === "bottom-right" ||
+    value === "center" ||
+    value === "modal" ||
+    value === "anchor"
   ) {
     return value;
   }
@@ -590,13 +799,88 @@ function normalizePosition(value: string): Context7Position {
   return "bottom-right";
 }
 
+function normalizeAnchorPlacement(value: string): Context7AnchorPlacement {
+  if (
+    value === "bottom-start" ||
+    value === "top-end" ||
+    value === "top-start" ||
+    value === "right" ||
+    value === "left"
+  ) {
+    return value;
+  }
+
+  return "bottom-end";
+}
+
+function normalizeLauncherVariant(value: string): Context7LauncherVariant {
+  if (value === "pill" || value === "badge") return value;
+  return "icon";
+}
+
+function normalizePreset(value: string): Context7WidgetPreset {
+  if (
+    value === "minimal" ||
+    value === "glass" ||
+    value === "neo" ||
+    value === "terminal" ||
+    value === "brutalist"
+  ) {
+    return value;
+  }
+
+  return "default";
+}
+
 function normalizeTheme(value: string): Context7Theme {
   if (value === "light" || value === "dark") return value;
   return "auto";
 }
 
+function readBooleanAttribute(element: HTMLElement, defaultValue: boolean, ...names: string[]): boolean {
+  for (const name of names) {
+    if (!element.hasAttribute(name)) continue;
+    const value = element.getAttribute(name);
+    if (isFalseyAttribute(value)) return false;
+    if (isTruthyAttribute(value)) return true;
+    return true;
+  }
+
+  return defaultValue;
+}
+
 function isTruthyAttribute(value: string | null): boolean {
-  return value === "" || value === "true" || value === "1";
+  return value === "" || value === "true" || value === "1" || value === "yes";
+}
+
+function isFalseyAttribute(value: string | null): boolean {
+  return value === "false" || value === "0" || value === "no";
+}
+
+function syncHostAttribute(element: HTMLElement, name: string, value: string): void {
+  if (element.getAttribute(name) !== value) {
+    element.setAttribute(name, value);
+  }
+}
+
+function syncStateAttribute(element: HTMLElement, name: string, active: boolean): void {
+  if (active) {
+    if (!element.hasAttribute(name)) element.setAttribute(name, "");
+  } else {
+    element.removeAttribute(name);
+  }
+}
+
+function syncStyleProperty(element: HTMLElement, name: string, value: string): void {
+  if (value) {
+    element.style.setProperty(name, value);
+  } else {
+    element.style.removeProperty(name);
+  }
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
 }
 
 function buildErrorHtml(message: string, library: string): string {
@@ -618,6 +902,8 @@ function trapFocus(event: KeyboardEvent, root: ShadowRoot): void {
 
   const first = focusable[0];
   const last = focusable[focusable.length - 1];
+  if (!first || !last) return;
+
   const active = root.activeElement;
 
   if (event.shiftKey && active === first) {

@@ -4,7 +4,28 @@ export type Context7Position =
   | "bottom-right"
   | "bottom-left"
   | "top-right"
-  | "top-left";
+  | "top-left"
+  | "center"
+  | "modal"
+  | "anchor";
+
+export type Context7AnchorPlacement =
+  | "bottom-end"
+  | "bottom-start"
+  | "top-end"
+  | "top-start"
+  | "right"
+  | "left";
+
+export type Context7LauncherVariant = "icon" | "pill" | "badge";
+
+export type Context7WidgetPreset =
+  | "default"
+  | "minimal"
+  | "glass"
+  | "neo"
+  | "terminal"
+  | "brutalist";
 
 export type Context7Theme = "auto" | "light" | "dark";
 
@@ -27,28 +48,48 @@ export interface Context7Message {
 }
 
 export interface Context7WidgetOptions {
+  anchorPlacement?: Context7AnchorPlacement;
   apiUrl?: string;
+  backdrop?: boolean;
+  closeOnOutsideClick?: boolean;
   color?: string;
   customTrigger?: string;
+  defaultOpen?: boolean;
   hideDefaultButton?: boolean;
   initialMessage?: string;
+  launcherLabel?: string;
+  launcherVariant?: Context7LauncherVariant;
   library: string;
+  panelHeight?: string;
+  panelWidth?: string;
   placeholder?: string;
   position?: Context7Position;
+  preset?: Context7WidgetPreset;
+  showPoweredBy?: boolean;
   theme?: Context7Theme;
   title?: string;
   widgetId?: string;
 }
 
 export interface Context7WidgetConfig {
+  anchorPlacement: Context7AnchorPlacement;
   apiUrl: string;
+  backdrop: boolean;
+  closeOnOutsideClick: boolean;
   color: string;
   customTrigger: string;
+  defaultOpen: boolean;
   hideDefaultButton: boolean;
   initialMessage: string;
+  launcherLabel: string;
+  launcherVariant: Context7LauncherVariant;
   library: string;
+  panelHeight: string;
+  panelWidth: string;
   placeholder: string;
   position: Context7Position;
+  preset: Context7WidgetPreset;
+  showPoweredBy: boolean;
   theme: Context7Theme;
   title: string;
   widgetId: string;

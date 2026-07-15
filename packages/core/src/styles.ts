@@ -2,7 +2,8 @@ export const widgetStyles = `
   :host {
     --c7-accent: #059669;
     --c7-accent-contrast: #ffffff;
-    --c7-backdrop: transparent;
+    --c7-backdrop: rgba(15, 23, 42, 0.46);
+    --c7-backdrop-filter: none;
     --c7-border-color: #e7e5e4;
     --c7-control-background: #ffffff;
     --c7-control-border: #d6d3d1;
@@ -14,7 +15,8 @@ export const widgetStyles = `
     --c7-focus-ring: color-mix(in srgb, var(--c7-accent) 22%, transparent);
     --c7-header-background: #fafaf9;
     --c7-launcher-background: var(--c7-accent);
-    --c7-launcher-color: #ffffff;
+    --c7-launcher-color: var(--c7-accent-contrast);
+    --c7-launcher-gap: 8px;
     --c7-launcher-radius: 999px;
     --c7-launcher-shadow: 0 10px 28px rgba(15, 23, 42, 0.24);
     --c7-launcher-size: 56px;
@@ -25,6 +27,7 @@ export const widgetStyles = `
     --c7-message-user-color: var(--c7-accent-contrast);
     --c7-muted-color: #78716c;
     --c7-panel-background: #ffffff;
+    --c7-panel-backdrop-filter: none;
     --c7-panel-color: #1c1917;
     --c7-panel-height: min(600px, calc(100vh - 120px));
     --c7-panel-radius: 16px;
@@ -74,6 +77,287 @@ export const widgetStyles = `
     }
   }
 
+  :host([preset="minimal"]) {
+    --c7-accent: #2563eb;
+    --c7-accent-contrast: #ffffff;
+    --c7-backdrop: rgba(255, 255, 255, 0.54);
+    --c7-border-color: #d4d4d4;
+    --c7-footer-background: #ffffff;
+    --c7-header-background: #ffffff;
+    --c7-launcher-radius: 10px;
+    --c7-launcher-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+    --c7-message-assistant-background: #f4f4f5;
+    --c7-message-radius: 8px;
+    --c7-panel-radius: 10px;
+    --c7-panel-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
+  }
+
+  :host([preset="glass"]) {
+    --c7-accent: #0d9488;
+    --c7-accent-contrast: #ffffff;
+    --c7-backdrop: rgba(4, 12, 18, 0.42);
+    --c7-backdrop-filter: blur(12px);
+    --c7-border-color: rgba(255, 255, 255, 0.2);
+    --c7-control-background: rgba(255, 255, 255, 0.94);
+    --c7-footer-background: rgba(255, 255, 255, 0.76);
+    --c7-header-background: rgba(255, 255, 255, 0.76);
+    --c7-launcher-background: color-mix(in srgb, var(--c7-accent) 86%, white);
+    --c7-launcher-shadow: 0 18px 42px color-mix(in srgb, var(--c7-accent) 24%, rgba(15, 23, 42, 0.24));
+    --c7-message-assistant-background: rgba(255, 255, 255, 0.82);
+    --c7-panel-backdrop-filter: blur(18px);
+    --c7-panel-background: rgba(255, 255, 255, 0.86);
+    --c7-panel-radius: 18px;
+    --c7-panel-shadow: 0 28px 90px rgba(15, 23, 42, 0.26);
+  }
+
+  :host([preset="neo"]) {
+    --c7-accent: #facc15;
+    --c7-accent-contrast: #101513;
+    --c7-backdrop: rgba(253, 224, 71, 0.28);
+    --c7-border-color: #111827;
+    --c7-control-border: #111827;
+    --c7-footer-background: #fff7c2;
+    --c7-header-background: #fff7c2;
+    --c7-launcher-radius: 12px;
+    --c7-launcher-shadow: 6px 6px 0 #111827;
+    --c7-message-assistant-background: #fef3c7;
+    --c7-message-radius: 10px;
+    --c7-panel-background: #fffef2;
+    --c7-panel-radius: 12px;
+    --c7-panel-shadow: 10px 10px 0 #111827;
+  }
+
+  :host([preset="terminal"]) {
+    --c7-accent: #39ff88;
+    --c7-accent-contrast: #06110b;
+    --c7-backdrop: rgba(0, 0, 0, 0.62);
+    --c7-border-color: rgba(57, 255, 136, 0.34);
+    --c7-control-background: #030806;
+    --c7-control-border: rgba(57, 255, 136, 0.28);
+    --c7-control-color: #d6ffe6;
+    --c7-footer-background: #07120c;
+    --c7-font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    --c7-header-background: #07120c;
+    --c7-launcher-background: #07120c;
+    --c7-launcher-color: #39ff88;
+    --c7-launcher-radius: 7px;
+    --c7-message-assistant-background: #0b1710;
+    --c7-message-assistant-color: #d6ffe6;
+    --c7-message-radius: 6px;
+    --c7-muted-color: #8bdca8;
+    --c7-panel-background: #030806;
+    --c7-panel-color: #d6ffe6;
+    --c7-panel-radius: 7px;
+    --c7-panel-shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
+  }
+
+  :host([preset="brutalist"]) {
+    --c7-accent: #050505;
+    --c7-accent-contrast: #f5f5f5;
+    --c7-backdrop: rgba(255, 255, 255, 0.72);
+    --c7-border-color: #050505;
+    --c7-control-border: #050505;
+    --c7-footer-background: #f5f5f5;
+    --c7-header-background: #f5f5f5;
+    --c7-launcher-radius: 0;
+    --c7-launcher-shadow: 5px 5px 0 #050505;
+    --c7-message-radius: 0;
+    --c7-panel-radius: 0;
+    --c7-panel-shadow: 8px 8px 0 #050505;
+  }
+
+  :host([theme="light"][preset="terminal"]) {
+    --c7-accent: #047857;
+    --c7-accent-contrast: #ffffff;
+    --c7-backdrop: rgba(236, 253, 245, 0.62);
+    --c7-border-color: rgba(4, 120, 87, 0.34);
+    --c7-control-background: #ffffff;
+    --c7-control-border: rgba(4, 120, 87, 0.32);
+    --c7-control-color: #102018;
+    --c7-footer-background: #ecfdf5;
+    --c7-header-background: #ecfdf5;
+    --c7-launcher-background: #ecfdf5;
+    --c7-launcher-color: #047857;
+    --c7-message-assistant-background: #dff8e8;
+    --c7-message-assistant-color: #102018;
+    --c7-muted-color: #3b7f58;
+    --c7-panel-background: #f8fff9;
+    --c7-panel-color: #102018;
+    --c7-panel-shadow: 0 24px 70px rgba(4, 120, 87, 0.18);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :host([theme="auto"][preset="terminal"]) {
+      --c7-accent: #047857;
+      --c7-accent-contrast: #ffffff;
+      --c7-backdrop: rgba(236, 253, 245, 0.62);
+      --c7-border-color: rgba(4, 120, 87, 0.34);
+      --c7-control-background: #ffffff;
+      --c7-control-border: rgba(4, 120, 87, 0.32);
+      --c7-control-color: #102018;
+      --c7-footer-background: #ecfdf5;
+      --c7-header-background: #ecfdf5;
+      --c7-launcher-background: #ecfdf5;
+      --c7-launcher-color: #047857;
+      --c7-message-assistant-background: #dff8e8;
+      --c7-message-assistant-color: #102018;
+      --c7-muted-color: #3b7f58;
+      --c7-panel-background: #f8fff9;
+      --c7-panel-color: #102018;
+      --c7-panel-shadow: 0 24px 70px rgba(4, 120, 87, 0.18);
+    }
+  }
+
+  :host([theme="dark"][preset="minimal"]) {
+    --c7-accent: #60a5fa;
+    --c7-accent-contrast: #05070b;
+    --c7-backdrop: rgba(0, 0, 0, 0.5);
+    --c7-border-color: rgba(255, 255, 255, 0.16);
+    --c7-control-background: #09090b;
+    --c7-control-border: rgba(255, 255, 255, 0.18);
+    --c7-control-color: #f8fafc;
+    --c7-footer-background: #0f1115;
+    --c7-header-background: #0f1115;
+    --c7-message-assistant-background: #181b20;
+    --c7-message-assistant-color: #f8fafc;
+    --c7-muted-color: #a1a1aa;
+    --c7-panel-background: #08090c;
+    --c7-panel-color: #f8fafc;
+    --c7-panel-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+  }
+
+  :host([theme="dark"][preset="glass"]) {
+    --c7-accent: #5eead4;
+    --c7-accent-contrast: #042f2e;
+    --c7-backdrop: rgba(0, 0, 0, 0.58);
+    --c7-backdrop-filter: blur(12px);
+    --c7-border-color: rgba(255, 255, 255, 0.18);
+    --c7-control-background: rgba(8, 10, 14, 0.9);
+    --c7-control-border: rgba(255, 255, 255, 0.2);
+    --c7-control-color: #f8fafc;
+    --c7-footer-background: rgba(11, 14, 18, 0.78);
+    --c7-header-background: rgba(11, 14, 18, 0.78);
+    --c7-message-assistant-background: rgba(255, 255, 255, 0.1);
+    --c7-message-assistant-color: #f8fafc;
+    --c7-muted-color: #cbd5e1;
+    --c7-panel-background: rgba(10, 13, 17, 0.84);
+    --c7-panel-color: #f8fafc;
+  }
+
+  :host([theme="dark"][preset="neo"]) {
+    --c7-accent: #facc15;
+    --c7-accent-contrast: #101513;
+    --c7-backdrop: rgba(0, 0, 0, 0.58);
+    --c7-border-color: #facc15;
+    --c7-control-background: #090806;
+    --c7-control-border: #facc15;
+    --c7-control-color: #fef9c3;
+    --c7-footer-background: #151207;
+    --c7-header-background: #151207;
+    --c7-launcher-shadow: 6px 6px 0 #facc15;
+    --c7-message-assistant-background: #2b220d;
+    --c7-message-assistant-color: #fef9c3;
+    --c7-muted-color: #fde68a;
+    --c7-panel-background: #090806;
+    --c7-panel-color: #fef9c3;
+    --c7-panel-shadow: 10px 10px 0 #facc15;
+  }
+
+  :host([theme="dark"][preset="brutalist"]) {
+    --c7-accent: #f5f5f5;
+    --c7-accent-contrast: #050505;
+    --c7-backdrop: rgba(0, 0, 0, 0.68);
+    --c7-border-color: #f5f5f5;
+    --c7-control-background: #050505;
+    --c7-control-border: #f5f5f5;
+    --c7-control-color: #f5f5f5;
+    --c7-footer-background: #050505;
+    --c7-header-background: #050505;
+    --c7-launcher-shadow: 5px 5px 0 #f5f5f5;
+    --c7-message-assistant-background: #181818;
+    --c7-message-assistant-color: #f5f5f5;
+    --c7-muted-color: #d4d4d4;
+    --c7-panel-background: #050505;
+    --c7-panel-color: #f5f5f5;
+    --c7-panel-shadow: 8px 8px 0 #f5f5f5;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :host([theme="auto"][preset="minimal"]) {
+      --c7-accent: #60a5fa;
+      --c7-accent-contrast: #05070b;
+      --c7-backdrop: rgba(0, 0, 0, 0.5);
+      --c7-border-color: rgba(255, 255, 255, 0.16);
+      --c7-control-background: #09090b;
+      --c7-control-border: rgba(255, 255, 255, 0.18);
+      --c7-control-color: #f8fafc;
+      --c7-footer-background: #0f1115;
+      --c7-header-background: #0f1115;
+      --c7-message-assistant-background: #181b20;
+      --c7-message-assistant-color: #f8fafc;
+      --c7-muted-color: #a1a1aa;
+      --c7-panel-background: #08090c;
+      --c7-panel-color: #f8fafc;
+      --c7-panel-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+    }
+
+    :host([theme="auto"][preset="glass"]) {
+      --c7-accent: #5eead4;
+      --c7-accent-contrast: #042f2e;
+      --c7-backdrop: rgba(0, 0, 0, 0.58);
+      --c7-backdrop-filter: blur(12px);
+      --c7-border-color: rgba(255, 255, 255, 0.18);
+      --c7-control-background: rgba(8, 10, 14, 0.9);
+      --c7-control-border: rgba(255, 255, 255, 0.2);
+      --c7-control-color: #f8fafc;
+      --c7-footer-background: rgba(11, 14, 18, 0.78);
+      --c7-header-background: rgba(11, 14, 18, 0.78);
+      --c7-message-assistant-background: rgba(255, 255, 255, 0.1);
+      --c7-message-assistant-color: #f8fafc;
+      --c7-muted-color: #cbd5e1;
+      --c7-panel-background: rgba(10, 13, 17, 0.84);
+      --c7-panel-color: #f8fafc;
+    }
+
+    :host([theme="auto"][preset="neo"]) {
+      --c7-accent: #facc15;
+      --c7-accent-contrast: #101513;
+      --c7-backdrop: rgba(0, 0, 0, 0.58);
+      --c7-border-color: #facc15;
+      --c7-control-background: #090806;
+      --c7-control-border: #facc15;
+      --c7-control-color: #fef9c3;
+      --c7-footer-background: #151207;
+      --c7-header-background: #151207;
+      --c7-launcher-shadow: 6px 6px 0 #facc15;
+      --c7-message-assistant-background: #2b220d;
+      --c7-message-assistant-color: #fef9c3;
+      --c7-muted-color: #fde68a;
+      --c7-panel-background: #090806;
+      --c7-panel-color: #fef9c3;
+      --c7-panel-shadow: 10px 10px 0 #facc15;
+    }
+
+    :host([theme="auto"][preset="brutalist"]) {
+      --c7-accent: #f5f5f5;
+      --c7-accent-contrast: #050505;
+      --c7-backdrop: rgba(0, 0, 0, 0.68);
+      --c7-border-color: #f5f5f5;
+      --c7-control-background: #050505;
+      --c7-control-border: #f5f5f5;
+      --c7-control-color: #f5f5f5;
+      --c7-footer-background: #050505;
+      --c7-header-background: #050505;
+      --c7-launcher-shadow: 5px 5px 0 #f5f5f5;
+      --c7-message-assistant-background: #181818;
+      --c7-message-assistant-color: #f5f5f5;
+      --c7-muted-color: #d4d4d4;
+      --c7-panel-background: #050505;
+      --c7-panel-color: #f5f5f5;
+      --c7-panel-shadow: 8px 8px 0 #f5f5f5;
+    }
+  }
+
   *, *::before, *::after {
     box-sizing: border-box;
   }
@@ -84,10 +368,20 @@ export const widgetStyles = `
 
   .c7-backdrop {
     background: var(--c7-backdrop);
+    backdrop-filter: var(--c7-backdrop-filter);
     inset: 0;
+    opacity: 0;
     pointer-events: none;
     position: fixed;
+    transition: opacity 180ms ease, visibility 180ms ease;
+    visibility: hidden;
     z-index: var(--c7-z-index);
+  }
+
+  :host([open][backdrop-active]) .c7-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
   }
 
   .c7-launcher {
@@ -100,6 +394,7 @@ export const widgetStyles = `
     color: var(--c7-launcher-color);
     cursor: pointer;
     display: flex;
+    gap: var(--c7-launcher-gap);
     height: var(--c7-launcher-size);
     justify-content: center;
     padding: 0;
@@ -125,8 +420,41 @@ export const widgetStyles = `
   }
 
   .c7-launcher svg {
+    flex: none;
     height: calc(var(--c7-launcher-size) * 0.5);
     width: calc(var(--c7-launcher-size) * 0.5);
+  }
+
+  .c7-launcher-label {
+    display: none;
+    font-size: 14px;
+    font-weight: 760;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  :host([launcher-variant="pill"]) .c7-launcher {
+    min-width: var(--c7-launcher-size);
+    padding: 0 18px;
+    width: auto;
+  }
+
+  :host([launcher-variant="pill"]) .c7-launcher-label,
+  :host([launcher-variant="badge"]) .c7-launcher-label {
+    display: inline;
+  }
+
+  :host([launcher-variant="badge"]) .c7-launcher {
+    border-radius: 9px;
+    height: 42px;
+    min-width: 42px;
+    padding: 0 12px;
+    width: auto;
+  }
+
+  :host([launcher-variant="badge"]) .c7-launcher svg {
+    height: 18px;
+    width: 18px;
   }
 
   :host([position="bottom-left"]) .c7-launcher,
@@ -156,6 +484,7 @@ export const widgetStyles = `
 
   .c7-panel {
     background: var(--c7-panel-background);
+    backdrop-filter: var(--c7-panel-backdrop-filter);
     border: 1px solid var(--c7-border-color);
     border-radius: var(--c7-panel-radius);
     bottom: calc(20px + var(--c7-launcher-size) + 14px);
@@ -205,6 +534,38 @@ export const widgetStyles = `
     right: auto;
     top: calc(20px + var(--c7-launcher-size) + 14px);
     transform-origin: top left;
+  }
+
+  :host([position="center"]) .c7-panel,
+  :host([position="modal"]) .c7-panel {
+    bottom: auto;
+    left: 50%;
+    max-height: calc(100vh - 32px);
+    max-width: calc(100vw - 32px);
+    right: auto;
+    top: 50%;
+    transform: translate(-50%, -46%) scale(0.96);
+    transform-origin: center;
+  }
+
+  :host([open][position="center"]) .c7-panel,
+  :host([open][position="modal"]) .c7-panel {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  :host([position="anchor"]) .c7-panel {
+    bottom: auto;
+    left: var(--c7-anchor-left, 20px);
+    max-height: calc(100vh - 24px);
+    max-width: calc(100vw - 24px);
+    right: auto;
+    top: var(--c7-anchor-top, 20px);
+    transform: translateY(8px) scale(0.98);
+    transform-origin: var(--c7-anchor-origin, top right);
+  }
+
+  :host([open][position="anchor"]) .c7-panel {
+    transform: translateY(0) scale(1);
   }
 
   .c7-header {
@@ -492,6 +853,10 @@ export const widgetStyles = `
     padding: 8px 12px;
   }
 
+  :host([hide-powered-by]) .c7-footer {
+    display: none;
+  }
+
   .c7-powered {
     align-items: center;
     color: var(--c7-muted-color);
@@ -532,6 +897,7 @@ export const widgetStyles = `
   @media (prefers-reduced-motion: reduce) {
     .c7-launcher,
     .c7-panel,
+    .c7-backdrop,
     .c7-close,
     .c7-send,
     .c7-spinner,
@@ -562,10 +928,41 @@ export const widgetStyles = `
       transform: translateY(0);
     }
 
-    :host([position]) .c7-panel {
-      left: 0;
-      right: 0;
-      top: auto;
+    :host([position="center"]) .c7-panel,
+    :host([position="modal"]) .c7-panel,
+    :host([position="anchor"]) .c7-panel {
+      border: 1px solid var(--c7-border-color);
+      border-radius: var(--c7-panel-radius);
+      bottom: auto;
+      height: min(var(--c7-panel-height), calc(100vh - 28px));
+      max-height: calc(100vh - 28px);
+      max-width: calc(100vw - 24px);
+      right: auto;
+      width: min(var(--c7-panel-width), calc(100vw - 24px));
+    }
+
+    :host([position="center"]) .c7-panel,
+    :host([position="modal"]) .c7-panel {
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -46%) scale(0.96);
+      transform-origin: center;
+    }
+
+    :host([open][position="center"]) .c7-panel,
+    :host([open][position="modal"]) .c7-panel {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    :host([position="anchor"]) .c7-panel {
+      left: var(--c7-anchor-left, 12px);
+      top: var(--c7-anchor-top, 12px);
+      transform: translateY(8px) scale(0.98);
+      transform-origin: var(--c7-anchor-origin, top right);
+    }
+
+    :host([open][position="anchor"]) .c7-panel {
+      transform: translateY(0) scale(1);
     }
 
     .c7-launcher {

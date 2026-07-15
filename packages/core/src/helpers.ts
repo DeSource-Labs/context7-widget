@@ -9,26 +9,46 @@ import type {
 const DEFAULT_SCRIPT_SRC = "https://context7.desource-labs.org/widget.js";
 
 const OPTION_ATTRIBUTES: Array<[keyof Context7WidgetOptions, string]> = [
+  ["anchorPlacement", "anchor-placement"],
   ["apiUrl", "api-url"],
+  ["backdrop", "backdrop"],
+  ["closeOnOutsideClick", "close-on-outside-click"],
   ["color", "color"],
   ["customTrigger", "custom-trigger"],
+  ["defaultOpen", "default-open"],
   ["initialMessage", "initial-message"],
+  ["launcherLabel", "launcher-label"],
+  ["launcherVariant", "launcher-variant"],
   ["library", "library"],
+  ["panelHeight", "panel-height"],
+  ["panelWidth", "panel-width"],
   ["placeholder", "placeholder"],
   ["position", "position"],
+  ["preset", "preset"],
+  ["showPoweredBy", "show-powered-by"],
   ["theme", "theme"],
   ["title", "title"],
   ["widgetId", "widget-id"]
 ];
 
 const SCRIPT_OPTION_ATTRIBUTES: Array<[keyof Context7WidgetOptions, string]> = [
+  ["anchorPlacement", "data-anchor-placement"],
   ["apiUrl", "data-api-url"],
+  ["backdrop", "data-backdrop"],
+  ["closeOnOutsideClick", "data-close-on-outside-click"],
   ["color", "data-color"],
   ["customTrigger", "data-custom-trigger"],
+  ["defaultOpen", "data-default-open"],
   ["initialMessage", "data-initial-message"],
+  ["launcherLabel", "data-launcher-label"],
+  ["launcherVariant", "data-launcher-variant"],
   ["library", "data-library"],
+  ["panelHeight", "data-panel-height"],
+  ["panelWidth", "data-panel-width"],
   ["placeholder", "data-placeholder"],
   ["position", "data-position"],
+  ["preset", "data-preset"],
+  ["showPoweredBy", "data-show-powered-by"],
   ["theme", "data-theme"],
   ["title", "data-title"],
   ["widgetId", "data-widget-id"]
@@ -40,6 +60,10 @@ export function toContext7WidgetAttributes(options: Context7WidgetOptions): Reco
   for (const [key, attribute] of OPTION_ATTRIBUTES) {
     const value = options[key];
     if (value === undefined || value === "") continue;
+    if (typeof value === "boolean") {
+      attributes[attribute] = String(value);
+      continue;
+    }
     attributes[attribute] = String(value);
   }
 
@@ -75,6 +99,10 @@ export function setContext7WidgetAttributes(
   for (const [key, attribute] of OPTION_ATTRIBUTES) {
     const value = options[key];
     if (value === undefined) continue;
+    if (typeof value === "boolean") {
+      widget.setAttribute(attribute, String(value));
+      continue;
+    }
     if (value === "") {
       widget.removeAttribute(attribute);
     } else {
@@ -122,6 +150,10 @@ export function buildContext7WidgetScriptTag(options: Context7WidgetScriptOption
   for (const [key, attribute] of SCRIPT_OPTION_ATTRIBUTES) {
     const value = options[key];
     if (value === undefined || value === "") continue;
+    if (typeof value === "boolean") {
+      attributes[attribute] = String(value);
+      continue;
+    }
     attributes[attribute] = String(value);
   }
 

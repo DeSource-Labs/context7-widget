@@ -1,5 +1,5 @@
-export { Context7Widget } from "./Context7Widget";
-export type { Context7WidgetExpose, Context7WidgetVueEvent } from "./Context7Widget";
+export { default as Context7Widget } from "./Context7Widget.vue";
+export type { Context7WidgetExpose, Context7WidgetVueEvent } from "./component-types";
 export { context7WidgetEvents, vueEventNames } from "./events";
 export {
   context7WidgetDefaultsKey,
@@ -10,6 +10,8 @@ export { useContext7Widget } from "./useContext7Widget";
 export type { UseContext7WidgetOptions } from "./useContext7Widget";
 export type { UseContext7WidgetReturn } from "./useContext7Widget";
 export type {
+  Context7AnchorPlacement,
+  Context7LauncherVariant,
   Context7Message,
   Context7Position,
   Context7Role,
@@ -18,5 +20,6 @@ export type {
   Context7ToolResult,
   Context7WidgetEventDetail,
   Context7WidgetEventName,
-  Context7WidgetOptions
+  Context7WidgetOptions,
+  Context7WidgetPreset
 } from "@desource/context7-widget";

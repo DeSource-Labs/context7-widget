@@ -1,14 +1,24 @@
 import type { Context7WidgetOptions } from "@desource/context7-widget";
 
 const optionKeys = [
+  "anchorPlacement",
   "apiUrl",
+  "backdrop",
+  "closeOnOutsideClick",
   "color",
   "customTrigger",
+  "defaultOpen",
   "hideDefaultButton",
   "initialMessage",
+  "launcherLabel",
+  "launcherVariant",
   "library",
+  "panelHeight",
+  "panelWidth",
   "placeholder",
   "position",
+  "preset",
+  "showPoweredBy",
   "theme",
   "title",
   "widgetId"

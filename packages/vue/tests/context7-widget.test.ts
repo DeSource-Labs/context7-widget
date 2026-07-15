@@ -17,8 +17,11 @@ describe("@desource/context7-widget-vue", () => {
       render: () =>
         h(Context7Widget, {
           color: "#111827",
+          closeOnOutsideClick: false,
           library: "/desource-labs/context7-widget",
           onReady: ready,
+          position: "center",
+          preset: "terminal",
           theme: "dark",
           title: "Docs assistant"
         })
@@ -28,6 +31,9 @@ describe("@desource/context7-widget-vue", () => {
 
     const widget = root.querySelector("context7-widget");
     expect(widget?.getAttribute("library")).toBe("/desource-labs/context7-widget");
+    expect(widget?.getAttribute("close-on-outside-click")).toBe("false");
+    expect(widget?.getAttribute("position")).toBe("center");
+    expect(widget?.getAttribute("preset")).toBe("terminal");
     expect(widget?.getAttribute("theme")).toBe("dark");
     expect(widget?.getAttribute("title")).toBe("Docs assistant");
     expect(ready).toHaveBeenCalledOnce();

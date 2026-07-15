@@ -58,15 +58,26 @@ The loader supports the official attributes:
 - `data-color`
 - `data-position`
 - `data-placeholder`
+- `data-welcome-message`
 
 It also adds:
 
+- `data-anchor-placement`
 - `data-api-url`
+- `data-backdrop`
+- `data-close-on-outside-click`
+- `data-custom-trigger`
+- `data-default-open`
+- `data-hide-default-button`
+- `data-initial-message`
+- `data-launcher-label`
+- `data-launcher-variant`
+- `data-panel-height`
+- `data-panel-width`
+- `data-preset`
+- `data-show-powered-by`
 - `data-theme`
 - `data-title`
-- `data-initial-message`
-- `data-custom-trigger`
-- `data-hide-default-button`
 - `data-widget-id`
 
 The default `data-api-url` is `https://context7.com`, not the script origin. This

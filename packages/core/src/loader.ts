@@ -1,15 +1,26 @@
 import { defineContext7Widget } from "./widget-element";
 
 const ATTRIBUTE_MAP: Array<[scriptAttribute: string, widgetAttribute: string]> = [
+  ["data-anchor-placement", "anchor-placement"],
   ["data-api-url", "api-url"],
+  ["data-backdrop", "backdrop"],
+  ["data-close-on-outside-click", "close-on-outside-click"],
   ["data-color", "color"],
   ["data-custom-trigger", "custom-trigger"],
+  ["data-default-open", "default-open"],
   ["data-initial-message", "initial-message"],
+  ["data-launcher-label", "launcher-label"],
+  ["data-launcher-variant", "launcher-variant"],
   ["data-library", "library"],
+  ["data-panel-height", "panel-height"],
+  ["data-panel-width", "panel-width"],
   ["data-placeholder", "placeholder"],
   ["data-position", "position"],
+  ["data-preset", "preset"],
+  ["data-show-powered-by", "show-powered-by"],
   ["data-theme", "theme"],
   ["data-title", "title"],
+  ["data-welcome-message", "initial-message"],
   ["data-widget-id", "widget-id"]
 ];
 
@@ -28,7 +39,7 @@ export function mountContext7WidgetFromScript(script: HTMLScriptElement | null):
 
   for (const [scriptAttribute, widgetAttribute] of ATTRIBUTE_MAP) {
     const value = script.getAttribute(scriptAttribute);
-    if (!value) continue;
+    if (value === null) continue;
     widget.setAttribute(scriptAttribute, value);
     widget.setAttribute(widgetAttribute, value);
   }

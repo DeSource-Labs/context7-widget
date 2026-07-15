@@ -46,6 +46,56 @@ describe("Context7WidgetElement", () => {
 
     expect(widget.hasAttribute("open")).toBe(true);
   });
+
+  it("closes when clicking outside by default", () => {
+    defineContext7Widget();
+
+    const widget = document.createElement("context7-widget");
+    widget.setAttribute("library", "/vercel/next.js");
+    document.body.append(widget);
+
+    (widget as HTMLElement & { open: () => void }).open();
+    document.body.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, composed: true }));
+
+    expect(widget.hasAttribute("open")).toBe(false);
+  });
+
+  it("supports modal backdrop and preset attributes", () => {
+    defineContext7Widget();
+
+    const widget = document.createElement("context7-widget");
+    widget.setAttribute("library", "/vercel/next.js");
+    widget.setAttribute("position", "center");
+    widget.setAttribute("preset", "glass");
+    document.body.append(widget);
+
+    (widget as HTMLElement & { open: () => void }).open();
+
+    expect(widget.getAttribute("position")).toBe("center");
+    expect(widget.getAttribute("preset")).toBe("glass");
+    expect(widget.hasAttribute("backdrop-active")).toBe(true);
+
+    widget.shadowRoot?.querySelector<HTMLElement>("[data-c7-backdrop]")?.click();
+
+    expect(widget.hasAttribute("open")).toBe(false);
+  });
+
+  it("lets presets own the accent color when no color is provided", () => {
+    defineContext7Widget();
+
+    const widget = document.createElement("context7-widget");
+    widget.setAttribute("library", "/vercel/next.js");
+    widget.setAttribute("preset", "neo");
+    document.body.append(widget);
+
+    expect(widget.style.getPropertyValue("--c7-accent")).toBe("");
+
+    widget.setAttribute("color", "#123456");
+    expect(widget.style.getPropertyValue("--c7-accent")).toBe("#123456");
+
+    widget.removeAttribute("color");
+    expect(widget.style.getPropertyValue("--c7-accent")).toBe("");
+  });
 });
 
 function stream(values: string[]): ReadableStream<Uint8Array> {

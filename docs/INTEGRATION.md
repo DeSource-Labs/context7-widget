@@ -39,7 +39,9 @@ defineContext7Widget();
 mountContext7Widget({
   library: "/vercel/next.js",
   theme: "auto",
-  position: "bottom-right"
+  position: "modal",
+  preset: "glass",
+  backdrop: true
 });
 
 const script = buildContext7WidgetScriptTag({
@@ -57,6 +59,9 @@ const script = buildContext7WidgetScriptTag({
     color="#10b981"
     custom-trigger="#docs-chat"
     hide-default-button
+    position="anchor"
+    anchor-placement="bottom-end"
+    preset="glass"
     @question="trackQuestion"
     @answer-complete="trackAnswer"
   />
@@ -132,8 +137,36 @@ export default {
   data-library="/vercel/next.js"
   data-custom-trigger="#docs-chat"
   data-hide-default-button="true"
+  data-position="anchor"
+  data-anchor-placement="bottom-end"
 ></script>
 ```
+
+## Position And Presets
+
+Use fixed corners for conventional docs pages, `modal` or `center` when the user
+is intentionally asking for help, and `anchor` when the widget belongs to an app
+button, nav item, support menu, or command palette.
+
+```html
+<script
+  async
+  src="https://context7.desource-labs.org/widget.js"
+  data-library="/vercel/next.js"
+  data-position="modal"
+  data-preset="terminal"
+  data-backdrop="true"
+  data-close-on-outside-click="true"
+></script>
+```
+
+Presets are CSS variable blocks: `default`, `minimal`, `glass`, `neo`,
+`terminal`, and `brutalist`. Override any `--c7-*` variable or `::part()` after
+choosing a preset.
+
+When `data-color` or `color` is omitted, the preset supplies the launcher and
+send-button accent. Provide `color` only when the host app needs a brand color
+override.
 
 ## Analytics
 

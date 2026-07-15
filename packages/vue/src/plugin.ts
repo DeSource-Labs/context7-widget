@@ -1,7 +1,7 @@
 import type { App, InjectionKey, Plugin } from "vue";
 import type { Context7WidgetOptions } from "@desource/context7-widget";
 import { defineContext7Widget, mountContext7Widget } from "@desource/context7-widget";
-import { Context7Widget } from "./Context7Widget";
+import Context7Widget from "./Context7Widget.vue";
 
 export interface Context7WidgetPluginOptions {
   componentName?: string;

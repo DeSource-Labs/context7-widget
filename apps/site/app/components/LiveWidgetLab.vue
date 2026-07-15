@@ -42,9 +42,35 @@
           </select>
         </label>
 
+        <label>
+          <span>Preset</span>
+          <select v-model="preset">
+            <option v-for="item in presets" :key="item" :value="item">{{ item }}</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Launcher</span>
+          <select v-model="launcherVariant" :disabled="hideDefaultButton">
+            <option v-for="item in launcherVariants" :key="item" :value="item">{{ item }}</option>
+          </select>
+          <small v-if="hideDefaultButton" class="field-note">
+            Disabled while custom trigger is active. Disable custom trigger to preview the built-in launcher.
+          </small>
+        </label>
+
         <div class="control-group">
           <span>Accent</span>
           <div class="swatches">
+            <button
+              class="swatch-preset"
+              type="button"
+              aria-label="Use preset color"
+              :aria-pressed="color === ''"
+              @click="color = ''"
+            >
+              preset
+            </button>
             <button
               v-for="item in colors"
               :key="item"
@@ -62,7 +88,17 @@
           <span>Use custom trigger</span>
         </label>
 
-        <button id="context7-lab-trigger" class="lab-trigger" type="button">
+        <label class="toggle">
+          <input v-model="backdrop" type="checkbox" />
+          <span>Use backdrop</span>
+        </label>
+
+        <label class="toggle">
+          <input v-model="closeOnOutsideClick" type="checkbox" />
+          <span>Close outside</span>
+        </label>
+
+        <button id="context7-lab-trigger" class="lab-trigger" type="button" :disabled="!hideDefaultButton">
           <MessageSquare :size="18" aria-hidden="true" />
           Ask docs
         </button>
@@ -75,12 +111,20 @@
     </div>
 
     <Context7Widget
-      :color="color"
+      anchor-placement="bottom-start"
+      :backdrop="backdrop"
+      :close-on-outside-click="closeOnOutsideClick"
+      :color="color || undefined"
       :custom-trigger="hideDefaultButton ? '#context7-lab-trigger' : undefined"
       :hide-default-button="hideDefaultButton"
+      launcher-label="Ask docs"
+      :launcher-variant="launcherVariant"
       :library="library"
+      panel-height="460px"
+      panel-width="440px"
       :placeholder="placeholder"
       :position="position"
+      :preset="preset"
       :theme="theme"
       title="Context7 Widget Docs"
       widget-id="site-lab"
@@ -98,42 +142,80 @@
 
 <script setup lang="ts">
 import { MessageSquare } from "lucide-vue-next";
-import { Context7Widget, type Context7Position, type Context7Theme } from "@desource/context7-widget-vue";
+import {
+  Context7Widget,
+  type Context7LauncherVariant,
+  type Context7Position,
+  type Context7Theme,
+  type Context7WidgetPreset
+} from "@desource/context7-widget-vue";
 import { buildContext7WidgetScriptTag } from "@desource/context7-widget";
 
 const themes: Context7Theme[] = ["auto", "light", "dark"];
-const positions: Context7Position[] = ["bottom-right", "bottom-left", "top-right", "top-left"];
+const positions: Context7Position[] = [
+  "bottom-right",
+  "bottom-left",
+  "top-right",
+  "top-left",
+  "center",
+  "modal",
+  "anchor"
+];
+const presets: Context7WidgetPreset[] = ["default", "minimal", "glass", "neo", "terminal", "brutalist"];
+const launcherVariants: Context7LauncherVariant[] = ["icon", "pill", "badge"];
 const colors = ["#10b981", "#f97316", "#3b82f6", "#f43f5e"];
 
 const library = ref("/desource-labs/context7-widget");
 const placeholder = ref("Ask integration questions...");
 const theme = ref<Context7Theme>("auto");
-const position = ref<Context7Position>("bottom-right");
-const color = ref(colors[0]);
+const position = ref<Context7Position>("anchor");
+const preset = ref<Context7WidgetPreset>("glass");
+const launcherVariant = ref<Context7LauncherVariant>("pill");
+const color = ref("");
 const hideDefaultButton = ref(true);
+const backdrop = ref(true);
+const closeOnOutsideClick = ref(true);
 const events = reactive({ answer: 0, question: 0 });
 
 const scriptCode = computed(() =>
   buildContext7WidgetScriptTag({
-    color: color.value,
+    anchorPlacement: "bottom-start",
+    backdrop: backdrop.value,
+    closeOnOutsideClick: closeOnOutsideClick.value,
+    color: color.value || undefined,
     customTrigger: hideDefaultButton.value ? "#context7-lab-trigger" : undefined,
     hideDefaultButton: hideDefaultButton.value,
+    launcherLabel: "Ask docs",
+    launcherVariant: launcherVariant.value,
     library: library.value,
+    panelHeight: "460px",
+    panelWidth: "440px",
     placeholder: placeholder.value,
     position: position.value,
+    preset: preset.value,
     theme: theme.value
   })
 );
 
-const vueCode = computed(
-  () => `<Context7Widget
+const vueCode = computed(() => {
+  const colorLine = color.value ? `  color="${color.value}"\n` : "";
+  const colorComment = color.value ? "" : "  <!-- color omitted: preset owns the action color -->\n";
+  const customTriggerLines = hideDefaultButton.value
+    ? '  custom-trigger="#context7-lab-trigger"\n  hide-default-button\n'
+    : "";
+
+  return `<Context7Widget
   library="${library.value}"
-  color="${color.value}"
-  theme="${theme.value}"
+${colorLine}${colorComment}  theme="${theme.value}"
   position="${position.value}"
-  ${hideDefaultButton.value ? 'custom-trigger="#context7-lab-trigger"\n  hide-default-button' : ""}
+  preset="${preset.value}"
+  launcher-variant="${launcherVariant.value}"
+  :backdrop="${backdrop.value}"
+  :close-on-outside-click="${closeOnOutsideClick.value}"
+  panel-height="460px"
+${customTriggerLines}  launcher-label="Ask docs"
   placeholder="${placeholder.value}"
   @question="trackQuestion"
 />`
-);
+});
 </script>

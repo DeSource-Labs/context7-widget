@@ -8,6 +8,10 @@ Vue 3 bindings for `@desource/context7-widget`.
     library="/desource-labs/context7-widget"
     color="#10b981"
     theme="auto"
+    position="anchor"
+    anchor-placement="bottom-end"
+    preset="glass"
+    launcher-variant="pill"
     @question="trackQuestion"
   />
 </template>
@@ -29,6 +33,8 @@ import { useContext7Widget } from '@desource/context7-widget-vue';
 const docs = useContext7Widget({
   autoMount: true,
   library: '/desource-labs/context7-widget',
+  position: 'modal',
+  preset: 'terminal',
   widgetId: 'docs'
 });
 
@@ -40,3 +46,7 @@ Optional SCSS-built styles are published as:
 ```ts
 import '@desource/context7-widget-vue/styles.css';
 ```
+
+`Context7Widget.vue` is a standard Vue SFC. It exposes the underlying custom
+element through `ref`, maps all `c7:*` DOM events to Vue events, and accepts the
+same typed options as the core package.
