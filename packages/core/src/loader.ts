@@ -1,7 +1,6 @@
 import { defineContext7Widget } from "./widget-element";
 
 const ATTRIBUTE_MAP: Array<[scriptAttribute: string, widgetAttribute: string]> = [
-  ["data-api-url", "api-url"],
   ["data-backdrop", "backdrop"],
   ["data-close-on-outside-click", "close-on-outside-click"],
   ["data-color", "color"],
@@ -41,10 +40,6 @@ export function mountContext7WidgetFromScript(script: HTMLScriptElement | null):
     if (value === null) continue;
     widget.setAttribute(scriptAttribute, value);
     widget.setAttribute(widgetAttribute, value);
-  }
-
-  if (!widget.hasAttribute("api-url")) {
-    widget.setAttribute("api-url", "https://context7.com");
   }
 
   if (script.getAttribute("data-hide-default-button") === "true") {

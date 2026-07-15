@@ -24,12 +24,10 @@ let globalApiInstalled = false;
 
 export class Context7WidgetElement extends BaseHTMLElement {
   static observedAttributes = [
-    "api-url",
     "backdrop",
     "close-on-outside-click",
     "color",
     "custom-trigger",
-    "data-api-url",
     "data-backdrop",
     "data-close-on-outside-click",
     "data-color",
@@ -683,7 +681,6 @@ function readConfig(element: HTMLElement): Context7WidgetConfig {
   const library = readAttribute(element, "library", "data-library");
   const position = normalizePosition(readAttribute(element, "position", "data-position"));
   return {
-    apiUrl: readAttribute(element, "api-url", "data-api-url") || "https://context7.com",
     backdrop: readBooleanAttribute(
       element,
       position === "center",

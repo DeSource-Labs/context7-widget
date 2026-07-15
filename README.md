@@ -40,8 +40,8 @@ Existing official attributes continue to work:
 ></script>
 ```
 
-The widget still calls `https://context7.com/api/v2/widget/chat` by default.
-Use `data-api-url` only if you intentionally run a compatible proxy.
+The widget always calls `https://context7.com/api/v2/widget/chat`; replacing the
+script origin does not change the Context7 backend.
 
 Additional attributes cover product-app use cases that the official script does
 not expose:

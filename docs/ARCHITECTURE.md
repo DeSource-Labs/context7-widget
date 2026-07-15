@@ -62,7 +62,6 @@ The loader supports the official attributes:
 
 It also adds:
 
-- `data-api-url`
 - `data-backdrop`
 - `data-close-on-outside-click`
 - `data-custom-trigger`
@@ -79,7 +78,7 @@ It also adds:
 - `data-title`
 - `data-widget-id`
 
-The default `data-api-url` is `https://context7.com`, not the script origin. This
+The chat backend is fixed to `https://context7.com`, not the script origin. This
 is what makes replacing only `https://context7.com/widget.js` with
 `https://context7.desource-labs.org/widget.js` work.
 

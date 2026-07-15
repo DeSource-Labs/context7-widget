@@ -16,15 +16,16 @@ describe("streamContext7Response", () => {
     const toolCalls: string[] = [];
     const toolResults: unknown[] = [];
 
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(stream([
+    const fetchMock = vi.fn(async () => new Response(stream([
       'data: {"type":"text-delta","delta":"Hello "}\n',
       'data: {"type":"tool-input-available","toolCallId":"tool-1","toolName":"search","input":{"query":"install"}}\n',
       'data: {"type":"tool-output-available","toolCallId":"tool-1","output":{"ok":true}}\n',
       'data: {"type":"text-delta","delta":"world"}\n'
-    ]))));
+    ])));
+    vi.stubGlobal("fetch", fetchMock);
 
     await streamContext7Response(
-      { apiUrl: "https://context7.com", library: "/vercel/next.js" },
+      { library: "/vercel/next.js" },
       messages,
       {
         onChunk: (delta) => chunks.push(delta),
@@ -36,6 +37,10 @@ describe("streamContext7Response", () => {
     expect(chunks.join("")).toBe("Hello world");
     expect(toolCalls).toEqual(["tool-1"]);
     expect(toolResults).toEqual([{ ok: true }]);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://context7.com/api/v2/widget/chat",
+      expect.objectContaining({ method: "POST" })
+    );
   });
 
   it("maps known widget errors", async () => {
@@ -46,7 +51,7 @@ describe("streamContext7Response", () => {
 
     await expect(
       streamContext7Response(
-        { apiUrl: "https://context7.com", library: "/vercel/next.js" },
+        { library: "/vercel/next.js" },
         messages,
         { onChunk: () => undefined }
       )

@@ -9,7 +9,6 @@ import type {
 const DEFAULT_SCRIPT_SRC = "https://context7.desource-labs.org/widget.js";
 
 const OPTION_ATTRIBUTES: Array<[keyof Context7WidgetOptions, string]> = [
-  ["apiUrl", "api-url"],
   ["backdrop", "backdrop"],
   ["closeOnOutsideClick", "close-on-outside-click"],
   ["color", "color"],
@@ -31,7 +30,6 @@ const OPTION_ATTRIBUTES: Array<[keyof Context7WidgetOptions, string]> = [
 ];
 
 const SCRIPT_OPTION_ATTRIBUTES: Array<[keyof Context7WidgetOptions, string]> = [
-  ["apiUrl", "data-api-url"],
   ["backdrop", "data-backdrop"],
   ["closeOnOutsideClick", "data-close-on-outside-click"],
   ["color", "data-color"],

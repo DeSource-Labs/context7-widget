@@ -6,6 +6,8 @@ import type {
   Context7WidgetConfig
 } from "./types";
 
+const CONTEXT7_CHAT_ENDPOINT = "https://context7.com/api/v2/widget/chat";
+
 export class Context7TransportError extends Error {
   constructor(message: string) {
     super(message);
@@ -14,7 +16,7 @@ export class Context7TransportError extends Error {
 }
 
 export async function streamContext7Response(
-  config: Pick<Context7WidgetConfig, "apiUrl" | "library">,
+  config: Pick<Context7WidgetConfig, "library">,
   messages: Context7Message[],
   callbacks: Context7StreamCallbacks,
   signal?: AbortSignal
@@ -48,14 +50,14 @@ export async function streamContext7Response(
 }
 
 async function postChatRequest(
-  config: Pick<Context7WidgetConfig, "apiUrl" | "library">,
+  config: Pick<Context7WidgetConfig, "library">,
   messages: Context7Message[],
   signal?: AbortSignal
 ): Promise<Response> {
   let response: Response;
 
   try {
-    response = await fetch(new URL("/api/v2/widget/chat", normalizeApiUrl(config.apiUrl)), {
+    response = await fetch(CONTEXT7_CHAT_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -161,14 +163,6 @@ async function resolveErrorMessage(response: Response): Promise<string> {
   }
 
   return `Context7 chat request failed with HTTP ${response.status}.`;
-}
-
-function normalizeApiUrl(apiUrl: string): string {
-  try {
-    return new URL(apiUrl).origin;
-  } catch {
-    return "https://context7.com";
-  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

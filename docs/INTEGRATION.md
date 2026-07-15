@@ -195,4 +195,6 @@ Content-Security-Policy:
   connect-src 'self' https://context7.com;
 ```
 
-If you host the script elsewhere or use `data-api-url`, add those origins.
+If you host the script elsewhere, add that script origin. Keep
+`https://context7.com` in `connect-src` because chat requests always use the
+Context7 backend.

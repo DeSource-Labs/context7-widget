@@ -39,7 +39,6 @@ export interface Context7Message {
 }
 
 export interface Context7WidgetOptions {
-  apiUrl?: string;
   backdrop?: boolean;
   closeOnOutsideClick?: boolean;
   color?: string;
@@ -62,7 +61,6 @@ export interface Context7WidgetOptions {
 }
 
 export interface Context7WidgetConfig {
-  apiUrl: string;
   backdrop: boolean;
   closeOnOutsideClick: boolean;
   color: string;
