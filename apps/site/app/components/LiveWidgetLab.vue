@@ -98,10 +98,30 @@
           <span>Close outside</span>
         </label>
 
-        <button id="context7-lab-trigger" class="lab-trigger" type="button" :disabled="!customTriggerEnabled">
-          <MessageSquare :size="18" aria-hidden="true" />
-          Ask docs
-        </button>
+        <Context7Widget
+          :backdrop="backdrop"
+          :close-on-outside-click="closeOnOutsideClick"
+          :color="color || undefined"
+          :custom-trigger="customTriggerEnabled ? '#context7-lab-trigger' : undefined"
+          launcher-label="Ask docs"
+          :launcher-variant="launcherVariant"
+          :library="library"
+          panel-height="460px"
+          panel-width="440px"
+          :placeholder="placeholder"
+          :position="position"
+          :preset="preset"
+          :theme="theme"
+          title="Context7 Widget Docs"
+          widget-id="site-lab"
+          @question="events.question += 1"
+          @answer-complete="events.answer += 1"
+        >
+          <button id="context7-lab-trigger" class="lab-trigger" type="button" :disabled="!customTriggerEnabled">
+            <MessageSquare :size="18" aria-hidden="true" />
+            Ask docs
+          </button>
+        </Context7Widget>
       </form>
 
       <div class="lab-output">
@@ -109,26 +129,6 @@
         <CodeBlock id="lab-vue" label="Vue component" :code="vueCode" />
       </div>
     </div>
-
-    <Context7Widget
-      :backdrop="backdrop"
-      :close-on-outside-click="closeOnOutsideClick"
-      :color="color || undefined"
-      :custom-trigger="customTriggerEnabled ? '#context7-lab-trigger' : undefined"
-      launcher-label="Ask docs"
-      :launcher-variant="launcherVariant"
-      :library="library"
-      panel-height="460px"
-      panel-width="440px"
-      :placeholder="placeholder"
-      :position="position"
-      :preset="preset"
-      :theme="theme"
-      title="Context7 Widget Docs"
-      widget-id="site-lab"
-      @question="events.question += 1"
-      @answer-complete="events.answer += 1"
-    />
 
     <div class="event-strip" aria-live="polite">
       <span>Questions {{ events.question }}</span>
@@ -163,7 +163,7 @@ const preset = ref<Context7WidgetPreset>('glass');
 const launcherVariant = ref<Context7LauncherVariant>('pill');
 const color = ref('');
 const customTriggerEnabled = ref(true);
-const backdrop = ref(true);
+const backdrop = ref(false);
 const closeOnOutsideClick = ref(true);
 const events = reactive({ answer: 0, question: 0 });
 
