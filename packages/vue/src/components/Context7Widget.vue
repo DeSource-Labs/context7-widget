@@ -1,5 +1,19 @@
 <template>
   <span ref="host" class="context7-widget-host" v-bind="attrs">
+    <button
+      v-if="rendersManagedTrigger"
+      :id="managedTriggerId"
+      class="context7-widget-trigger"
+      type="button"
+      :aria-expanded="isOpen"
+      aria-haspopup="dialog"
+      :data-preset="preset || 'default'"
+      :data-theme="theme || 'auto'"
+    >
+      <slot name="trigger" :label="resolvedLauncherLabel" :trigger-id="managedTriggerId">
+        {{ resolvedLauncherLabel }}
+      </slot>
+    </button>
     <slot />
   </span>
 </template>
@@ -17,7 +31,7 @@ import {
   type Context7WidgetEventDetail,
   type Context7WidgetEventName
 } from '@desource/context7-widget/kit';
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, useAttrs, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, useAttrs, watch, getCurrentInstance } from 'vue';
 import type {
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
@@ -46,6 +60,16 @@ const emit = defineEmits<Context7WidgetEmits>();
 const attrs = useAttrs();
 const host = useTemplateRef('host');
 const widget = ref<Context7WidgetElement | null>(null);
+const isOpen = ref(false);
+/** Generate unique IDs for ARIA attributes; use useId once we stop supporting Vue < 3.5.0 */
+const managedTriggerId = `context7-widget-trigger-${getCurrentInstance()?.uid ?? 0}`;
+const rendersManagedTrigger = computed(() => props.customTrigger === true);
+const resolvedLauncherLabel = computed(() => props.launcherLabel || 'Ask Docs AI');
+const customTriggerSelector = computed(() => {
+  if (props.customTrigger === true) return `#${managedTriggerId}`;
+  if (typeof props.customTrigger === 'string') return normalizeCustomTriggerId(props.customTrigger);
+  return undefined;
+});
 
 const widgetOptions = computed(
   () =>
@@ -53,7 +77,7 @@ const widgetOptions = computed(
       backdrop: props.backdrop,
       closeOnOutsideClick: props.closeOnOutsideClick,
       color: props.color,
-      customTrigger: props.customTrigger,
+      customTrigger: customTriggerSelector.value,
       defaultOpen: props.defaultOpen,
       initialMessage: props.initialMessage,
       launcherLabel: props.launcherLabel,
@@ -88,6 +112,7 @@ function emitWidgetEvent(eventName: Context7WidgetEventName, detail: Context7Wid
       emit('answer-complete', detail as Context7WidgetAnswerCompleteEventDetail);
       break;
     case 'c7:close':
+      isOpen.value = false;
       emit('close', detail as Context7WidgetLifecycleEventDetail);
       break;
     case 'c7:error':
@@ -97,6 +122,7 @@ function emitWidgetEvent(eventName: Context7WidgetEventName, detail: Context7Wid
       emit('first-token', detail as Context7WidgetAnswerEventDetail);
       break;
     case 'c7:open':
+      isOpen.value = true;
       emit('open', detail as Context7WidgetLifecycleEventDetail);
       break;
     case 'c7:question':
@@ -112,6 +138,11 @@ function emitWidgetEvent(eventName: Context7WidgetEventName, detail: Context7Wid
       emit('tool-result', detail as Context7WidgetToolResultEventDetail);
       break;
   }
+}
+
+function normalizeCustomTriggerId(value: string): string | undefined {
+  const id = value.trim().replace(/^#/, '');
+  return id ? `#${id}` : undefined;
 }
 
 const mount = () => {
@@ -144,7 +175,7 @@ watch(
       setContext7WidgetAttributes(widget.value, nextOptions, true);
     }
   },
-  { deep: true }
+  { deep: true, flush: 'post' }
 );
 
 onMounted(mount);

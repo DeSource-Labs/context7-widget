@@ -44,6 +44,54 @@ describe('@desource/context7-widget-vue', () => {
     });
   });
 
+  it('renders and wires a managed trigger when customTrigger is true', async () => {
+    const root = document.createElement('div');
+    document.body.append(root);
+
+    createApp({
+      render: () =>
+        h(Context7Widget, {
+          customTrigger: true,
+          launcherLabel: 'Ask docs',
+          library: '/desource-labs/context7-widget',
+          position: 'anchor',
+          preset: 'glass'
+        })
+    }).mount(root);
+
+    await nextTick();
+
+    const trigger = root.querySelector<HTMLButtonElement>('.context7-widget-trigger');
+    const widget = root.querySelector('context7-widget');
+
+    expect(trigger?.textContent?.trim()).toBe('Ask docs');
+    expect(trigger?.id).toMatch(/^context7-widget-trigger-/);
+    expect(trigger?.getAttribute('data-preset')).toBe('glass');
+    expect(widget?.getAttribute('custom-trigger')).toBe(`#${trigger?.id}`);
+
+    trigger?.click();
+
+    expect(widget?.hasAttribute('open')).toBe(true);
+  });
+
+  it('normalizes custom trigger ids when customTrigger is a string', async () => {
+    const root = document.createElement('div');
+    document.body.append(root);
+
+    createApp({
+      render: () =>
+        h(Context7Widget, {
+          customTrigger: 'docs-help',
+          library: '/desource-labs/context7-widget'
+        })
+    }).mount(root);
+
+    await nextTick();
+
+    expect(root.querySelector('.context7-widget-trigger')).toBeNull();
+    expect(root.querySelector('context7-widget')?.getAttribute('custom-trigger')).toBe('#docs-help');
+  });
+
   it('mounts and controls a widget from the composable', async () => {
     vi.stubGlobal(
       'fetch',

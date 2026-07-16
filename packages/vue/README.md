@@ -40,6 +40,27 @@ const docs = useContext7Widget({
 await docs.send('How do I theme the widget?');
 ```
 
+Custom trigger modes:
+
+```vue
+<!-- Use the built-in widget launcher -->
+<Context7Widget library="/desource-labs/context7-widget" />
+
+<!-- Render the Vue package trigger button -->
+<Context7Widget
+  library="/desource-labs/context7-widget"
+  custom-trigger
+  launcher-label="Ask docs"
+/>
+
+<!-- Bind to your own button by id, with or without # -->
+<button id="docs-help">Ask docs</button>
+<Context7Widget
+  library="/desource-labs/context7-widget"
+  custom-trigger="docs-help"
+/>
+```
+
 Optional SCSS-built styles are published as:
 
 ```ts
@@ -48,4 +69,6 @@ import '@desource/context7-widget-vue/styles.css';
 
 `Context7Widget.vue` is a standard Vue SFC. It exposes the underlying custom
 element through `ref`, maps all `c7:*` DOM events to Vue events, and accepts the
-same typed options as the core package.
+same typed options as the core package. Vue additionally accepts
+`customTrigger` as `true` to render a managed trigger button; internally it is
+mapped back to the core widget's selector-based `customTrigger` API.

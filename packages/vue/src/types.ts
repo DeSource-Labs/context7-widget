@@ -23,7 +23,17 @@ export type {
   Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
 
-export interface Context7WidgetProps extends Context7WidgetOptions {}
+export type Context7WidgetCustomTrigger = boolean | string;
+
+export interface Context7WidgetProps extends Omit<Context7WidgetOptions, 'customTrigger'> {
+  /**
+   * Use a custom trigger instead of the built-in widget launcher.
+   * - true renders the Vue package trigger button.
+   * - string binds the widget to an external trigger id, with or without "#".
+   * - undefined keeps the built-in widget launcher.
+   */
+  customTrigger?: Context7WidgetCustomTrigger;
+}
 
 export interface Context7WidgetVueEventMap {
   answer: Context7WidgetAnswerEventDetail;
@@ -66,6 +76,11 @@ export interface Context7WidgetEmits {
 }
 
 export interface Context7WidgetSlots {
+  /** Content for the Vue-managed trigger button when customTrigger is true. */
+  trigger: {
+    label: string;
+    triggerId: string;
+  };
   /** Optional content rendered next to the managed custom element host. */
   default: {};
 }

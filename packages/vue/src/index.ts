@@ -3,6 +3,7 @@ export type {
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
   Context7WidgetBaseEventDetail,
+  Context7WidgetCustomTrigger,
   Context7WidgetDomEvent,
   Context7WidgetEmits,
   Context7WidgetErrorEventDetail,
