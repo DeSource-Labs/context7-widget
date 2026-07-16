@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { Check, Copy } from "lucide-vue-next";
+import { Check, Copy } from 'lucide-vue-next';
 
 const props = defineProps<{
   code: string;
@@ -21,5 +21,5 @@ const props = defineProps<{
 }>();
 
 const { copiedKey, copy } = useCopy();
-const copyLabel = computed(() => (copiedKey.value === props.id ? "Copied" : `Copy ${props.label}`));
+const copyLabel = computed(() => (copiedKey.value === props.id ? 'Copied' : `Copy ${props.label}`));
 </script>

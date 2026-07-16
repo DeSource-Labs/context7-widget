@@ -19,11 +19,7 @@ hosting at `context7.desource-labs.org`.
 Replace the official script URL and keep the existing Context7 attributes:
 
 ```html
-<script
-  async
-  src="https://context7.desource-labs.org/widget.js"
-  data-library="/vercel/next.js"
-></script>
+<script async src="https://context7.desource-labs.org/widget.js" data-library="/vercel/next.js"></script>
 ```
 
 Existing official attributes continue to work:
@@ -61,24 +57,21 @@ pnpm add @desource/context7-widget
 ```
 
 ```ts
-import {
-  buildContext7WidgetScriptTag,
-  mountContext7Widget
-} from "@desource/context7-widget";
+import { buildContext7WidgetScriptTag, mountContext7Widget } from '@desource/context7-widget';
 
 mountContext7Widget({
   backdrop: true,
-  color: "#10b981",
+  color: '#10b981',
   closeOnOutsideClick: true,
-  library: "/vercel/next.js",
-  position: "center",
-  preset: "glass",
-  theme: "auto"
+  library: '/vercel/next.js',
+  position: 'center',
+  preset: 'glass',
+  theme: 'auto'
 });
 
 const script = buildContext7WidgetScriptTag({
-  library: "/vercel/next.js",
-  customTrigger: "#docs-chat"
+  library: '/vercel/next.js',
+  customTrigger: '#docs-chat'
 });
 ```
 
@@ -104,7 +97,7 @@ pnpm add @desource/context7-widget-vue
 </template>
 
 <script setup lang="ts">
-import { Context7Widget, type Context7WidgetEventDetail } from "@desource/context7-widget-vue";
+import { Context7Widget, type Context7WidgetEventDetail } from '@desource/context7-widget-vue';
 
 function trackQuestion(detail: Context7WidgetEventDetail) {
   console.log(detail.question);
@@ -115,15 +108,15 @@ function trackQuestion(detail: Context7WidgetEventDetail) {
 Composable:
 
 ```ts
-import { useContext7Widget } from "@desource/context7-widget-vue";
+import { useContext7Widget } from '@desource/context7-widget-vue';
 
 const docs = useContext7Widget({
   autoMount: true,
-  library: "/vercel/next.js",
-  widgetId: "docs"
+  library: '/vercel/next.js',
+  widgetId: 'docs'
 });
 
-await docs.send("How do I customize the widget?");
+await docs.send('How do I customize the widget?');
 ```
 
 ## Styling
@@ -174,7 +167,7 @@ The script loader also registers `window.Context7Widget`:
 
 ```js
 window.Context7Widget.open();
-window.Context7Widget.send("How do I configure middleware?");
+window.Context7Widget.send('How do I configure middleware?');
 window.Context7Widget.close();
 ```
 

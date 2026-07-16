@@ -6,7 +6,7 @@ import {
   type Context7WidgetElement,
   type Context7WidgetOptions,
   type Context7WidgetTarget
-} from "@desource/context7-widget";
+} from '@desource/context7-widget';
 import {
   computed,
   onBeforeUnmount,
@@ -19,8 +19,8 @@ import {
   type MaybeRefOrGetter,
   type Ref,
   type ShallowRef
-} from "vue";
-import { compactWidgetOptions } from "./options";
+} from 'vue';
+import { compactWidgetOptions } from './options';
 
 export interface UseContext7WidgetOptions extends Partial<Context7WidgetOptions> {
   autoMount?: boolean;
@@ -40,9 +40,7 @@ export interface UseContext7WidgetReturn {
   widget: Readonly<ShallowRef<Context7WidgetElement | null>>;
 }
 
-export function useContext7Widget(
-  source: MaybeRefOrGetter<UseContext7WidgetOptions> = {}
-): UseContext7WidgetReturn {
+export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOptions> = {}): UseContext7WidgetReturn {
   const widget = shallowRef<Context7WidgetElement | null>(null);
   const isOpen = ref(false);
   const ownsWidget = ref(false);
@@ -61,7 +59,7 @@ export function useContext7Widget(
   const resolveWidget = () => {
     if (widget.value) return widget.value;
     const resolved = getContext7Widget(widgetId.value);
-    return typeof HTMLElement !== "undefined" && resolved instanceof HTMLElement
+    return typeof HTMLElement !== 'undefined' && resolved instanceof HTMLElement
       ? (resolved as Context7WidgetElement)
       : null;
   };
@@ -79,7 +77,7 @@ export function useContext7Widget(
     }) as Context7WidgetOptions;
 
     if (!nextOptions.library) {
-      throw new Error("useContext7Widget mount requires a library option.");
+      throw new Error('useContext7Widget mount requires a library option.');
     }
 
     widget.value = mountContext7Widget(nextOptions, options.value.target);

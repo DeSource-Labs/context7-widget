@@ -1,36 +1,24 @@
-export type Context7Role = "user" | "assistant";
+export type Context7Role = 'user' | 'assistant';
 
-export type Context7Position =
-  | "bottom-right"
-  | "bottom-left"
-  | "top-right"
-  | "top-left"
-  | "center"
-  | "anchor";
+export type Context7Position = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'center' | 'anchor';
 
-export type Context7LauncherVariant = "icon" | "pill" | "badge";
+export type Context7LauncherVariant = 'icon' | 'pill' | 'badge';
 
-export type Context7WidgetPreset =
-  | "default"
-  | "minimal"
-  | "glass"
-  | "neo"
-  | "terminal"
-  | "brutalist";
+export type Context7WidgetPreset = 'default' | 'minimal' | 'glass' | 'neo' | 'terminal' | 'brutalist';
 
-export type Context7Theme = "auto" | "light" | "dark";
+export type Context7Theme = 'auto' | 'light' | 'dark';
 
 export type Context7WidgetEventName =
-  | "c7:ready"
-  | "c7:open"
-  | "c7:close"
-  | "c7:question"
-  | "c7:first-token"
-  | "c7:answer"
-  | "c7:answer-complete"
-  | "c7:tool-call"
-  | "c7:tool-result"
-  | "c7:error";
+  | 'c7:ready'
+  | 'c7:open'
+  | 'c7:close'
+  | 'c7:question'
+  | 'c7:first-token'
+  | 'c7:answer'
+  | 'c7:answer-complete'
+  | 'c7:tool-call'
+  | 'c7:tool-result'
+  | 'c7:error';
 
 export interface Context7Message {
   id: string;

@@ -7,25 +7,22 @@ pnpm add @desource/context7-widget
 ```
 
 ```ts
-import {
-  buildContext7WidgetScriptTag,
-  mountContext7Widget
-} from "@desource/context7-widget";
+import { buildContext7WidgetScriptTag, mountContext7Widget } from '@desource/context7-widget';
 
 mountContext7Widget({
-  library: "/vercel/next.js",
-  color: "#10b981",
-  theme: "auto",
-  position: "center",
-  preset: "glass",
+  library: '/vercel/next.js',
+  color: '#10b981',
+  theme: 'auto',
+  position: 'center',
+  preset: 'glass',
   backdrop: true,
   closeOnOutsideClick: true
 });
 
 const script = buildContext7WidgetScriptTag({
-  library: "/vercel/next.js",
-  customTrigger: "#docs-chat",
-  position: "anchor"
+  library: '/vercel/next.js',
+  customTrigger: '#docs-chat',
+  position: 'anchor'
 });
 ```
 

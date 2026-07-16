@@ -9,58 +9,59 @@ import {
   createContext7Widget,
   setContext7WidgetAttributes,
   type Context7WidgetElement,
-  type Context7WidgetOptions,
-} from "@desource/context7-widget";
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, useAttrs, watch } from "vue";
-import { context7WidgetEvents, vueEventNames } from "./events";
-import { compactWidgetOptions } from "./options";
-import type { Context7WidgetExpose, Context7WidgetVueEvent } from "./component-types";
+  type Context7WidgetOptions
+} from '@desource/context7-widget';
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, useAttrs, watch } from 'vue';
+import { context7WidgetEvents, vueEventNames } from './events';
+import { compactWidgetOptions } from './options';
+import type { Context7WidgetExpose, Context7WidgetVueEvent } from './component-types';
 
 defineOptions({
   inheritAttrs: false,
-  name: "Context7Widget"
+  name: 'Context7Widget'
 });
 
 const props = defineProps<Context7WidgetOptions>();
 
 const emit = defineEmits([
-  "answer",
-  "answer-complete",
-  "close",
-  "error",
-  "first-token",
-  "open",
-  "question",
-  "ready",
-  "tool-call",
-  "tool-result"
+  'answer',
+  'answer-complete',
+  'close',
+  'error',
+  'first-token',
+  'open',
+  'question',
+  'ready',
+  'tool-call',
+  'tool-result'
 ]);
 
 const attrs = useAttrs();
 const host = useTemplateRef('host');
 const widget = ref<Context7WidgetElement | null>(null);
 
-const widgetOptions = computed(() =>
-  compactWidgetOptions({
-    backdrop: props.backdrop,
-    closeOnOutsideClick: props.closeOnOutsideClick,
-    color: props.color,
-    customTrigger: props.customTrigger,
-    defaultOpen: props.defaultOpen,
-    initialMessage: props.initialMessage,
-    launcherLabel: props.launcherLabel,
-    launcherVariant: props.launcherVariant,
-    library: props.library,
-    panelHeight: props.panelHeight,
-    panelWidth: props.panelWidth,
-    placeholder: props.placeholder,
-    position: props.position,
-    preset: props.preset,
-    showPoweredBy: props.showPoweredBy,
-    theme: props.theme,
-    title: props.title,
-    widgetId: props.widgetId
-  }) as Context7WidgetOptions
+const widgetOptions = computed(
+  () =>
+    compactWidgetOptions({
+      backdrop: props.backdrop,
+      closeOnOutsideClick: props.closeOnOutsideClick,
+      color: props.color,
+      customTrigger: props.customTrigger,
+      defaultOpen: props.defaultOpen,
+      initialMessage: props.initialMessage,
+      launcherLabel: props.launcherLabel,
+      launcherVariant: props.launcherVariant,
+      library: props.library,
+      panelHeight: props.panelHeight,
+      panelWidth: props.panelWidth,
+      placeholder: props.placeholder,
+      position: props.position,
+      preset: props.preset,
+      showPoweredBy: props.showPoweredBy,
+      theme: props.theme,
+      title: props.title,
+      widgetId: props.widgetId
+    }) as Context7WidgetOptions
 );
 
 const listeners = context7WidgetEvents.map((eventName) => {

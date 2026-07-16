@@ -35,8 +35,8 @@
         <p class="eyebrow">Position use cases</p>
         <h2>Corner, centered, and anchored entry points.</h2>
         <p>
-          Current Context7 installs are mostly fixed-corner docs widgets because the official script only exposes
-          that shape. This package keeps that path and adds focused centered-dialog and app-shell popover patterns.
+          Current Context7 installs are mostly fixed-corner docs widgets because the official script only exposes that
+          shape. This package keeps that path and adds focused centered-dialog and app-shell popover patterns.
         </p>
       </div>
 
@@ -155,10 +155,11 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquare, Search } from "lucide-vue-next";
-import { Context7Widget } from "@desource/context7-widget-vue";
+import { MessageSquare, Search } from 'lucide-vue-next';
+import { Context7Widget } from '@desource/context7-widget-vue';
 
-const centerScript = `<button id="docs-help">Open centered help</button>
+const centerScript =
+  `<button id="docs-help">Open centered help</button>
 
 <script
   async
@@ -182,7 +183,8 @@ const anchorVue = `<button id="docs-trigger">Ask docs</button>
   panel-width="420px"
 />`;
 
-const cornerScript = `<script
+const cornerScript =
+  `<script
   async
   src="https://context7.desource-labs.org/widget.js"
   data-library="/owner/repo"
@@ -191,12 +193,14 @@ const cornerScript = `<script
   data-placeholder="Ask about the docs..."
 ></scr` + `ipt>`;
 
-const presetColorFallback = `<script
+const presetColorFallback =
+  `<script
   async
   src="https://context7.desource-labs.org/widget.js"
   data-library="/owner/repo"
   data-preset="neo"
-></scr` + `ipt>
+></scr` +
+  `ipt>
 
 <!-- data-color is omitted, so neo owns the button color. -->`;
 
@@ -232,19 +236,19 @@ const vueComposable = `const docs = useContext7Widget({
 await docs.send("Show installation examples");`;
 
 const presetCards = [
-  { copy: "Quiet product UI with low visual noise.", name: "minimal" },
-  { copy: "Layered translucent surface for rich demos.", name: "glass" },
-  { copy: "Hard-edged playful docs widget.", name: "neo" },
-  { copy: "Monospace assistant for dev-tool pages.", name: "terminal" },
-  { copy: "High-contrast editorial surface.", name: "brutalist" }
+  { copy: 'Quiet product UI with low visual noise.', name: 'minimal' },
+  { copy: 'Layered translucent surface for rich demos.', name: 'glass' },
+  { copy: 'Hard-edged playful docs widget.', name: 'neo' },
+  { copy: 'Monospace assistant for dev-tool pages.', name: 'terminal' },
+  { copy: 'High-contrast editorial surface.', name: 'brutalist' }
 ];
 
 const events = [
-  { copy: "Widget instance is mounted and ready for imperative calls.", name: "ready" },
-  { copy: "Question text is available before the network request streams.", name: "question" },
-  { copy: "First visible response token arrived; useful for latency metrics.", name: "first-token" },
-  { copy: "Documentation search was invoked by the Context7 backend.", name: "tool-call" },
-  { copy: "The final assistant message is available for analytics.", name: "answer-complete" },
-  { copy: "Transport or configuration failures can be logged.", name: "error" }
+  { copy: 'Widget instance is mounted and ready for imperative calls.', name: 'ready' },
+  { copy: 'Question text is available before the network request streams.', name: 'question' },
+  { copy: 'First visible response token arrived; useful for latency metrics.', name: 'first-token' },
+  { copy: 'Documentation search was invoked by the Context7 backend.', name: 'tool-call' },
+  { copy: 'The final assistant message is available for analytics.', name: 'answer-complete' },
+  { copy: 'Transport or configuration failures can be logged.', name: 'error' }
 ];
 </script>

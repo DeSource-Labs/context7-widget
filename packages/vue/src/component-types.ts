@@ -1,7 +1,4 @@
-import type {
-  Context7WidgetElement,
-  Context7WidgetEventDetail
-} from "@desource/context7-widget";
+import type { Context7WidgetElement, Context7WidgetEventDetail } from '@desource/context7-widget';
 
 export type Context7WidgetVueEvent = CustomEvent<Context7WidgetEventDetail>;
 

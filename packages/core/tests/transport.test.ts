@@ -1,61 +1,56 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { streamContext7Response } from "../src/transport";
-import type { Context7Message } from "../src/types";
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { streamContext7Response } from '../src/transport';
+import type { Context7Message } from '../src/types';
 
-const messages: Context7Message[] = [
-  { id: "1", role: "user", content: "How do I install it?" }
-];
+const messages: Context7Message[] = [{ id: '1', role: 'user', content: 'How do I install it?' }];
 
-describe("streamContext7Response", () => {
+describe('streamContext7Response', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("parses Context7 SSE frames", async () => {
+  it('parses Context7 SSE frames', async () => {
     const chunks: string[] = [];
     const toolCalls: string[] = [];
     const toolResults: unknown[] = [];
 
-    const fetchMock = vi.fn(async () => new Response(stream([
-      'data: {"type":"text-delta","delta":"Hello "}\n',
-      'data: {"type":"tool-input-available","toolCallId":"tool-1","toolName":"search","input":{"query":"install"}}\n',
-      'data: {"type":"tool-output-available","toolCallId":"tool-1","output":{"ok":true}}\n',
-      'data: {"type":"text-delta","delta":"world"}\n'
-    ])));
-    vi.stubGlobal("fetch", fetchMock);
-
-    await streamContext7Response(
-      { library: "/vercel/next.js" },
-      messages,
-      {
-        onChunk: (delta) => chunks.push(delta),
-        onToolCall: (toolCall) => toolCalls.push(toolCall.toolCallId),
-        onToolResult: (toolResult) => toolResults.push(toolResult.result)
-      }
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          stream([
+            'data: {"type":"text-delta","delta":"Hello "}\n',
+            'data: {"type":"tool-input-available","toolCallId":"tool-1","toolName":"search","input":{"query":"install"}}\n',
+            'data: {"type":"tool-output-available","toolCallId":"tool-1","output":{"ok":true}}\n',
+            'data: {"type":"text-delta","delta":"world"}\n'
+          ])
+        )
     );
+    vi.stubGlobal('fetch', fetchMock);
 
-    expect(chunks.join("")).toBe("Hello world");
-    expect(toolCalls).toEqual(["tool-1"]);
+    await streamContext7Response({ library: '/vercel/next.js' }, messages, {
+      onChunk: (delta) => chunks.push(delta),
+      onToolCall: (toolCall) => toolCalls.push(toolCall.toolCallId),
+      onToolResult: (toolResult) => toolResults.push(toolResult.result)
+    });
+
+    expect(chunks.join('')).toBe('Hello world');
+    expect(toolCalls).toEqual(['tool-1']);
     expect(toolResults).toEqual([{ ok: true }]);
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://context7.com/api/v2/widget/chat",
-      expect.objectContaining({ method: "POST" })
+      'https://context7.com/api/v2/widget/chat',
+      expect.objectContaining({ method: 'POST' })
     );
   });
 
-  it("maps known widget errors", async () => {
+  it('maps known widget errors', async () => {
     vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => new Response(JSON.stringify({ message: "Origin not allowed" }), { status: 403 }))
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ message: 'Origin not allowed' }), { status: 403 }))
     );
 
     await expect(
-      streamContext7Response(
-        { library: "/vercel/next.js" },
-        messages,
-        { onChunk: () => undefined }
-      )
-    ).rejects.toThrow("This domain is not authorized");
+      streamContext7Response({ library: '/vercel/next.js' }, messages, { onChunk: () => undefined })
+    ).rejects.toThrow('This domain is not authorized');
   });
 });
 

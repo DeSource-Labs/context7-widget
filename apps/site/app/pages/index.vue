@@ -19,15 +19,20 @@
         <p class="eyebrow">Script replacement · TypeScript core · Vue bindings</p>
         <h1>Context7 Widget</h1>
         <p>
-          A themeable Context7-compatible widget system for product sites that need the docs chat to look native,
-          emit useful events, and still ship through a single hosted script.
+          A themeable Context7-compatible widget system for product sites that need the docs chat to look native, emit
+          useful events, and still ship through a single hosted script.
         </p>
         <div class="hero__actions">
           <a class="button button--primary" href="#lab">
             <SlidersHorizontal :size="18" aria-hidden="true" />
             Configure
           </a>
-          <a class="button button--ghost" href="https://github.com/DeSource-Labs/context7-widget" target="_blank" rel="noopener noreferrer">
+          <a
+            class="button button--ghost"
+            href="https://github.com/DeSource-Labs/context7-widget"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Github :size="18" aria-hidden="true" />
             GitHub
           </a>
@@ -152,18 +157,10 @@ context7-widget::part(send-button) {
 </template>
 
 <script setup lang="ts">
-import {
-  ArrowUp,
-  BookOpen,
-  Braces,
-  Github,
-  Package,
-  PanelRightOpen,
-  SlidersHorizontal,
-  X
-} from "lucide-vue-next";
+import { ArrowUp, BookOpen, Braces, Github, Package, PanelRightOpen, SlidersHorizontal, X } from 'lucide-vue-next';
 
-const scriptInstall = `<script
+const scriptInstall =
+  `<script
   async
   src="https://context7.desource-labs.org/widget.js"
   data-library="/vercel/next.js"
@@ -197,47 +194,47 @@ const scannerCode = `pnpm scan:upstream
 
 const paths = [
   {
-    class: "path-card--large",
-    copy: "The lowest-friction replacement for existing Context7 users. Keep data-library, swap the script origin.",
+    class: 'path-card--large',
+    copy: 'The lowest-friction replacement for existing Context7 users. Keep data-library, swap the script origin.',
     icon: PanelRightOpen,
-    title: "/widget.js"
+    title: '/widget.js'
   },
   {
-    class: "",
-    copy: "Typed helpers for creating widgets, generating copy-paste script tags, and controlling instances from app code.",
+    class: '',
+    copy: 'Typed helpers for creating widgets, generating copy-paste script tags, and controlling instances from app code.',
     icon: Braces,
-    title: "Core TypeScript"
+    title: 'Core TypeScript'
   },
   {
-    class: "",
-    copy: "A Vue 3 component, composable, plugin helper, typed events, and optional SCSS-built trigger styles.",
+    class: '',
+    copy: 'A Vue 3 component, composable, plugin helper, typed events, and optional SCSS-built trigger styles.',
     icon: Package,
-    title: "Vue package"
+    title: 'Vue package'
   }
 ];
 
-const eventPulses = ["ready", "open", "question", "first-token", "tool-call", "answer-complete", "error"];
+const eventPulses = ['ready', 'open', 'question', 'first-token', 'tool-call', 'answer-complete', 'error'];
 
 const useCases = [
   {
-    copy: "Expose custom properties and shadow parts so the widget can match dense dashboards, editorial docs, or launch pages.",
-    number: "01",
-    title: "Design-system theming"
+    copy: 'Expose custom properties and shadow parts so the widget can match dense dashboards, editorial docs, or launch pages.',
+    number: '01',
+    title: 'Design-system theming'
   },
   {
-    copy: "Listen for question, first-token, answer-complete, tool-call, and error events for analytics or user research.",
-    number: "02",
-    title: "Product instrumentation"
+    copy: 'Listen for question, first-token, answer-complete, tool-call, and error events for analytics or user research.',
+    number: '02',
+    title: 'Product instrumentation'
   },
   {
-    copy: "Bind the widget to a header button, command palette, or support menu item; the launcher hides automatically.",
-    number: "03",
-    title: "Custom triggers"
+    copy: 'Bind the widget to a header button, command palette, or support menu item; the launcher hides automatically.',
+    number: '03',
+    title: 'Custom triggers'
   },
   {
-    copy: "Use the same runtime from plain HTML, framework code, Vue apps, and this Nuxt information site.",
-    number: "04",
-    title: "One runtime, many hosts"
+    copy: 'Use the same runtime from plain HTML, framework code, Vue apps, and this Nuxt information site.',
+    number: '04',
+    title: 'One runtime, many hosts'
   }
 ];
 </script>

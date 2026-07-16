@@ -30,11 +30,7 @@ the streaming protocol.
 The auto-loader reads the current script tag:
 
 ```html
-<script
-  async
-  src="https://context7.desource-labs.org/widget.js"
-  data-library="/vercel/next.js"
-></script>
+<script async src="https://context7.desource-labs.org/widget.js" data-library="/vercel/next.js"></script>
 ```
 
 It creates:

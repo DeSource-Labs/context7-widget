@@ -1,11 +1,11 @@
-import { findCurrentWidgetScript, mountContext7WidgetFromScript } from "./loader";
+import { findCurrentWidgetScript, mountContext7WidgetFromScript } from './loader';
 
 function boot() {
   mountContext7WidgetFromScript(findCurrentWidgetScript());
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", boot, { once: true });
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot, { once: true });
 } else {
   boot();
 }

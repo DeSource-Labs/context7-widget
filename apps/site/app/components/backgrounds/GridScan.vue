@@ -3,12 +3,12 @@
 </template>
 
 <script setup lang="ts">
-import { BloomEffect, ChromaticAberrationEffect, EffectComposer, EffectPass, RenderPass } from "postprocessing";
-import * as THREE from "three";
-import { onMounted, onUnmounted, useTemplateRef, watch, type CSSProperties } from "vue";
+import { BloomEffect, ChromaticAberrationEffect, EffectComposer, EffectPass, RenderPass } from 'postprocessing';
+import * as THREE from 'three';
+import { onMounted, onUnmounted, useTemplateRef, watch, type CSSProperties } from 'vue';
 
-export type LineStyle = "solid" | "dashed" | "dotted";
-export type ScanDirection = "forward" | "backward" | "pingpong";
+export type LineStyle = 'solid' | 'dashed' | 'dotted';
+export type ScanDirection = 'forward' | 'backward' | 'pingpong';
 
 interface GridScanProps {
   sensitivity?: number;
@@ -38,13 +38,13 @@ interface GridScanProps {
 const props = withDefaults(defineProps<GridScanProps>(), {
   sensitivity: 0.55,
   lineThickness: 1,
-  linesColor: "#2c3d32",
-  scanColor: "#48ff28",
+  linesColor: '#2c3d32',
+  scanColor: '#48ff28',
   scanOpacity: 0.4,
   gridScale: 0.1,
-  lineStyle: "solid",
+  lineStyle: 'solid',
   lineJitter: 0.1,
-  scanDirection: "pingpong",
+  scanDirection: 'pingpong',
   enablePost: true,
   bloomIntensity: 0,
   bloomThreshold: 0,
@@ -332,7 +332,7 @@ void main() {
 }
 `;
 
-const containerRef = useTemplateRef<HTMLDivElement>("containerRef");
+const containerRef = useTemplateRef<HTMLDivElement>('containerRef');
 const maxScans = 8;
 let cleanupAnimation: () => void = () => {};
 
@@ -344,7 +344,7 @@ const smoothDampVec2 = (
   currentVelocity: THREE.Vector2,
   smoothTimeVal: number,
   maxSpeedVal: number,
-  deltaTime: number,
+  deltaTime: number
 ): THREE.Vector2 => {
   const out = current.clone();
   const smoothTime = Math.max(0.0001, smoothTimeVal);
@@ -382,7 +382,7 @@ const smoothDampFloat = (
   velRef: { v: number },
   smoothTimeVal: number,
   maxSpeedVal: number,
-  deltaTime: number,
+  deltaTime: number
 ): { value: number; v: number } => {
   const smoothTime = Math.max(0.0001, smoothTimeVal);
   const omega = 2 / smoothTime;
@@ -441,7 +441,7 @@ const setupAnimation = () => {
 
   const uniforms = {
     iResolution: {
-      value: new THREE.Vector3(container.clientWidth, container.clientHeight, renderer.getPixelRatio()),
+      value: new THREE.Vector3(container.clientWidth, container.clientHeight, renderer.getPixelRatio())
     },
     iTime: { value: 0 },
     uSkew: { value: new THREE.Vector2(0, 0) },
@@ -451,7 +451,7 @@ const setupAnimation = () => {
     uLinesColor: { value: srgbColor(props.linesColor) },
     uScanColor: { value: srgbColor(props.scanColor) },
     uGridScale: { value: props.gridScale },
-    uLineStyle: { value: props.lineStyle === "dashed" ? 1 : props.lineStyle === "dotted" ? 2 : 0 },
+    uLineStyle: { value: props.lineStyle === 'dashed' ? 1 : props.lineStyle === 'dotted' ? 2 : 0 },
     uLineJitter: { value: Math.max(0, Math.min(1, props.lineJitter)) },
     uScanOpacity: { value: props.scanOpacity },
     uNoise: { value: props.noiseIntensity },
@@ -461,9 +461,9 @@ const setupAnimation = () => {
     uPhaseTaper: { value: props.scanPhaseTaper },
     uScanDuration: { value: props.scanDuration },
     uScanDelay: { value: props.scanDelay },
-    uScanDirection: { value: props.scanDirection === "backward" ? 1 : props.scanDirection === "pingpong" ? 2 : 0 },
+    uScanDirection: { value: props.scanDirection === 'backward' ? 1 : props.scanDirection === 'pingpong' ? 2 : 0 },
     uScanStarts: { value: new Array(maxScans).fill(0) },
-    uScanCount: { value: 0 },
+    uScanCount: { value: 0 }
   };
 
   const material = new THREE.ShaderMaterial({
@@ -472,7 +472,7 @@ const setupAnimation = () => {
     fragmentShader,
     transparent: true,
     depthWrite: false,
-    depthTest: false,
+    depthTest: false
   });
 
   const geometry = new THREE.PlaneGeometry(2, 2);
@@ -490,14 +490,14 @@ const setupAnimation = () => {
     bloom = new BloomEffect({
       intensity: 1,
       luminanceThreshold: props.bloomThreshold,
-      luminanceSmoothing: props.bloomSmoothing,
+      luminanceSmoothing: props.bloomSmoothing
     });
     bloom.blendMode.opacity.value = Math.max(0, props.bloomIntensity);
 
     chroma = new ChromaticAberrationEffect({
       offset: new THREE.Vector2(props.chromaticAberration, props.chromaticAberration),
       radialModulation: true,
-      modulationOffset: 0,
+      modulationOffset: 0
     });
 
     const effectPass = new EffectPass(camera, bloom, chroma);
@@ -553,11 +553,14 @@ const setupAnimation = () => {
       clearTimeout(leaveTimer);
     }
 
-    leaveTimer = window.setTimeout(() => {
-      lookTarget.set(0, 0);
-      tiltTarget = 0;
-      yawTarget = 0;
-    }, Math.max(0, props.snapBackDelay));
+    leaveTimer = window.setTimeout(
+      () => {
+        lookTarget.set(0, 0);
+        tiltTarget = 0;
+        yawTarget = 0;
+      },
+      Math.max(0, props.snapBackDelay)
+    );
   };
 
   const onResize = (): void => {
@@ -568,11 +571,11 @@ const setupAnimation = () => {
     composer?.setSize(width, height);
   };
 
-  container.addEventListener("mousemove", onMouseMove);
-  container.addEventListener("mouseenter", onMouseEnter);
-  container.addEventListener("mouseleave", onMouseLeave);
-  container.addEventListener("click", onClick);
-  window.addEventListener("resize", onResize);
+  container.addEventListener('mousemove', onMouseMove);
+  container.addEventListener('mouseenter', onMouseEnter);
+  container.addEventListener('mouseleave', onMouseLeave);
+  container.addEventListener('click', onClick);
+  window.addEventListener('resize', onResize);
 
   const unwatchProps = watch(
     [
@@ -593,21 +596,21 @@ const setupAnimation = () => {
       () => props.scanSoftness,
       () => props.scanPhaseTaper,
       () => props.scanDuration,
-      () => props.scanDelay,
+      () => props.scanDelay
     ],
     () => {
       uniforms.uLineThickness.value = props.lineThickness;
       uniforms.uLinesColor.value.copy(srgbColor(props.linesColor));
       uniforms.uScanColor.value.copy(srgbColor(props.scanColor));
       uniforms.uGridScale.value = props.gridScale;
-      uniforms.uLineStyle.value = props.lineStyle === "dashed" ? 1 : props.lineStyle === "dotted" ? 2 : 0;
+      uniforms.uLineStyle.value = props.lineStyle === 'dashed' ? 1 : props.lineStyle === 'dotted' ? 2 : 0;
       uniforms.uLineJitter.value = Math.max(0, Math.min(1, props.lineJitter));
       uniforms.uBloomOpacity.value = Math.max(0, props.bloomIntensity);
       uniforms.uNoise.value = Math.max(0, props.noiseIntensity);
       uniforms.uScanGlow.value = props.scanGlow;
       uniforms.uScanOpacity.value = Math.max(0, Math.min(1, props.scanOpacity));
       uniforms.uScanDirection.value =
-        props.scanDirection === "backward" ? 1 : props.scanDirection === "pingpong" ? 2 : 0;
+        props.scanDirection === 'backward' ? 1 : props.scanDirection === 'pingpong' ? 2 : 0;
       uniforms.uScanSoftness.value = props.scanSoftness;
       uniforms.uPhaseTaper.value = props.scanPhaseTaper;
       uniforms.uScanDuration.value = Math.max(0.05, props.scanDuration);
@@ -622,7 +625,7 @@ const setupAnimation = () => {
       if (chroma) {
         chroma.offset.set(props.chromaticAberration, props.chromaticAberration);
       }
-    },
+    }
   );
 
   let rafId: number | null = null;
@@ -678,11 +681,11 @@ const setupAnimation = () => {
       clearTimeout(leaveTimer);
     }
 
-    container.removeEventListener("mousemove", onMouseMove);
-    container.removeEventListener("mouseenter", onMouseEnter);
-    container.removeEventListener("mouseleave", onMouseLeave);
-    container.removeEventListener("click", onClick);
-    window.removeEventListener("resize", onResize);
+    container.removeEventListener('mousemove', onMouseMove);
+    container.removeEventListener('mouseenter', onMouseEnter);
+    container.removeEventListener('mouseleave', onMouseLeave);
+    container.removeEventListener('click', onClick);
+    window.removeEventListener('resize', onResize);
     unwatchProps();
 
     material.dispose();

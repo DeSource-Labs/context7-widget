@@ -139,36 +139,29 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquare } from "lucide-vue-next";
+import { MessageSquare } from 'lucide-vue-next';
 import {
   Context7Widget,
   type Context7LauncherVariant,
   type Context7Position,
   type Context7Theme,
   type Context7WidgetPreset
-} from "@desource/context7-widget-vue";
-import { buildContext7WidgetScriptTag } from "@desource/context7-widget";
+} from '@desource/context7-widget-vue';
+import { buildContext7WidgetScriptTag } from '@desource/context7-widget';
 
-const themes: Context7Theme[] = ["auto", "light", "dark"];
-const positions: Context7Position[] = [
-  "bottom-right",
-  "bottom-left",
-  "top-right",
-  "top-left",
-  "center",
-  "anchor"
-];
-const presets: Context7WidgetPreset[] = ["default", "minimal", "glass", "neo", "terminal", "brutalist"];
-const launcherVariants: Context7LauncherVariant[] = ["icon", "pill", "badge"];
-const colors = ["#10b981", "#f97316", "#3b82f6", "#f43f5e"];
+const themes: Context7Theme[] = ['auto', 'light', 'dark'];
+const positions: Context7Position[] = ['bottom-right', 'bottom-left', 'top-right', 'top-left', 'center', 'anchor'];
+const presets: Context7WidgetPreset[] = ['default', 'minimal', 'glass', 'neo', 'terminal', 'brutalist'];
+const launcherVariants: Context7LauncherVariant[] = ['icon', 'pill', 'badge'];
+const colors = ['#10b981', '#f97316', '#3b82f6', '#f43f5e'];
 
-const library = ref("/desource-labs/context7-widget");
-const placeholder = ref("Ask integration questions...");
-const theme = ref<Context7Theme>("auto");
-const position = ref<Context7Position>("anchor");
-const preset = ref<Context7WidgetPreset>("glass");
-const launcherVariant = ref<Context7LauncherVariant>("pill");
-const color = ref("");
+const library = ref('/desource-labs/context7-widget');
+const placeholder = ref('Ask integration questions...');
+const theme = ref<Context7Theme>('auto');
+const position = ref<Context7Position>('anchor');
+const preset = ref<Context7WidgetPreset>('glass');
+const launcherVariant = ref<Context7LauncherVariant>('pill');
+const color = ref('');
 const customTriggerEnabled = ref(true);
 const backdrop = ref(true);
 const closeOnOutsideClick = ref(true);
@@ -179,12 +172,12 @@ const scriptCode = computed(() =>
     backdrop: backdrop.value,
     closeOnOutsideClick: closeOnOutsideClick.value,
     color: color.value || undefined,
-    customTrigger: customTriggerEnabled.value ? "#context7-lab-trigger" : undefined,
-    launcherLabel: "Ask docs",
+    customTrigger: customTriggerEnabled.value ? '#context7-lab-trigger' : undefined,
+    launcherLabel: 'Ask docs',
     launcherVariant: launcherVariant.value,
     library: library.value,
-    panelHeight: "460px",
-    panelWidth: "440px",
+    panelHeight: '460px',
+    panelWidth: '440px',
     placeholder: placeholder.value,
     position: position.value,
     preset: preset.value,
@@ -193,11 +186,9 @@ const scriptCode = computed(() =>
 );
 
 const vueCode = computed(() => {
-  const colorLine = color.value ? `  color="${color.value}"\n` : "";
-  const colorComment = color.value ? "" : "  <!-- color omitted: preset owns the action color -->\n";
-  const customTriggerLines = customTriggerEnabled.value
-    ? '  custom-trigger="#context7-lab-trigger"\n'
-    : "";
+  const colorLine = color.value ? `  color="${color.value}"\n` : '';
+  const colorComment = color.value ? '' : '  <!-- color omitted: preset owns the action color -->\n';
+  const customTriggerLines = customTriggerEnabled.value ? '  custom-trigger="#context7-lab-trigger"\n' : '';
 
   return `<Context7Widget
   library="${library.value}"
@@ -211,6 +202,6 @@ ${colorLine}${colorComment}  theme="${theme.value}"
 ${customTriggerLines}  launcher-label="Ask docs"
   placeholder="${placeholder.value}"
   @question="trackQuestion"
-/>`
+/>`;
 });
 </script>
