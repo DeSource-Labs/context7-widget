@@ -10,8 +10,9 @@
     "dev": "pnpm run prepare:deps && nuxt dev",
     "generate": "nuxt generate",
     "typecheck": "nuxt typecheck",
-    "prepare:deps": "pnpm --filter @desource/context7-widget build && pnpm --filter @desource/context7-widget-vue build && node scripts/sync-widget.mjs && nuxt prepare",
-    "preview": "nuxt preview"
+    "prepare:deps": "node scripts/sync-widget.mjs && nuxt prepare",
+    "preview": "nuxt preview",
+    "vercel-build": "pnpm --workspace-root vercel-build"
   },
   "dependencies": {
     "@desource/context7-widget": "workspace:*",

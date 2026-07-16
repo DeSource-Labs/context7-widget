@@ -2,6 +2,17 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
+type UpstreamMetadata = {
+  checkedAt?: string;
+  contentLength?: number;
+  etag?: string | null;
+  lastModified?: string | null;
+  sha256?: string;
+  upstreamUrl?: string;
+};
+
+type GitHubOutput = Record<string, string>;
+
 const upstreamUrl = 'https://context7.com/widget.js';
 const outputDir = resolve('upstream');
 const rawPath = resolve(outputDir, 'context7-widget.latest.js');
@@ -10,7 +21,7 @@ const metadataPath = resolve(outputDir, 'context7-widget.metadata.json');
 const shaPath = resolve(outputDir, 'context7-widget.sha256');
 
 const previousMetadata = await readJson(metadataPath);
-const headers = {};
+const headers: Record<string, string> = {};
 
 if (previousMetadata?.etag && !process.argv.includes('--force')) {
   headers['if-none-match'] = previousMetadata.etag;
@@ -21,8 +32,8 @@ const response = await fetch(upstreamUrl, { headers });
 if (response.status === 304) {
   await writeGitHubOutput({
     changed: 'false',
-    current_sha: previousMetadata.sha256 ?? '',
-    previous_sha: previousMetadata.sha256 ?? '',
+    current_sha: previousMetadata?.sha256 ?? '',
+    previous_sha: previousMetadata?.sha256 ?? '',
     status: 'not-modified',
     upstream_url: upstreamUrl
   });
@@ -66,32 +77,32 @@ console.log(
   changed ? `Upstream widget changed: ${previousSha || 'none'} -> ${currentSha}` : 'Upstream widget hash unchanged.'
 );
 
-function normalizeScript(source) {
+function normalizeScript(source: string): string {
   return ensureTrailingNewline(source.replace(/\r\n/g, '\n').trim());
 }
 
-function sha256(value) {
+function sha256(value: string): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
-function ensureTrailingNewline(value) {
+function ensureTrailingNewline(value: string): string {
   return `${value.replace(/\s+$/u, '')}\n`;
 }
 
-async function readJson(path) {
+async function readJson(path: string): Promise<UpstreamMetadata | null> {
   try {
-    return JSON.parse(await readFile(path, 'utf8'));
+    return JSON.parse(await readFile(path, 'utf8')) as UpstreamMetadata;
   } catch {
     return null;
   }
 }
 
-async function writeJson(path, value) {
+async function writeJson(path: string, value: UpstreamMetadata): Promise<void> {
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, `${JSON.stringify(value, null, 2)}\n`);
 }
 
-async function writeGitHubOutput(values) {
+async function writeGitHubOutput(values: GitHubOutput): Promise<void> {
   const outputPath = process.env.GITHUB_OUTPUT;
   if (!outputPath) return;
 

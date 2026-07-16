@@ -2,11 +2,43 @@
   "name": "@desource/context7-widget",
   "version": "0.1.0",
   "description": "Themeable Context7-compatible chat widget with a one-line replacement loader.",
+  "keywords": [
+    "context7",
+    "widget",
+    "docs",
+    "documentation",
+    "chat",
+    "ai",
+    "custom-element",
+    "web-component",
+    "typescript",
+    "vite"
+  ],
+  "author": "Stefan Popov <stefan@desource-labs.org>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeSource-Labs/context7-widget.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/DeSource-Labs/context7-widget/issues"
+  },
+  "homepage": "https://github.com/DeSource-Labs/context7-widget/tree/main/packages/core#readme",
   "type": "module",
   "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/widget.js",
+  "jsdelivr": "./dist/widget.js",
+  "browser": "./dist/widget.js",
   "files": [
     "dist",
+    "CHANGELOG.md",
     "README.md",
     "LICENSE",
     "NOTICE"
@@ -20,9 +52,12 @@
       "types": "./dist/kit.d.ts",
       "import": "./dist/kit.js"
     },
-    "./widget.js": "./dist/widget.js"
+    "./widget.js": "./dist/widget.js",
+    "./package.json": "./package.json"
   },
-  "types": "./dist/index.d.ts",
+  "sideEffects": [
+    "./dist/widget.js"
+  ],
   "scripts": {
     "clean": "rimraf dist coverage tsconfig.tsbuildinfo",
     "clean:modules": "rimraf node_modules",

@@ -3,23 +3,39 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=25"
+  },
   "scripts": {
     "clean": "pnpm -r --if-present --stream run clean",
     "clean:modules": "pnpm -r --if-present --stream run clean:modules && rimraf node_modules",
     "build": "pnpm -r --filter \"./packages/**\" --stream run build",
-    "dev:site": "pnpm --filter @desource/context7-widget-site dev",
-    "scan:upstream": "node scripts/scan-upstream.mjs",
+    "dev:demo": "pnpm --filter demo dev",
+    "dev:prepare": "pnpm --filter demo prepare:deps",
+    "build:demo": "pnpm --filter demo build",
+    "vercel-build": "pnpm build && pnpm dev:prepare && pnpm build:demo",
+    "build:all": "pnpm build && pnpm dev:prepare && pnpm build:demo",
+    "ci": "pnpm format:check && pnpm lint && pnpm build:all && pnpm test:all",
+    "changeset": "changeset",
+    "changeset:version": "changeset version && pnpm install --lockfile-only",
+    "changeset:publish": "pnpm build && changeset publish",
+    "release": "pnpm changeset:version && pnpm changeset:publish",
+    "scan:upstream": "node scripts/scan-upstream.mts",
     "test:all": "pnpm test:unit && pnpm test:e2e",
     "test:e2e": "pnpm -r --filter \"./packages/**\" --if-present --stream --workspace-concurrency=1 run test:e2e",
     "test:unit": "pnpm -r --filter \"./packages/**\" --if-present --stream run test:unit",
     "test:unit:coverage": "pnpm -r --filter \"./packages/**\" --if-present --stream run test:unit:coverage",
-    "typecheck": "pnpm -r --filter \"./packages/**\" --if-present --stream run typecheck",
+    "typecheck": "pnpm -r --if-present --stream run typecheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{svelte,vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",
-    "format:check": "prettier --check \"**/*.{svelte,vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\""
+    "format:check": "prettier --check \"**/*.{svelte,vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",
+    "lint:staged": "lint-staged",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^2.31.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@types/node": "^26.1.1",
@@ -43,5 +59,14 @@
     "vite": "^8.1.4",
     "vitest": "^4.1.10",
     "vue-eslint-parser": "^10.4.1"
+  },
+  "lint-staged": {
+    "*.{svelte,vue,js,jsx,cjs,mjs,ts,tsx,cts,mts}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }

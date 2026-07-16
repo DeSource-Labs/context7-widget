@@ -2,22 +2,52 @@
   "name": "@desource/context7-widget-vue",
   "version": "0.1.0",
   "description": "Vue 3 bindings for the themeable Context7 widget.",
+  "keywords": [
+    "context7",
+    "widget",
+    "vue",
+    "vue3",
+    "component",
+    "composable",
+    "docs",
+    "documentation",
+    "chat",
+    "typescript"
+  ],
+  "author": "Stefan Popov <stefan@desource-labs.org>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeSource-Labs/context7-widget.git",
+    "directory": "packages/vue"
+  },
+  "bugs": {
+    "url": "https://github.com/DeSource-Labs/context7-widget/issues"
+  },
+  "homepage": "https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue#readme",
   "type": "module",
   "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist",
+    "CHANGELOG.md",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "NOTICE"
   ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
   },
-  "types": "./dist/index.d.ts",
   "sideEffects": [
     "./dist/styles.css"
   ],

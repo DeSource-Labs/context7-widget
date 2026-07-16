@@ -21,8 +21,8 @@ the streaming protocol.
   integrations.
 - `context7-widget` custom element: the canonical runtime surface.
 - `packages/vue`: Vue 3 component, composable, plugin helper, and SCSS output.
-- `apps/site`: Nuxt static site for `context7.desource-labs.org`.
-- `scripts/scan-upstream.mjs`: daily upstream byte and hash monitor.
+- `demo`: Nuxt static site for `context7.desource-labs.org`.
+- `scripts/scan-upstream.mts`: daily upstream byte and hash monitor.
 - GitHub Actions: monorepo CI, Vercel site build check, and scheduled scanner.
 
 ## Runtime Shape
@@ -148,8 +148,8 @@ Question and answer events include the current message payload where relevant.
 
 ## Site Hosting
 
-`apps/site` is a Nuxt static app. Its build runs the core and Vue package builds,
-copies `packages/core/dist/widget.js` to `apps/site/public/widget.js`, then generates
+`demo` is a Nuxt static app. Its build runs the core and Vue package builds,
+copies `packages/core/dist/widget.js` to `demo/public/widget.js`, then generates
 `.output/public`. `vercel.json` points Vercel at that output directory.
 
 ## Maintenance Strategy

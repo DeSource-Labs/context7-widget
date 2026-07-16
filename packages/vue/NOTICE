@@ -1,0 +1,8 @@
+Context7 Widget Vue is a DeSource Labs Vue integration for the Context7 Widget
+compatibility project.
+
+Context7 is published by Upstash under the MIT License:
+https://github.com/upstash/context7/blob/master/LICENSE
+
+This package depends on @desource/context7-widget and is not the official
+Context7 widget distribution.

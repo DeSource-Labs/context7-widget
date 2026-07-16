@@ -65,8 +65,8 @@ pnpm changeset pre exit
 
 - `pnpm format:check`
 - `pnpm lint`
+- `pnpm build:all`
 - `pnpm test:all`
 - `pnpm test:unit:coverage`
-- `pnpm build:all`
 - Package tarball smoke check with `pnpm --filter <package> pack --pack-destination /tmp`
 - Confirm `NPM_TOKEN` exists in GitHub repository secrets

@@ -1,5 +1,11 @@
 # Context7 Widget
 
+[![CI](https://github.com/DeSource-Labs/context7-widget/actions/workflows/ci.yml/badge.svg)](https://github.com/DeSource-Labs/context7-widget/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/DeSource-Labs/context7-widget/branch/main/graph/badge.svg)](https://codecov.io/gh/DeSource-Labs/context7-widget)
+[![npm core](https://img.shields.io/npm/v/@desource/context7-widget?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget)
+[![npm vue](https://img.shields.io/npm/v/@desource/context7-widget-vue?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget-vue)
+[![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+
 A themeable, Context7-compatible widget system for teams that like the official
 `https://context7.com/widget.js` install path, but need the UI to feel native in
 polished product and documentation sites.
@@ -11,8 +17,24 @@ This repository now ships three surfaces:
 - `@desource/context7-widget-vue`: Vue 3 component, composable, plugin helper,
   typed events, and SCSS-built helper styles.
 
-The Nuxt information site lives in `apps/site` and is designed for Vercel static
+The Nuxt information site lives in `demo` and is designed for Vercel static
 hosting at `context7.desource-labs.org`.
+
+## Packages
+
+| Package                                           | Description                                                                                |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [`@desource/context7-widget`](./packages/core)    | Core custom element, loader, transport, helper APIs, event types, and `./widget.js` export |
+| [`@desource/context7-widget-vue`](./packages/vue) | Vue 3 component, composable, plugin helper, typed events, and optional trigger styles      |
+
+## Open Source
+
+- [Contributing guide](./CONTRIBUTING.md)
+- [Release process](./RELEASE.md)
+- [Security policy](./SECURITY.md)
+- [Code of conduct](./CODE_OF_CONDUCT.md)
+- [Architecture notes](./docs/ARCHITECTURE.md)
+- [Integration recipes](./docs/INTEGRATION.md)
 
 ## Quick Start
 
@@ -238,11 +260,12 @@ pnpm lint
 pnpm format
 pnpm clean
 pnpm build
-pnpm dev:site
+pnpm dev:prepare
+pnpm dev:demo
 ```
 
 Core and Vue package builds use Vite 8. The Nuxt site build first builds both
-packages, then copies `packages/core/dist/widget.js` into `apps/site/public`.
+packages, then copies `packages/core/dist/widget.js` into `demo/public`.
 
 Testing follows the package structure so future framework packages can plug into
 the same root commands:
@@ -259,10 +282,10 @@ Useful workspaces:
 
 - core package: `packages/core` (`@desource/context7-widget`)
 - Vue package: `packages/vue`
-- Nuxt site: `apps/site`
+- Nuxt site: `demo`
 
 The site build syncs `packages/core/dist/widget.js` to
-`apps/site/public/widget.js` before Nuxt generates the static output.
+`demo/public/widget.js` before Nuxt generates the static output.
 
 ## Maintenance
 
@@ -273,3 +296,13 @@ Context7's hosted backend, so behavior changes can happen without a script diff.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for project boundaries and
 [docs/INTEGRATION.md](docs/INTEGRATION.md) for integration recipes.
+
+## Release
+
+This repo uses Changesets for npm releases. Public package changes should include:
+
+```bash
+pnpm changeset
+```
+
+Maintainers publish through the release workflow documented in [RELEASE.md](./RELEASE.md).
