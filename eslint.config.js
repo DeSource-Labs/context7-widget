@@ -59,7 +59,8 @@ export default [
       '**/.output/**',
       '**/.svelte-kit/**',
       '**/coverage/**',
-      '**/*.fork.js',
+      '**/upstream/**',
+      'apps/site/public/widget.js',
       '**/*.min.js',
       '**/*.min.css',
       'pnpm-lock.yaml'
