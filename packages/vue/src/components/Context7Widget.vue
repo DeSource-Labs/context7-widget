@@ -31,7 +31,7 @@ import {
   type Context7WidgetEventDetail,
   type Context7WidgetEventName
 } from '@desource/context7-widget/kit';
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, useAttrs, watch, getCurrentInstance } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useId, useTemplateRef, useAttrs, watch } from 'vue';
 import type {
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
@@ -61,8 +61,7 @@ const attrs = useAttrs();
 const host = useTemplateRef('host');
 const widget = ref<Context7WidgetElement | null>(null);
 const isOpen = ref(false);
-/** Generate unique IDs for ARIA attributes; use useId once we stop supporting Vue < 3.5.0 */
-const managedTriggerId = `context7-widget-trigger-${getCurrentInstance()?.uid ?? 0}`;
+const managedTriggerId = `context7-widget-trigger-${useId().replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 const rendersManagedTrigger = computed(() => props.customTrigger === true);
 const resolvedLauncherLabel = computed(() => props.launcherLabel || 'Ask Docs AI');
 const customTriggerSelector = computed(() => {

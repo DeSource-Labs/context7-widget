@@ -2,7 +2,7 @@ import { defineNuxtConfig } from 'nuxt/config';
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-15',
-  css: ['~/assets/styles/main.scss'],
+  css: ['@desource/context7-widget-vue/styles.css', '~/assets/styles/main.scss'],
   devtools: { enabled: false },
   ssr: true,
   app: {
