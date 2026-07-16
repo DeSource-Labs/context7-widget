@@ -898,7 +898,8 @@ textarea {
   gap: 1rem;
 }
 
-.examples-page {
+.examples-page,
+.customization-page {
   background:
     linear-gradient(180deg, rgba(16, 21, 19, 0) 0, var(--bg) 620px),
     radial-gradient(circle at 12% 18%, rgba(255, 111, 145, 0.12), transparent 28rem),
@@ -980,6 +981,158 @@ textarea {
 .examples-section {
   padding: clamp(4rem, 9vw, 7rem) clamp(1rem, 4vw, 4rem);
   position: relative;
+}
+
+.customization-hero {
+  min-height: 82dvh;
+}
+
+.customization-hero::after {
+  background: linear-gradient(180deg, transparent, var(--bg));
+  bottom: -1px;
+  content: "";
+  height: 9rem;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  z-index: 1;
+}
+
+.customization-hero__content {
+  max-width: 760px;
+}
+
+.customization-hero__content h1 {
+  max-width: 10ch;
+}
+
+.customization-hero__actions {
+  pointer-events: auto;
+}
+
+.customization-hero__panel {
+  bottom: clamp(2rem, 9dvh, 5rem);
+  max-width: min(560px, calc(100vw - 2rem));
+  position: absolute;
+  right: clamp(1rem, 5vw, 5rem);
+  transform: rotate(-2deg);
+  width: 560px;
+  z-index: 2;
+}
+
+.customization-section {
+  position: relative;
+}
+
+.customization-playbook {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  article {
+    background: rgba(247, 242, 232, 0.055);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    display: grid;
+    gap: 0.8rem;
+    min-height: 220px;
+    padding: 1.1rem;
+  }
+
+  svg {
+    color: var(--green);
+  }
+
+  p {
+    color: var(--muted);
+    line-height: 1.55;
+  }
+}
+
+.token-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.token-card,
+.parts-grid article,
+.customization-callout {
+  background: rgba(247, 242, 232, 0.055);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.token-card {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1rem;
+
+  p {
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  ul {
+    display: grid;
+    gap: 0.4rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  code {
+    background: rgba(16, 21, 19, 0.72);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: #dfffea;
+    display: block;
+    font-size: 0.76rem;
+    overflow-wrap: anywhere;
+    padding: 0.45rem 0.55rem;
+  }
+}
+
+.parts-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+
+  article {
+    display: grid;
+    gap: 0.5rem;
+    min-height: 120px;
+    padding: 0.9rem;
+  }
+
+  code {
+    color: var(--green);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.82rem;
+    font-weight: 850;
+  }
+
+  p {
+    color: var(--muted);
+    font-size: 0.86rem;
+    line-height: 1.45;
+  }
+}
+
+.customization-callout {
+  align-items: end;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  padding: clamp(1rem, 3vw, 2rem);
+
+  p:not(.eyebrow) {
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1.65;
+  }
 }
 
 .examples-section--constructor {
@@ -1749,12 +1902,29 @@ textarea {
   .recipe-grid,
   .constructor-shell,
   .constructor-code,
+  .customization-playbook,
+  .token-grid,
+  .parts-grid,
+  .customization-callout,
   .showcase-section {
     grid-template-columns: 1fr;
   }
 
   .showcase-stage {
     min-height: 720px;
+  }
+
+  .customization-hero {
+    min-height: auto;
+  }
+
+  .customization-hero__panel {
+    margin-top: 2rem;
+    position: relative;
+    right: auto;
+    bottom: auto;
+    transform: none;
+    width: auto;
   }
 }
 
@@ -1825,6 +1995,17 @@ textarea {
     position: relative;
     right: auto;
     bottom: auto;
+  }
+
+  .customization-hero__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .parts-grid article,
+  .token-card,
+  .customization-playbook article {
+    min-height: auto;
   }
 
   .example-toolbar {

@@ -9,6 +9,7 @@
         <nav aria-label="Primary navigation">
           <a href="/">Home</a>
           <a href="/#lab">Lab</a>
+          <a href="/customization">Customize</a>
           <a href="/widget.js">widget.js</a>
         </nav>
       </header>
@@ -394,6 +395,7 @@
     <footer class="site-footer">
       <span>DeSource Labs</span>
       <a href="/">Home</a>
+      <a href="/customization">Customize</a>
       <a href="/widget.js">Hosted widget.js</a>
     </footer>
 

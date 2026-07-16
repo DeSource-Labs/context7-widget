@@ -11,6 +11,7 @@
           <a href="#paths">Paths</a>
           <a href="#lab">Lab</a>
           <a href="/examples">Examples</a>
+          <a href="/customization">Customize</a>
           <a href="#use-cases">Use cases</a>
         </nav>
       </header>
@@ -39,6 +40,10 @@
           <a class="button button--ghost" href="/examples">
             <BookOpen :size="18" aria-hidden="true" />
             Examples
+          </a>
+          <a class="button button--ghost" href="/customization">
+            <Palette :size="18" aria-hidden="true" />
+            Customize
           </a>
         </div>
       </div>
@@ -157,7 +162,17 @@ context7-widget::part(send-button) {
 </template>
 
 <script setup lang="ts">
-import { ArrowUp, BookOpen, Braces, Github, Package, PanelRightOpen, SlidersHorizontal, X } from 'lucide-vue-next';
+import {
+  ArrowUp,
+  BookOpen,
+  Braces,
+  Github,
+  Package,
+  Palette,
+  PanelRightOpen,
+  SlidersHorizontal,
+  X
+} from 'lucide-vue-next';
 
 const scriptInstall =
   `<script
