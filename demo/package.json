@@ -10,7 +10,7 @@
     "dev": "pnpm run prepare:deps && nuxt dev",
     "generate": "nuxt generate",
     "typecheck": "nuxt typecheck",
-    "prepare:deps": "node scripts/sync-widget.mjs && nuxt prepare",
+    "prepare:deps": "node scripts/sync-widget.mts && nuxt prepare",
     "preview": "nuxt preview",
     "vercel-build": "pnpm --workspace-root vercel-build"
   },
