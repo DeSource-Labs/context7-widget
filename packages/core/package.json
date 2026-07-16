@@ -27,13 +27,7 @@
     "lint": "tsc --noEmit",
     "test": "vitest run"
   },
-  "packageManager": "pnpm@11.10.0",
   "devDependencies": {
-    "@types/node": "^26.1.1",
-    "jsdom": "^29.1.1",
-    "typescript": "~5.9.3",
-    "vite": "^8.1.4",
-    "vite-plugin-dts": "^5.0.0",
-    "vitest": "^4.1.10"
+    "vite-plugin-dts": "^5.0.3"
   }
 }
