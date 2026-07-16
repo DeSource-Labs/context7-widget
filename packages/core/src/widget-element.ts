@@ -350,7 +350,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
       event.preventDefault();
       void this.send();
     });
-    this.root.addEventListener('keydown', this.onKeyDown as EventListener);
+    this.root.addEventListener('keydown', this.onKeyDown as (event: Event) => void);
   }
 
   private syncConfig(): void {

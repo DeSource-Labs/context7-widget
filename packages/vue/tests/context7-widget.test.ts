@@ -1,4 +1,4 @@
-import { createApp, defineComponent, h, nextTick, ref } from 'vue';
+import { createApp, defineComponent, h, nextTick } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Context7Widget, useContext7Widget } from '../src';
 

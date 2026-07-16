@@ -17,8 +17,8 @@ import { compactWidgetOptions } from './options';
 import type { Context7WidgetExpose, Context7WidgetVueEvent } from './component-types';
 
 defineOptions({
-  inheritAttrs: false,
-  name: 'Context7Widget'
+  name: 'Context7Widget',
+  inheritAttrs: false
 });
 
 const props = defineProps<Context7WidgetOptions>();
