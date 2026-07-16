@@ -53,7 +53,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import GridScan from './backgrounds/GridScan.vue';
-</script>

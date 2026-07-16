@@ -135,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { Layers, Palette, ShieldCheck, SlidersHorizontal, Sparkles } from 'lucide-vue-next';
+import { Layers, Palette, ShieldCheck, Sparkles } from 'lucide-vue-next';
 
 const playbookSteps = [
   {

@@ -5,7 +5,6 @@
 <script setup lang="ts">
 import { BloomEffect, ChromaticAberrationEffect, EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 import * as THREE from 'three';
-import { onMounted, onUnmounted, useTemplateRef, watch, type CSSProperties } from 'vue';
 
 export type LineStyle = 'solid' | 'dashed' | 'dotted';
 export type ScanDirection = 'forward' | 'backward' | 'pingpong';
