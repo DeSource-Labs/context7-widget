@@ -1,0 +1,52 @@
+name: Bug Report
+description: Report a reproducible problem with the widget or packages
+labels: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please include a minimal reproduction whenever possible.
+  - type: input
+    id: title
+    attributes:
+      label: Bug title
+      description: Short, descriptive title
+      placeholder: Anchor panel opens in the wrong position
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Add the widget with position="anchor"
+        2. Click the trigger near the bottom of the viewport
+        3. Observe the panel placement
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: |
+        - Package: @desource/context7-widget-vue
+        - Version: 0.1.0
+        - Framework/browser: Vue 3.5 / Chrome
+        - OS: macOS
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Link to a repo, StackBlitz, CodeSandbox, or paste the smallest relevant snippet.
+      render: ts
+    validations:
+      required: false

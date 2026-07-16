@@ -1,0 +1,32 @@
+name: Feature Request
+description: Suggest a new capability or integration
+labels: enhancement
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Feature title
+      placeholder: Add a React package
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case
+      description: What problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the API or behavior you would like.
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Mention any workarounds or similar libraries.
+    validations:
+      required: false
