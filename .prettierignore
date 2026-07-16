@@ -1,10 +1,14 @@
 dist
 node_modules
+.pnpm-store
 upstream
 .nuxt
 .output
 .cache
 coverage
-apps/site/public/widget.js
+test-results
+output
+demo/public/widget.js
+*.min.js
+*.min.css
 pnpm-lock.yaml
-

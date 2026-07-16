@@ -32,7 +32,7 @@ ignore:
   - '**/tests/**'
   - '**/*.test.*'
   - '**/*.spec.*'
-  - 'apps/site/**'
+  - 'demo/**'
   - 'upstream/**'
   - 'scripts/**'
   - 'docs/**'

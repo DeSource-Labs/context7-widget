@@ -13,12 +13,8 @@ const TS_FILES = ['**/*.ts', '**/*.tsx', '**/*.mts', '**/*.cts'];
 const JS_FILES = ['**/*.js', '**/*.mjs', '**/*.cjs', '**/*.jsx'];
 
 const REACT_FILES = ['packages/react/**/*.{ts,tsx,js,jsx}'];
-const VUE_SFC_FILES = ['packages/vue/**/*.vue', 'packages/nuxt/**/*.vue', 'apps/site/**/*.vue'];
-const VUE_TS_FILES = [
-  'packages/vue/**/*.{ts,mts,cts}',
-  'packages/nuxt/**/*.{ts,mts,cts}',
-  'apps/site/**/*.{ts,mts,cts}'
-];
+const VUE_SFC_FILES = ['packages/vue/**/*.vue', 'packages/nuxt/**/*.vue', 'demo/**/*.vue'];
+const VUE_TS_FILES = ['packages/vue/**/*.{ts,mts,cts}', 'packages/nuxt/**/*.{ts,mts,cts}', 'demo/**/*.{ts,mts,cts}'];
 const SVELTE_FILES = [
   'packages/svelte/**/*.svelte',
   'packages/svelte/**/*.svelte.ts',
@@ -30,7 +26,7 @@ const BROWSER_FILES = [
   'packages/react/**/*.{ts,tsx,js,jsx}',
   'packages/vue/**/*.{ts,js,mts,cts,vue}',
   'packages/svelte/**/*.{ts,js,mts,cts,svelte}',
-  'apps/site/**/*.{ts,tsx,js,jsx,vue}'
+  'demo/**/*.{ts,tsx,js,jsx,vue}'
 ];
 
 const NODE_FILES = [
@@ -60,7 +56,7 @@ export default [
       '**/.svelte-kit/**',
       '**/coverage/**',
       '**/upstream/**',
-      'apps/site/public/widget.js',
+      'demo/public/widget.js',
       '**/*.min.js',
       '**/*.min.css',
       'pnpm-lock.yaml'

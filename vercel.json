@@ -1,6 +1,6 @@
 {
   "version": 2,
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter @desource/context7-widget-site build",
-  "outputDirectory": "apps/site/.output"
+  "buildCommand": "pnpm --filter demo build",
+  "outputDirectory": "demo/.output"
 }
