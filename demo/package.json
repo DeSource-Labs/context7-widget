@@ -6,8 +6,8 @@
   "scripts": {
     "clean": "rimraf .output .nuxt",
     "clean:modules": "rimraf node_modules",
-    "build": "pnpm run prepare:deps && nuxt build",
-    "dev": "pnpm run prepare:deps && nuxt dev",
+    "build": "nuxt build",
+    "dev": "nuxt dev",
     "generate": "nuxt generate",
     "typecheck": "nuxt typecheck",
     "prepare:deps": "node scripts/sync-widget.mts && nuxt prepare",
