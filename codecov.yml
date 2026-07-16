@@ -1,0 +1,38 @@
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0.5%
+        if_ci_failed: error
+        if_not_found: success
+    patch:
+      default:
+        target: 90%
+        threshold: 2%
+        only_pulls: true
+        if_ci_failed: error
+        if_not_found: success
+
+comment:
+  layout: 'reach,diff,flags,tree'
+  behavior: default
+  require_changes: true
+  require_base: false
+  require_head: true
+  hide_project_coverage: false
+
+ignore:
+  - '**/*.d.ts'
+  - '**/dist/**'
+  - '**/demo/**'
+  - '**/tests/**'
+  - '**/*.test.*'
+  - '**/*.spec.*'
+  - 'apps/site/**'
+  - 'upstream/**'
+  - 'scripts/**'
+  - 'docs/**'

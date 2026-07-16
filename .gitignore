@@ -2,6 +2,7 @@ node_modules/
 dist/
 apps/site/dist
 coverage/
+test-results/
 .playwright-cli/
 output/playwright/
 .DS_Store

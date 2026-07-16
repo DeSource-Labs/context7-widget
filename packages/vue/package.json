@@ -22,12 +22,16 @@
     "./dist/styles.css"
   ],
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rimraf dist tsconfig.tsbuildinfo test-results coverage",
+    "clean:modules": "rimraf node_modules",
     "build": "pnpm clean && pnpm build:js && pnpm build:css",
     "build:css": "sass src/styles.scss dist/styles.css --no-source-map",
     "build:js": "vite build",
-    "lint": "vue-tsc --noEmit",
-    "test": "vitest run"
+    "dev:demo": "vite demo",
+    "typecheck": "vue-tsc -p tsconfig.json --noEmit",
+    "test:e2e": "playwright test",
+    "test:unit": "vitest run",
+    "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage"
   },
   "dependencies": {
     "@desource/context7-widget": "workspace:*"

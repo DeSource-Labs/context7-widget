@@ -527,7 +527,10 @@ const constructorWidgetKey = computed(() =>
 );
 const constructorHighlights = computed(() => [
   { label: 'theme', value: constructorTheme.value },
-  { label: 'trigger', value: triggerModes.find((mode) => mode.value === constructorTriggerMode.value)?.label ?? 'built-in' },
+  {
+    label: 'trigger',
+    value: triggerModes.find((mode) => mode.value === constructorTriggerMode.value)?.label ?? 'built-in'
+  },
   { label: 'accent', value: constructorColor.value || 'preset' },
   { label: 'size', value: `${constructorPanelWidth.value} x ${constructorPanelHeight.value}` }
 ]);
@@ -653,9 +656,7 @@ const constructorCoreCode = computed(() => {
     ['showPoweredBy', constructorShowPoweredBy.value],
     ['widgetId', constructorWidgetId.value]
   ];
-  const compactEntries = entries.filter(
-    (entry): entry is [string, string | boolean] => entry[1] !== undefined
-  );
+  const compactEntries = entries.filter((entry): entry is [string, string | boolean] => entry[1] !== undefined);
 
   const objectBody = compactEntries
     .map(([key, value]) => `  ${key}: ${typeof value === 'boolean' ? value : JSON.stringify(value)}`)

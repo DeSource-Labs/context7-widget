@@ -17,5 +17,14 @@
     "skipLibCheck": true,
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "tests/**/*.ts", "vitest.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "../../common/tests/**/*.ts",
+    "demo/**/*.ts",
+    "demo/**/*.vue",
+    "playwright.config.ts",
+    "vitest.config.ts"
+  ]
 }

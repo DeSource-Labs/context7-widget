@@ -130,7 +130,7 @@ The site includes a dedicated guide at `/customization`.
 Start with a scoped product-token block:
 
 ```css
-context7-widget[widget-id="docs"] {
+context7-widget[widget-id='docs'] {
   --c7-accent: #7cffb2;
   --c7-accent-contrast: #07120c;
   --c7-font-family: Inter, ui-sans-serif, system-ui, sans-serif;
@@ -234,14 +234,26 @@ core, Vue component, and Vue composable integrations.
 
 ```bash
 pnpm install
-pnpm lint:all
-pnpm test:all
-pnpm build:all
+pnpm lint
+pnpm format
+pnpm clean
+pnpm build
 pnpm dev:site
 ```
 
 Core and Vue package builds use Vite 8. The Nuxt site build first builds both
 packages, then copies `packages/core/dist/widget.js` into `apps/site/public`.
+
+Testing follows the package structure so future framework packages can plug into
+the same root commands:
+
+- shared fixtures/helpers live in `common/tests`
+- package unit tests live in `packages/*/tests/unit`
+- framework e2e fixtures live beside the package, for example
+  `packages/vue/demo`
+- package e2e tests live in `packages/*/tests/e2e`
+- unit coverage is generated with `pnpm test:unit:coverage` and uploaded from
+  each package `coverage/lcov.info` by the Coverage workflow
 
 Useful workspaces:
 

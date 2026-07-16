@@ -4,10 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm run prepare:deps && nuxt generate",
+    "clean": "rimraf .output .nuxt",
+    "clean:modules": "rimraf node_modules",
+    "build": "pnpm run prepare:deps && nuxt build",
     "dev": "pnpm run prepare:deps && nuxt dev",
-    "lint": "pnpm run prepare:deps && nuxt typecheck",
-    "prepare:deps": "pnpm --filter @desource/context7-widget build && pnpm --filter @desource/context7-widget-vue build && node scripts/sync-widget.mjs",
+    "generate": "nuxt generate",
+    "typecheck": "nuxt typecheck",
+    "prepare:deps": "pnpm --filter @desource/context7-widget build && pnpm --filter @desource/context7-widget-vue build && node scripts/sync-widget.mjs && nuxt prepare",
     "preview": "nuxt preview"
   },
   "dependencies": {

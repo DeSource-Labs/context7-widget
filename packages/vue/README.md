@@ -47,18 +47,11 @@ Custom trigger modes:
 <Context7Widget library="/desource-labs/context7-widget" />
 
 <!-- Render the Vue package trigger button -->
-<Context7Widget
-  library="/desource-labs/context7-widget"
-  custom-trigger
-  launcher-label="Ask docs"
-/>
+<Context7Widget library="/desource-labs/context7-widget" custom-trigger launcher-label="Ask docs" />
 
 <!-- Bind to your own button by id, with or without # -->
 <button id="docs-help">Ask docs</button>
-<Context7Widget
-  library="/desource-labs/context7-widget"
-  custom-trigger="docs-help"
-/>
+<Context7Widget library="/desource-labs/context7-widget" custom-trigger="docs-help" />
 ```
 
 Optional SCSS-built styles are published as:

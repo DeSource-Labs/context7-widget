@@ -41,7 +41,7 @@ variables for product tokens and `::part(...)` for direct block styling. Avoid
 internal `.c7-*` selectors.
 
 ```css
-context7-widget[widget-id="docs"] {
+context7-widget[widget-id='docs'] {
   --c7-accent: #7cffb2;
   --c7-accent-contrast: #07120c;
   --c7-font-family: Inter, ui-sans-serif, system-ui, sans-serif;

@@ -4,7 +4,7 @@ import {
   mountContext7Widget,
   setContext7WidgetAttributes,
   toContext7WidgetAttributes
-} from '../src';
+} from '../../src';
 
 describe('core helpers', () => {
   afterEach(() => {
@@ -62,6 +62,17 @@ describe('core helpers', () => {
     expect(widget.getAttribute('library')).toBe('/desource-labs/context7-widget');
   });
 
+  it('throws when the target selector cannot be resolved', () => {
+    expect(() =>
+      mountContext7Widget(
+        {
+          library: '/desource-labs/context7-widget'
+        },
+        '#missing-root'
+      )
+    ).toThrow('Context7 widget target was not found: #missing-root');
+  });
+
   it('builds safe script tags for copy-paste installs', () => {
     expect(
       buildContext7WidgetScriptTag({
@@ -72,6 +83,22 @@ describe('core helpers', () => {
       })
     ).toBe(
       '<script src="https://context7.desource-labs.org/widget.js" async data-color="#16a34a" data-custom-trigger="#docs-chat" data-library="/desource-labs/context7-widget" data-placeholder="Ask &quot;docs&quot;"></script>'
+    );
+  });
+
+  it('serializes script options and escapes unsafe attributes', () => {
+    expect(
+      buildContext7WidgetScriptTag({
+        async: false,
+        defer: true,
+        id: 'docs-script',
+        library: '/owner/<repo>',
+        nonce: 'abc"123',
+        src: '/widget.js',
+        title: 'Docs <Assistant>'
+      })
+    ).toBe(
+      '<script src="/widget.js" defer id="docs-script" nonce="abc&quot;123" data-library="/owner/&lt;repo&gt;" data-title="Docs &lt;Assistant&gt;"></script>'
     );
   });
 });

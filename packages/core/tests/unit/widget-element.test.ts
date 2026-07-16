@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { defineContext7Widget } from '../src';
+import { defineContext7Widget } from '../../src';
+import { createSseStream } from '../../../../common/tests/unit/stream';
+import { setElementRect, setElementSize, setViewportSize } from '../../../../common/tests/unit/dom';
 
 describe('Context7WidgetElement', () => {
   afterEach(() => {
@@ -12,7 +14,7 @@ describe('Context7WidgetElement', () => {
 
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response(stream(['data: {"type":"text-delta","delta":"Use the app router."}\n'])))
+      vi.fn(async () => new Response(createSseStream(['data: {"type":"text-delta","delta":"Use the app router."}\n'])))
     );
 
     const questions: string[] = [];
@@ -100,7 +102,7 @@ describe('Context7WidgetElement', () => {
 
   it('positions anchor widgets above the opener when there is enough room', () => {
     defineContext7Widget();
-    setViewportHeight(900);
+    setViewportSize(1200, 900);
 
     const widget = document.createElement('context7-widget');
     widget.setAttribute('library', '/vercel/next.js');
@@ -120,7 +122,7 @@ describe('Context7WidgetElement', () => {
 
   it('positions anchor widgets below the opener when there is not enough room above', () => {
     defineContext7Widget();
-    setViewportHeight(900);
+    setViewportSize(1200, 900);
 
     const trigger = document.createElement('button');
     trigger.id = 'ask';
@@ -142,48 +144,3 @@ describe('Context7WidgetElement', () => {
     expect(widget.style.getPropertyValue('--c7-anchor-origin')).toBe('top right');
   });
 });
-
-function stream(values: string[]): ReadableStream<Uint8Array> {
-  const encoder = new TextEncoder();
-  return new ReadableStream({
-    start(controller) {
-      for (const value of values) {
-        controller.enqueue(encoder.encode(value));
-      }
-      controller.close();
-    }
-  });
-}
-
-function setViewportHeight(height: number): void {
-  Object.defineProperty(window, 'innerHeight', {
-    configurable: true,
-    value: height
-  });
-}
-
-function setElementSize(element: HTMLElement | null | undefined, width: number, height: number): void {
-  if (!element) throw new Error('Expected element to exist.');
-  Object.defineProperty(element, 'offsetHeight', {
-    configurable: true,
-    value: height
-  });
-  Object.defineProperty(element, 'offsetWidth', {
-    configurable: true,
-    value: width
-  });
-}
-
-function setElementRect(
-  element: HTMLElement | null | undefined,
-  rect: Pick<DOMRect, 'bottom' | 'height' | 'left' | 'right' | 'top' | 'width'>
-): void {
-  if (!element) throw new Error('Expected element to exist.');
-  element.getBoundingClientRect = () =>
-    ({
-      ...rect,
-      x: rect.left,
-      y: rect.top,
-      toJSON: () => rect
-    }) as DOMRect;
-}

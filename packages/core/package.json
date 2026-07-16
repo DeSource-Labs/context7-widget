@@ -24,12 +24,14 @@
   },
   "types": "./dist/index.d.ts",
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rimraf dist coverage tsconfig.tsbuildinfo",
+    "clean:modules": "rimraf node_modules",
     "build": "pnpm clean && pnpm build:esm && pnpm build:widget",
     "build:esm": "vite build --config vite.config.ts",
     "build:widget": "vite build --config vite.widget.config.ts",
-    "lint": "tsc --noEmit",
-    "test": "vitest run"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:unit": "vitest run",
+    "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage"
   },
   "devDependencies": {
     "vite-plugin-dts": "^5.0.3"

@@ -113,15 +113,13 @@ export interface Context7WidgetEventMap {
   'c7:tool-result': Context7WidgetToolResultEventDetail;
 }
 
-export type Context7WidgetEventDetailFor<EventName extends Context7WidgetEventName> =
-  Context7WidgetEventMap[EventName];
+export type Context7WidgetEventDetailFor<EventName extends Context7WidgetEventName> = Context7WidgetEventMap[EventName];
 
-export type Context7WidgetDomEvent<EventName extends Context7WidgetEventName = Context7WidgetEventName> =
-  CustomEvent<Context7WidgetEventDetailFor<EventName>>;
+export type Context7WidgetDomEvent<EventName extends Context7WidgetEventName = Context7WidgetEventName> = CustomEvent<
+  Context7WidgetEventDetailFor<EventName>
+>;
 
-export function compactContext7WidgetOptions(
-  options: Partial<Context7WidgetOptions>
-): Partial<Context7WidgetOptions> {
+export function compactContext7WidgetOptions(options: Partial<Context7WidgetOptions>): Partial<Context7WidgetOptions> {
   const compacted: Partial<Context7WidgetOptions> = {};
 
   for (const key of context7WidgetOptionKeys) {

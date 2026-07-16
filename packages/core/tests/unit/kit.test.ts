@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compactContext7WidgetOptions, context7WidgetEvents, isContext7WidgetEventName } from '../src/kit';
+import { compactContext7WidgetOptions, context7WidgetEvents, isContext7WidgetEventName } from '../../src/kit';
 
 describe('core kit', () => {
   it('exports canonical widget event names', () => {
