@@ -37,6 +37,11 @@ describe('@desource/context7-widget-vue', () => {
     expect(widget?.getAttribute('theme')).toBe('dark');
     expect(widget?.getAttribute('title')).toBe('Docs assistant');
     expect(ready).toHaveBeenCalledOnce();
+    expect(ready.mock.calls[0]).toHaveLength(1);
+    expect(ready.mock.calls[0]?.[0]).toMatchObject({
+      library: '/desource-labs/context7-widget',
+      widgetId: 'default'
+    });
   });
 
   it('mounts and controls a widget from the composable', async () => {

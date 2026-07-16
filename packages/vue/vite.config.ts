@@ -21,6 +21,7 @@ export default defineConfig({
       entryRoot: 'src',
       include: ['src'],
       outDir: 'dist',
+      pathsToAliases: false,
       tsconfigPath: 'tsconfig.json'
     })
   ]

@@ -9,32 +9,37 @@ import {
   createContext7Widget,
   setContext7WidgetAttributes,
   type Context7WidgetElement,
+  type Context7WidgetEventDetail,
+  type Context7WidgetEventName,
   type Context7WidgetOptions
 } from '@desource/context7-widget';
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, useAttrs, watch } from 'vue';
-import { context7WidgetEvents, vueEventNames } from './events';
-import { compactWidgetOptions } from './options';
-import type { Context7WidgetExpose, Context7WidgetVueEvent } from './component-types';
+import { context7WidgetEvents } from '../internal/events';
+import { compactWidgetOptions } from '../internal/options';
+import type {
+  Context7WidgetAnswerCompleteEventDetail,
+  Context7WidgetAnswerEventDetail,
+  Context7WidgetDomEvent,
+  Context7WidgetEmits,
+  Context7WidgetErrorEventDetail,
+  Context7WidgetExpose,
+  Context7WidgetLifecycleEventDetail,
+  Context7WidgetProps,
+  Context7WidgetQuestionEventDetail,
+  Context7WidgetSlots,
+  Context7WidgetToolCallEventDetail,
+  Context7WidgetToolResultEventDetail
+} from '../types';
 
 defineOptions({
   name: 'Context7Widget',
   inheritAttrs: false
 });
 
-const props = defineProps<Context7WidgetOptions>();
+const props = defineProps<Context7WidgetProps>();
+defineSlots<Context7WidgetSlots>();
 
-const emit = defineEmits([
-  'answer',
-  'answer-complete',
-  'close',
-  'error',
-  'first-token',
-  'open',
-  'question',
-  'ready',
-  'tool-call',
-  'tool-result'
-]);
+const emit = defineEmits<Context7WidgetEmits>();
 
 const attrs = useAttrs();
 const host = useTemplateRef('host');
@@ -66,12 +71,46 @@ const widgetOptions = computed(
 
 const listeners = context7WidgetEvents.map((eventName) => {
   const listener = (event: Event) => {
-    const customEvent = event as Context7WidgetVueEvent;
-    emit(vueEventNames[eventName], customEvent.detail, customEvent);
+    emitWidgetEvent(eventName, (event as Context7WidgetDomEvent).detail);
   };
 
   return [eventName, listener] as const;
 });
+
+function emitWidgetEvent(eventName: Context7WidgetEventName, detail: Context7WidgetEventDetail) {
+  switch (eventName) {
+    case 'c7:answer':
+      emit('answer', detail as Context7WidgetAnswerEventDetail);
+      break;
+    case 'c7:answer-complete':
+      emit('answer-complete', detail as Context7WidgetAnswerCompleteEventDetail);
+      break;
+    case 'c7:close':
+      emit('close', detail as Context7WidgetLifecycleEventDetail);
+      break;
+    case 'c7:error':
+      emit('error', detail as Context7WidgetErrorEventDetail);
+      break;
+    case 'c7:first-token':
+      emit('first-token', detail as Context7WidgetAnswerEventDetail);
+      break;
+    case 'c7:open':
+      emit('open', detail as Context7WidgetLifecycleEventDetail);
+      break;
+    case 'c7:question':
+      emit('question', detail as Context7WidgetQuestionEventDetail);
+      break;
+    case 'c7:ready':
+      emit('ready', detail as Context7WidgetLifecycleEventDetail);
+      break;
+    case 'c7:tool-call':
+      emit('tool-call', detail as Context7WidgetToolCallEventDetail);
+      break;
+    case 'c7:tool-result':
+      emit('tool-result', detail as Context7WidgetToolResultEventDetail);
+      break;
+  }
+}
 
 const mount = () => {
   if (!host.value || widget.value) return;

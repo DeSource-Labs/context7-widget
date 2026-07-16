@@ -1,11 +1,27 @@
-export { default as Context7Widget } from './Context7Widget.vue';
-export type { Context7WidgetExpose, Context7WidgetVueEvent } from './component-types';
-export { context7WidgetEvents, vueEventNames } from './events';
+export { default as Context7Widget } from './components/Context7Widget.vue';
+export type {
+  Context7WidgetAnswerCompleteEventDetail,
+  Context7WidgetAnswerEventDetail,
+  Context7WidgetBaseEventDetail,
+  Context7WidgetEmits,
+  Context7WidgetErrorEventDetail,
+  Context7WidgetExpose,
+  Context7WidgetLifecycleEventDetail,
+  Context7WidgetProps,
+  Context7WidgetQuestionEventDetail,
+  Context7WidgetSlots,
+  Context7WidgetToolCallEventDetail,
+  Context7WidgetToolResultEventDetail,
+  Context7WidgetVueEventDetail,
+  Context7WidgetVueEventMap,
+  Context7WidgetVueEventName
+} from './types';
+export { context7WidgetEvents, vueEventNames } from './internal/events';
 export { context7WidgetDefaultsKey, createContext7WidgetPlugin } from './plugin';
 export type { Context7WidgetPluginOptions } from './plugin';
-export { useContext7Widget } from './useContext7Widget';
-export type { UseContext7WidgetOptions } from './useContext7Widget';
-export type { UseContext7WidgetReturn } from './useContext7Widget';
+export { useContext7Widget } from './composables/useContext7Widget';
+export type { UseContext7WidgetOptions } from './composables/useContext7Widget';
+export type { UseContext7WidgetReturn } from './composables/useContext7Widget';
 export type {
   Context7LauncherVariant,
   Context7Message,

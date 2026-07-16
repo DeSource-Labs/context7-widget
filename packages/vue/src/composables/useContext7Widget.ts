@@ -20,7 +20,7 @@ import {
   type Ref,
   type ShallowRef
 } from 'vue';
-import { compactWidgetOptions } from './options';
+import { compactWidgetOptions } from '../internal/options';
 
 export interface UseContext7WidgetOptions extends Partial<Context7WidgetOptions> {
   autoMount?: boolean;
