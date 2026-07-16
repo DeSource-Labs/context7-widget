@@ -20,7 +20,7 @@ import {
   type Ref,
   type ShallowRef
 } from 'vue';
-import { compactWidgetOptions } from '../internal/options';
+import { compactContext7WidgetOptions } from '@desource/context7-widget/kit';
 
 export interface UseContext7WidgetOptions extends Partial<Context7WidgetOptions> {
   autoMount?: boolean;
@@ -48,7 +48,7 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
   const options = computed<UseContext7WidgetOptions>(() => {
     const value = toValue(source);
     return {
-      ...compactWidgetOptions(value),
+      ...compactContext7WidgetOptions(value),
       autoMount: value.autoMount,
       removeOnUnmount: value.removeOnUnmount,
       target: value.target
@@ -71,7 +71,7 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
   const mount = (overrides: Partial<Context7WidgetOptions> = {}) => {
     if (widget.value) return widget.value;
 
-    const nextOptions = compactWidgetOptions({
+    const nextOptions = compactContext7WidgetOptions({
       ...options.value,
       ...overrides
     }) as Context7WidgetOptions;

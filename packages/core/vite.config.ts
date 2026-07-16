@@ -4,8 +4,11 @@ import dts from 'vite-plugin-dts';
 export default defineConfig({
   build: {
     lib: {
-      entry: 'src/index.ts',
-      fileName: () => 'index.js',
+      entry: {
+        index: 'src/index.ts',
+        kit: 'src/kit.ts'
+      },
+      fileName: (_format, entryName) => `${entryName}.js`,
       formats: ['es']
     },
     sourcemap: true,

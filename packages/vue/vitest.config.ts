@@ -5,9 +5,16 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [vue()],
   resolve: {
-    alias: {
-      '@desource/context7-widget': fileURLToPath(new URL('../core/src/index.ts', import.meta.url))
-    }
+    alias: [
+      {
+        find: '@desource/context7-widget/kit',
+        replacement: fileURLToPath(new URL('../core/src/kit.ts', import.meta.url))
+      },
+      {
+        find: '@desource/context7-widget',
+        replacement: fileURLToPath(new URL('../core/src/index.ts', import.meta.url))
+      }
+    ]
   },
   test: {
     environment: 'jsdom',

@@ -16,6 +16,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./kit": {
+      "types": "./dist/kit.d.ts",
+      "import": "./dist/kit.js"
+    },
     "./widget.js": "./dist/widget.js"
   },
   "types": "./dist/index.d.ts",

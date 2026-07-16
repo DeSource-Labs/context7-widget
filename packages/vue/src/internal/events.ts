@@ -1,18 +1,7 @@
-import type { Context7WidgetEventName } from '@desource/context7-widget';
+import { context7WidgetEvents, type Context7WidgetEventName } from '@desource/context7-widget/kit';
 import type { Context7WidgetVueEventName } from '../types';
 
-export const context7WidgetEvents = [
-  'c7:ready',
-  'c7:open',
-  'c7:close',
-  'c7:question',
-  'c7:first-token',
-  'c7:answer',
-  'c7:answer-complete',
-  'c7:tool-call',
-  'c7:tool-result',
-  'c7:error'
-] as const satisfies readonly Context7WidgetEventName[];
+export { context7WidgetEvents };
 
 export const vueEventNames = {
   'c7:answer': 'answer',

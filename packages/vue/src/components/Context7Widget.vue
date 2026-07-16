@@ -9,13 +9,15 @@ import {
   createContext7Widget,
   setContext7WidgetAttributes,
   type Context7WidgetElement,
-  type Context7WidgetEventDetail,
-  type Context7WidgetEventName,
   type Context7WidgetOptions
 } from '@desource/context7-widget';
+import {
+  compactContext7WidgetOptions,
+  context7WidgetEvents,
+  type Context7WidgetEventDetail,
+  type Context7WidgetEventName
+} from '@desource/context7-widget/kit';
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, useAttrs, watch } from 'vue';
-import { context7WidgetEvents } from '../internal/events';
-import { compactWidgetOptions } from '../internal/options';
 import type {
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
@@ -47,7 +49,7 @@ const widget = ref<Context7WidgetElement | null>(null);
 
 const widgetOptions = computed(
   () =>
-    compactWidgetOptions({
+    compactContext7WidgetOptions({
       backdrop: props.backdrop,
       closeOnOutsideClick: props.closeOnOutsideClick,
       color: props.color,

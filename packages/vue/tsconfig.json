@@ -11,7 +11,8 @@
     "moduleResolution": "Bundler",
     "noEmit": true,
     "paths": {
-      "@desource/context7-widget": ["../core/src/index.ts"]
+      "@desource/context7-widget": ["../core/src/index.ts"],
+      "@desource/context7-widget/kit": ["../core/src/kit.ts"]
     },
     "skipLibCheck": true,
     "types": ["node", "vitest/globals"]
