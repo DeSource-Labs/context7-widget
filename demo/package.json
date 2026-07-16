@@ -1,6 +1,6 @@
 {
-  "name": "@desource/context7-widget-site",
-  "version": "0.1.0",
+  "name": "demo",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
