@@ -52,27 +52,20 @@
         </div>
       </div>
 
-      <div class="customization-hero__preview" aria-label="Widget customization preview">
-        <div class="style-receipt">
-          <span>product tokens</span>
-          <strong>#7cffb2</strong>
-          <strong>8px radius</strong>
-          <strong>Inter</strong>
-        </div>
-        <div class="style-widget">
-          <div class="style-widget__header">Context7 Docs</div>
-          <div class="style-widget__body">
-            <span>Matches the shell.</span>
-            <span>Uses your trigger.</span>
-          </div>
-          <div class="style-widget__input">Ask about setup...</div>
-        </div>
-        <div class="style-parts">
-          <span>::part(panel)</span>
-          <span>::part(send-button)</span>
-          <span>::part(launcher)</span>
-        </div>
-      </div>
+      <HeroWidgetDialog
+        class="customization-hero__dialog"
+        placeholder="Ask about setup..."
+        title="Context7 Widget Docs"
+        tone="amber"
+        :messages="[
+          { kind: 'assistant', text: 'Start from a preset, then map the widget to your product tokens.' },
+          { kind: 'user', text: 'Can it match our product system?' },
+          {
+            kind: 'assistant',
+            text: 'Use stable CSS variables and shadow parts instead of fragile internal selectors.'
+          }
+        ]"
+      />
     </section>
 
     <section class="examples-section customization-section">

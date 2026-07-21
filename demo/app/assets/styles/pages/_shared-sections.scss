@@ -1,0 +1,32 @@
+@use '../abstracts/mixins' as *;
+
+.audience-section,
+.paths-section,
+.lab-section,
+.use-cases-section {
+  padding: clamp(4rem, 10vw, 8rem) clamp(1rem, 4vw, 4rem);
+  position: relative;
+}
+
+.audience-section::before,
+.paths-section::before,
+.use-cases-section::before,
+.examples-section::before,
+.customization-section::before {
+  @include fill-absolute;
+  @include section-grid;
+
+  content: '';
+  mask-image: radial-gradient(circle at var(--section-glow-x, 62%) var(--section-glow-y, 40%), #000, transparent 64%);
+  opacity: 0.58;
+  pointer-events: none;
+}
+
+.section-heading {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  max-width: 980px;
+  position: relative;
+  z-index: 1;
+}

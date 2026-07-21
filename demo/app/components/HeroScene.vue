@@ -25,23 +25,9 @@
     />
     <div class="hero-scene__shade" />
     <div class="hero-scene__stack">
-      <div class="browser-frame browser-frame--script">
-        <div class="browser-frame__top">
-          <span />
-          <span />
-          <span />
-        </div>
-        <pre><code>&lt;script src="/widget.js"
-  data-library="/vercel/next.js"
-  data-color="#7cffb2"&gt;
-&lt;/script&gt;</code></pre>
-      </div>
       <div class="browser-frame browser-frame--chat">
-        <div class="chat-line chat-line--assistant">Theme inherits from your app.</div>
-        <div class="chat-line chat-line--user">Can I use a custom trigger?</div>
-        <div class="chat-line chat-line--assistant">Yes. Keep the widget, replace the button.</div>
+        <HeroWidgetDialog tone="mint" />
       </div>
-      <LogoBallpit class="hero-scene__frameworks" />
     </div>
   </div>
 </template>

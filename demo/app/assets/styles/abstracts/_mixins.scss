@@ -1,0 +1,33 @@
+@function ink($alpha) {
+  @return rgba(247, 242, 232, $alpha);
+}
+
+@mixin fill-absolute {
+  inset: 0;
+  position: absolute;
+}
+
+@mixin card-surface($background: rgba(247, 242, 232, 0.055), $border: var(--line), $radius: 8px) {
+  background: $background;
+  border: 1px solid $border;
+  border-radius: $radius;
+}
+
+@mixin section-grid($size: 44px, $alpha: 0.045) {
+  background:
+    linear-gradient(ink($alpha) 1px, transparent 1px), linear-gradient(90deg, ink($alpha) 1px, transparent 1px);
+  background-size: $size $size;
+}
+
+@mixin lift-transition {
+  transition:
+    border-color 0.24s ease,
+    box-shadow 0.24s ease,
+    transform 0.24s ease;
+}
+
+@mixin lift-hover($border-color: rgba(124, 255, 178, 0.28)) {
+  border-color: $border-color;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+  transform: translateY(-4px);
+}

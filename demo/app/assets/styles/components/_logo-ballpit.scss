@@ -1,0 +1,184 @@
+.logo-ballpit {
+  --bubble-size: clamp(5.2rem, 7.4vw, 7.5rem);
+  filter: drop-shadow(0 28px 46px rgba(0, 0, 0, 0.36));
+  height: min(44vh, 410px);
+  min-height: 300px;
+  pointer-events: none;
+  position: relative;
+  width: min(50vw, 720px);
+  will-change: transform;
+}
+
+.logo-ballpit--compact {
+  --bubble-size: clamp(2.9rem, 4.8vw, 4.05rem);
+  height: clamp(132px, 16dvh, 178px);
+  margin-left: clamp(-0.75rem, -1vw, -0.25rem);
+  margin-top: clamp(0.15rem, 0.9dvh, 0.55rem);
+  max-width: min(500px, 100%);
+  min-height: 132px;
+  position: relative;
+  transform: rotate(-4deg);
+  width: min(500px, 44vw);
+  z-index: 2;
+}
+
+.logo-ballpit__bubble {
+  --bubble-scale: 1;
+  pointer-events: auto;
+  align-items: center;
+  animation: css-bubble-float 7s ease-in-out infinite;
+  animation-delay: calc(var(--bubble-index) * -0.65s);
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.8), transparent 15%),
+    radial-gradient(circle at 70% 82%, rgba(124, 255, 178, 0.22), transparent 30%), rgba(221, 255, 239, 0.42);
+  border: 1px solid rgba(247, 242, 232, 0.38);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 12px 24px rgba(255, 255, 255, 0.2),
+    inset -18px -20px 38px rgba(4, 10, 7, 0.28),
+    0 18px 44px rgba(0, 0, 0, 0.32),
+    0 0 34px rgba(124, 255, 178, 0.1);
+  display: grid;
+  height: calc(var(--bubble-size) * var(--bubble-scale));
+  justify-items: center;
+  left: var(--bubble-left);
+  overflow: hidden;
+  position: absolute;
+  text-decoration: none;
+  top: var(--bubble-top);
+  transform: translate(-50%, -50%);
+  transform-style: preserve-3d;
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    scale 0.22s ease;
+  width: calc(var(--bubble-size) * var(--bubble-scale));
+  z-index: var(--bubble-layer, 1);
+}
+
+.logo-ballpit__bubble::before {
+  background:
+    radial-gradient(circle at 27% 18%, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.22) 15%, transparent 28%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.2), transparent 42%),
+    radial-gradient(circle at 78% 82%, rgba(0, 0, 0, 0.24), transparent 34%);
+  border-radius: inherit;
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.logo-ballpit__bubble img {
+  border-radius: inherit;
+  display: block;
+  filter: saturate(1.08) contrast(1.04);
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  pointer-events: none;
+  position: absolute;
+  transform: scale(1.03);
+  user-select: none;
+  width: 100%;
+  z-index: 1;
+}
+
+.logo-ballpit__shine {
+  background: linear-gradient(115deg, transparent 20%, rgba(255, 255, 255, 0.55), transparent 52%);
+  border-radius: inherit;
+  inset: -18%;
+  opacity: 0.42;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-34%) rotate(14deg);
+  z-index: 3;
+}
+
+.logo-ballpit__badge {
+  background: var(--rose);
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+  color: #1d0710;
+  font-size: 0.45rem;
+  font-weight: 900;
+  line-height: 1;
+  padding: 0.1rem 0.36rem;
+  position: absolute;
+  bottom: 26%;
+  right: auto;
+  text-transform: uppercase;
+  z-index: 4;
+}
+
+.logo-ballpit__label {
+  height: 1px;
+  left: -10000px;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+}
+
+.logo-ballpit__bubble:nth-child(1) {
+  --bubble-left: 74%;
+  --bubble-top: 58%;
+  --bubble-scale: 0.78;
+  --bubble-layer: 5;
+}
+
+.logo-ballpit__bubble:nth-child(2) {
+  --bubble-left: 48%;
+  --bubble-top: 52%;
+  --bubble-scale: 1.02;
+  --bubble-layer: 6;
+}
+
+.logo-ballpit__bubble:nth-child(3) {
+  --bubble-left: 22%;
+  --bubble-top: 66%;
+  --bubble-scale: 0.9;
+  --bubble-layer: 3;
+}
+
+.logo-ballpit__bubble:nth-child(4) {
+  --bubble-left: 11%;
+  --bubble-top: 74%;
+  --bubble-scale: 1.06;
+  --bubble-layer: 4;
+}
+
+.logo-ballpit__bubble:nth-child(5) {
+  --bubble-left: 37%;
+  --bubble-top: 34%;
+  --bubble-scale: 0.9;
+  --bubble-layer: 2;
+}
+
+.logo-ballpit__bubble:nth-child(6) {
+  --bubble-left: 62%;
+  --bubble-top: 31%;
+  --bubble-scale: 0.84;
+  --bubble-layer: 2;
+}
+
+.logo-ballpit__bubble:nth-child(7) {
+  --bubble-left: 84%;
+  --bubble-top: 38%;
+  --bubble-scale: 0.92;
+  --bubble-layer: 3;
+}
+
+.logo-ballpit__bubble:hover,
+.logo-ballpit__bubble:focus-visible {
+  border-color: rgba(124, 255, 178, 0.72);
+  box-shadow:
+    inset 0 12px 26px rgba(255, 255, 255, 0.24),
+    inset -18px -20px 38px rgba(4, 10, 7, 0.22),
+    0 26px 68px rgba(0, 0, 0, 0.38),
+    0 0 42px rgba(124, 255, 178, 0.18);
+  outline: none;
+  scale: 1.08;
+  z-index: 10;
+}

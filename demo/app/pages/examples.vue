@@ -43,9 +43,23 @@
           <a class="button button--primary" href="#live">Try constructor</a>
           <a class="button button--ghost" href="#positions">See positions</a>
         </div>
+        <LogoBallpit compact class="examples-hero__frameworks" />
       </div>
 
-      <LogoBallpit compact class="examples-hero__frameworks" />
+      <HeroWidgetDialog
+        class="examples-hero__dialog"
+        placeholder="Ask integration questions..."
+        title="Context7 Widget Docs"
+        tone="blue"
+        :messages="[
+          { kind: 'assistant', text: 'Test position, preset, trigger mode, and panel size before touching your app.' },
+          { kind: 'user', text: 'Show the Vue setup.' },
+          {
+            kind: 'assistant',
+            text: 'Copy a component, composable, core helper, or hosted script from the same constructor.'
+          }
+        ]"
+      />
     </section>
 
     <section id="live" class="examples-section examples-section--constructor">

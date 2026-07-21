@@ -30,6 +30,7 @@
             GitHub
           </a>
         </div>
+        <LogoBallpit compact class="hero__frameworks" />
       </div>
     </section>
 

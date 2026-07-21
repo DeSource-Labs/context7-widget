@@ -1,0 +1,73 @@
+.site-header {
+  align-items: center;
+  backdrop-filter: blur(18px);
+  background: rgba(7, 11, 9, 0.42);
+  border: 1px solid rgba(247, 242, 232, 0.12);
+  border-radius: 8px;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  min-height: 3.9rem;
+  padding: 0.6rem 0.7rem 0.6rem 0.85rem;
+  position: relative;
+  z-index: 4;
+}
+
+.brand {
+  align-items: center;
+  display: inline-flex;
+  font-weight: 800;
+  gap: 0.65rem;
+  letter-spacing: 0;
+  text-decoration: none;
+
+  span {
+    align-items: center;
+    background: var(--green);
+    border-radius: 7px;
+    color: #0f1512;
+    display: inline-flex;
+    height: 2rem;
+    justify-content: center;
+    width: 2rem;
+  }
+}
+
+nav {
+  align-items: center;
+  display: flex;
+  gap: 0.9rem;
+
+  a {
+    color: var(--muted);
+    font-size: 0.86rem;
+    font-weight: 760;
+    min-height: 2.35rem;
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    text-decoration: none;
+  }
+
+  a:not(.logo-ballpit__bubble)::after {
+    background: var(--green);
+    bottom: 0.18rem;
+    content: '';
+    height: 2px;
+    left: 0;
+    position: absolute;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.24s ease;
+    width: 100%;
+  }
+
+  a:hover {
+    color: var(--ink);
+  }
+
+  a:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}

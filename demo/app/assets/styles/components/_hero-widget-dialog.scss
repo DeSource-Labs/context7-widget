@@ -1,0 +1,169 @@
+.hero-widget-dialog {
+  --dialog-accent: var(--green);
+  --dialog-accent-contrast: #07120c;
+  --dialog-accent-soft: rgba(124, 255, 178, 0.14);
+  --dialog-border: rgba(247, 242, 232, 0.18);
+  backdrop-filter: blur(16px) saturate(1.2);
+  background:
+    radial-gradient(circle at 74% 22%, var(--dialog-accent-soft), transparent 17rem),
+    linear-gradient(180deg, rgba(247, 242, 232, 0.055), rgba(247, 242, 232, 0.018)), rgba(6, 9, 8, 0.58);
+  border: 1px solid var(--dialog-border);
+  border-radius: 10px;
+  box-shadow:
+    0 34px 110px rgba(0, 0, 0, 0.44),
+    0 0 0 1px rgba(255, 255, 255, 0.025) inset,
+    0 0 44px color-mix(in srgb, var(--dialog-accent) 16%, transparent);
+  color: var(--ink);
+  display: grid;
+  grid-template-rows: auto minmax(190px, 1fr) auto auto;
+  min-height: min(430px, 48dvh);
+  overflow: hidden;
+  pointer-events: none;
+  position: relative;
+  width: 100%;
+}
+
+.hero-widget-dialog--blue {
+  --dialog-accent: #7ab8ff;
+  --dialog-accent-contrast: #07111d;
+  --dialog-accent-soft: rgba(122, 184, 255, 0.15);
+  --dialog-border: rgba(122, 184, 255, 0.22);
+}
+
+.hero-widget-dialog--amber {
+  --dialog-accent: #ffb45e;
+  --dialog-accent-contrast: #211205;
+  --dialog-accent-soft: rgba(255, 180, 94, 0.15);
+  --dialog-border: rgba(255, 180, 94, 0.22);
+}
+
+.hero-widget-dialog__header {
+  align-items: center;
+  background: rgba(7, 11, 9, 0.56);
+  border-bottom: 1px solid var(--dialog-border);
+  display: flex;
+  gap: 0.8rem;
+  justify-content: space-between;
+  min-height: 3.45rem;
+  padding: 0.68rem 0.78rem;
+
+  strong {
+    font-size: 0.94rem;
+    line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  button {
+    background: transparent;
+    border: 0;
+    height: 1.2rem;
+    padding: 0;
+    position: relative;
+    width: 1.2rem;
+  }
+
+  button span {
+    background: color-mix(in srgb, var(--ink) 84%, transparent);
+    border-radius: 999px;
+    height: 2px;
+    left: 0.25rem;
+    position: absolute;
+    top: calc(50% - 1px);
+    width: 1rem;
+  }
+
+  button span:first-child {
+    transform: rotate(45deg);
+  }
+
+  button span:last-child {
+    transform: rotate(-45deg);
+  }
+}
+
+.hero-widget-dialog__body {
+  align-content: start;
+  background:
+    linear-gradient(rgba(247, 242, 232, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(247, 242, 232, 0.035) 1px, transparent 1px), rgba(5, 8, 7, 0.24);
+  background-size: 30px 30px;
+  display: grid;
+  gap: 0.58rem;
+  padding: 0.85rem;
+}
+
+.hero-widget-dialog__message {
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.38;
+  max-width: min(88%, 310px);
+  padding: 0.68rem 0.75rem;
+}
+
+.hero-widget-dialog__message--assistant {
+  background: rgba(247, 242, 232, 0.13);
+  border: 1px solid rgba(247, 242, 232, 0.08);
+  color: var(--ink);
+}
+
+.hero-widget-dialog__message--user {
+  background: var(--dialog-accent);
+  color: var(--dialog-accent-contrast);
+  font-weight: 800;
+  justify-self: end;
+}
+
+.hero-widget-dialog__composer {
+  align-items: center;
+  background: rgba(7, 11, 9, 0.52);
+  border-top: 1px solid var(--dialog-border);
+  display: flex;
+  gap: 0.55rem;
+  padding: 0.68rem 0.75rem;
+
+  span {
+    border: 1px solid rgba(247, 242, 232, 0.16);
+    border-radius: 8px;
+    color: var(--muted);
+    flex: 1;
+    font-size: 0.8rem;
+    min-height: 2.25rem;
+    padding: 0.58rem 0.65rem;
+  }
+
+  strong {
+    background: var(--dialog-accent);
+    border-radius: 8px;
+    color: var(--dialog-accent-contrast);
+    font-size: 0.82rem;
+    min-height: 2.25rem;
+    padding: 0.58rem 0.78rem;
+  }
+}
+
+.hero-widget-dialog__powered {
+  align-items: center;
+  background: rgba(7, 11, 9, 0.58);
+  border-top: 1px solid rgba(247, 242, 232, 0.1);
+  color: var(--muted);
+  display: flex;
+  font-size: 0.78rem;
+  gap: 0.38rem;
+  justify-content: center;
+  min-height: 2.7rem;
+  padding: 0.58rem;
+
+  strong {
+    align-items: center;
+    background: var(--ink);
+    border-radius: 7px;
+    color: #101513;
+    display: inline-flex;
+    font-size: 0.76rem;
+    height: 1.26rem;
+    justify-content: center;
+    width: 1.26rem;
+  }
+}

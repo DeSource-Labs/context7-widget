@@ -1,0 +1,41 @@
+.button,
+.icon-button,
+.lab-trigger {
+  align-items: center;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.lab-trigger {
+  width: 100%;
+}
+
+.button {
+  border-radius: 8px;
+  font-weight: 750;
+  gap: 0.55rem;
+  min-height: 2.9rem;
+  padding: 0 1rem;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.button--primary {
+  background: var(--green);
+  color: #101513;
+  box-shadow: 0 12px 34px rgba(124, 255, 178, 0.18);
+}
+
+.button--ghost {
+  background: rgba(247, 242, 232, 0.08);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}

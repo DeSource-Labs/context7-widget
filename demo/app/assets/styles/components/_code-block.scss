@@ -1,0 +1,46 @@
+@use '../abstracts/mixins' as *;
+
+.install-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.code-block {
+  @include card-surface;
+
+  min-width: 0;
+  overflow: hidden;
+}
+
+.code-block__bar {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  display: flex;
+  font-size: 0.82rem;
+  justify-content: space-between;
+  min-height: 2.75rem;
+  padding: 0 0.7rem 0 1rem;
+}
+
+.icon-button {
+  background: transparent;
+  border-radius: 7px;
+  color: var(--ink);
+  height: 2rem;
+  width: 2rem;
+}
+
+.icon-button:hover {
+  background: rgba(247, 242, 232, 0.08);
+}
+
+.code-block pre {
+  color: #e8f7ee;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  overflow-x: auto;
+  padding: 1rem;
+}

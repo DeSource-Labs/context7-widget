@@ -1,0 +1,41 @@
+.eyebrow {
+  color: var(--green);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(4rem, 11vw, 9.5rem);
+  letter-spacing: 0;
+  line-height: 0.86;
+  max-width: 8ch;
+}
+
+h2 {
+  font-size: clamp(2.1rem, 5vw, 5.5rem);
+  letter-spacing: 0;
+  line-height: 0.95;
+}
+
+h3 {
+  font-size: 1.08rem;
+  letter-spacing: 0;
+}
+
+.hero__content > p:not(.eyebrow),
+.section-heading p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.6;
+  max-width: 720px;
+}

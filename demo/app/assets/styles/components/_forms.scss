@@ -1,0 +1,121 @@
+label,
+.control-group {
+  display: grid;
+  gap: 0.5rem;
+
+  > span {
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+}
+
+input,
+select,
+textarea {
+  background: rgba(16, 21, 19, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  min-height: 2.65rem;
+  min-width: 0;
+  outline: none;
+  padding: 0 0.8rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(124, 255, 178, 0.16);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+textarea {
+  line-height: 1.5;
+  min-height: 5.8rem;
+  padding: 0.75rem 0.8rem;
+  resize: vertical;
+}
+
+.field-note {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.segmented {
+  background: rgba(16, 21, 19, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 0.25rem;
+
+  button {
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    color: var(--muted);
+    cursor: pointer;
+    min-height: 2.15rem;
+  }
+
+  button[aria-pressed='true'] {
+    background: var(--green);
+    color: #101513;
+    font-weight: 800;
+  }
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+
+  button {
+    background: var(--swatch);
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    height: 2rem;
+    width: 2rem;
+  }
+
+  button[aria-pressed='true'] {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
+  }
+
+  .swatch-preset {
+    align-items: center;
+    background:
+      linear-gradient(135deg, rgba(124, 255, 178, 0.18), rgba(122, 184, 255, 0.18)), rgba(247, 242, 232, 0.07);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink);
+    display: inline-flex;
+    font-size: 0.72rem;
+    font-weight: 800;
+    height: 2rem;
+    padding: 0 0.7rem;
+    text-transform: uppercase;
+    width: auto;
+  }
+}
+
+.toggle {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+
+  input {
+    accent-color: var(--green);
+    min-height: auto;
+  }
+}
