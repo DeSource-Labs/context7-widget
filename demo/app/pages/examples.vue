@@ -1,43 +1,60 @@
 <template>
   <main class="examples-page">
-    <section class="examples-hero">
-      <header class="site-header">
-        <a class="brand" href="/" aria-label="Context7 Widget home">
-          <span>7</span>
-          Context7 Widget
-        </a>
-        <nav aria-label="Primary navigation">
-          <a href="/">Home</a>
-          <a href="/#lab">Lab</a>
-          <a href="/customization">Customize</a>
-          <a href="/widget.js">widget.js</a>
-        </nav>
-      </header>
+    <section class="examples-hero examples-hero--with-scan">
+      <GridScan
+        class="examples-hero__background"
+        lines-color="#315f68"
+        scan-color="#7ab8ff"
+        line-style="solid"
+        scan-direction="pingpong"
+        :bloom-intensity="0.36"
+        :bloom-smoothing="0.34"
+        :bloom-threshold="0.05"
+        :chromatic-aberration="0.0016"
+        :grid-scale="0.085"
+        :line-jitter="0.04"
+        :line-thickness="1.15"
+        :noise-intensity="0.012"
+        :scan-delay="0.7"
+        :scan-duration="3.1"
+        :scan-glow="0.92"
+        :scan-on-click="true"
+        :scan-opacity="0.78"
+        :scan-phase-taper="0.35"
+        :scan-softness="1.5"
+        :sensitivity="0.42"
+      />
+      <SiteHeader
+        :items="[
+          { href: '/', label: 'Home' },
+          { href: '#live', label: 'Constructor' },
+          { href: '#positions', label: 'Positions' },
+          { href: '/customization', label: 'Customize' }
+        ]"
+      />
 
       <div class="examples-hero__content">
-        <p class="eyebrow">Integration examples</p>
-        <h1>Use the widget like a product surface.</h1>
+        <p class="eyebrow">Examples</p>
+        <h1>Try the widget before you install it.</h1>
         <p>
-          Script tags, typed helpers, Vue components, centered flows, anchored triggers, presets, and CSS overrides
-          share one runtime contract.
+          Test trigger modes, positions, presets, and generated snippets. Pick the version that fits your app today.
         </p>
+        <div class="hero__actions">
+          <a class="button button--primary" href="#live">Try constructor</a>
+          <a class="button button--ghost" href="#positions">See positions</a>
+        </div>
       </div>
 
-      <div class="examples-hero__console" aria-hidden="true">
-        <span>position="anchor"</span>
-        <span>preset="glass"</span>
-        <span>@answer-complete</span>
-        <span>data-initial-message</span>
-      </div>
+      <LogoBallpit compact class="examples-hero__frameworks" />
     </section>
 
-    <section class="examples-section examples-section--constructor">
+    <section id="live" class="examples-section examples-section--constructor">
       <div class="section-heading">
         <p class="eyebrow">Live constructor</p>
-        <h2>Configure every public surface, then copy the integration.</h2>
+        <h2>Make decisions visually, then copy the integration.</h2>
         <p>
-          The constructor renders a real Vue component instance, including the managed trigger and trigger slot. Script
-          output mirrors the same options where the hosted widget.js API supports them.
+          The constructor renders a real widget instance. Try copy, position, preset, trigger mode, panel size, and
+          behavior first; then copy the script, Vue, or core TypeScript version.
         </p>
       </div>
 
@@ -239,41 +256,43 @@
                     {{ item.value }}
                   </span>
                 </div>
-              </div>
 
-              <Context7Widget
-                ref="constructorWidget"
-                :key="constructorWidgetKey"
-                :backdrop="constructorBackdrop"
-                :close-on-outside-click="constructorCloseOnOutsideClick"
-                :color="constructorColor || undefined"
-                :custom-trigger="constructorCustomTrigger"
-                :default-open="constructorDefaultOpen"
-                :initial-message="constructorInitialMessage"
-                :launcher-label="constructorLauncherLabel"
-                :launcher-variant="constructorLauncherVariant"
-                :library="constructorLibrary"
-                :panel-height="constructorPanelHeight"
-                :panel-width="constructorPanelWidth"
-                :placeholder="constructorPlaceholder"
-                :position="constructorPosition"
-                :preset="constructorPreset"
-                :show-powered-by="constructorShowPoweredBy"
-                :theme="constructorTheme"
-                :title="constructorTitle"
-                :widget-id="constructorWidgetId"
-                @answer-complete="onConstructorAnswerComplete"
-                @close="constructorStats.closes++"
-                @error="onConstructorError"
-                @open="constructorStats.opens++"
-                @question="onConstructorQuestion"
-              >
-                <template v-if="constructorUsesTriggerSlot" #trigger="{ label }">
-                  <span class="constructor-trigger-dot" />
-                  <span>{{ label }}</span>
-                  <Wand2 :size="16" aria-hidden="true" />
-                </template>
-              </Context7Widget>
+                <div class="constructor-widget">
+                  <Context7Widget
+                    ref="constructorWidget"
+                    :key="constructorWidgetKey"
+                    :backdrop="constructorBackdrop"
+                    :close-on-outside-click="constructorCloseOnOutsideClick"
+                    :color="constructorColor || undefined"
+                    :custom-trigger="constructorCustomTrigger"
+                    :default-open="constructorDefaultOpen"
+                    :initial-message="constructorInitialMessage"
+                    :launcher-label="constructorLauncherLabel"
+                    :launcher-variant="constructorLauncherVariant"
+                    :library="constructorLibrary"
+                    :panel-height="constructorPanelHeight"
+                    :panel-width="constructorPanelWidth"
+                    :placeholder="constructorPlaceholder"
+                    :position="constructorPosition"
+                    :preset="constructorPreset"
+                    :show-powered-by="constructorShowPoweredBy"
+                    :theme="constructorTheme"
+                    :title="constructorTitle"
+                    :widget-id="constructorWidgetId"
+                    @answer-complete="onConstructorAnswerComplete"
+                    @close="constructorStats.closes++"
+                    @error="onConstructorError"
+                    @open="constructorStats.opens++"
+                    @question="onConstructorQuestion"
+                  >
+                    <template v-if="constructorUsesTriggerSlot" #trigger="{ label }">
+                      <span class="constructor-trigger-dot" />
+                      <span>{{ label }}</span>
+                      <Wand2 :size="16" aria-hidden="true" />
+                    </template>
+                  </Context7Widget>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -294,13 +313,14 @@
       </div>
     </section>
 
-    <section class="examples-section">
+    <section id="positions" class="examples-section examples-section--positions">
       <div class="section-heading">
         <p class="eyebrow">Position use cases</p>
         <h2>Corner, centered, and anchored entry points.</h2>
         <p>
-          Current Context7 installs are mostly fixed-corner docs widgets because the official script only exposes that
-          shape. This package keeps that path and adds focused centered-dialog and app-shell popover patterns.
+          Fixed corner works for classic docs pages. Centered dialog works when users ask for help intentionally.
+          Anchored popovers work when the assistant belongs to your navigation, dashboard, command palette, or support
+          menu.
         </p>
       </div>
 
@@ -341,11 +361,14 @@
           <div class="example-card__visual">
             <div class="corner-stage">
               <span class="corner-stage__page" />
-              <span class="corner-stage__launcher">7</span>
+              <button id="example-corner-trigger" class="example-trigger example-trigger--corner" type="button">
+                <MessageSquare :size="18" aria-hidden="true" />
+                Open corner widget
+              </button>
             </div>
             <div>
               <h3>Fixed corner</h3>
-              <p>Drop-in replacement for Docusaurus, Next layouts, static docs, and existing Context7 script users.</p>
+              <p>Click the button to open a real bottom-right widget, the same placement used by script installs.</p>
             </div>
           </div>
           <CodeBlock id="example-corner-code" label="Official-compatible" :code="cornerScript" />
@@ -355,8 +378,8 @@
 
     <section class="examples-section examples-section--matrix">
       <div class="section-heading">
-        <p class="eyebrow">Customization map</p>
-        <h2>Preset first, variables when needed.</h2>
+        <p class="eyebrow">Customization examples</p>
+        <h2>Presets get you close. Variables make it yours.</h2>
       </div>
 
       <div class="preset-strip">
@@ -374,30 +397,8 @@
         <CodeBlock id="example-css-code" label="CSS overrides" :code="cssOverrides" />
         <CodeBlock id="example-core-code" label="Core helper" :code="coreHelper" />
         <CodeBlock id="example-composable-code" label="Vue composable" :code="vueComposable" />
-        <CodeBlock id="example-typed-events-code" label="Typed events" :code="typedEvents" />
       </div>
     </section>
-
-    <section class="examples-section">
-      <div class="section-heading">
-        <p class="eyebrow">Event instrumentation</p>
-        <h2>Use answers as product signals.</h2>
-      </div>
-
-      <div class="event-board">
-        <article v-for="event in events" :key="event.name">
-          <span>{{ event.name }}</span>
-          <p>{{ event.copy }}</p>
-        </article>
-      </div>
-    </section>
-
-    <footer class="site-footer">
-      <span>DeSource Labs</span>
-      <a href="/">Home</a>
-      <a href="/customization">Customize</a>
-      <a href="/widget.js">Hosted widget.js</a>
-    </footer>
 
     <Context7Widget
       close-on-outside-click
@@ -419,6 +420,17 @@
       preset="glass"
       title="Anchored Documentation Help"
       widget-id="examples-anchor"
+    />
+
+    <Context7Widget
+      custom-trigger="#example-corner-trigger"
+      library="/desource-labs/context7-widget"
+      panel-height="440px"
+      panel-width="420px"
+      position="bottom-right"
+      preset="neo"
+      title="Corner Documentation Help"
+      widget-id="examples-corner"
     />
   </main>
 </template>
@@ -829,40 +841,11 @@ const vueComposable = `const docs = useContext7Widget({
 
 await docs.send("Show installation examples");`;
 
-const typedEvents = `import type {
-  Context7WidgetAnswerCompleteEventDetail,
-  Context7WidgetQuestionEventDetail
-} from "@desource/context7-widget-vue";
-
-function trackQuestion(detail: Context7WidgetQuestionEventDetail) {
-  analytics.track("docs_question", { question: detail.question });
-}
-
-function trackAnswer(detail: Context7WidgetAnswerCompleteEventDetail) {
-  analytics.track("docs_answer", {
-    question: detail.question,
-    answerLength: detail.answer.length
-  });
-}`;
-
 const presetCards = [
   { copy: 'Quiet product UI with low visual noise.', name: 'minimal' },
   { copy: 'Layered translucent surface for rich demos.', name: 'glass' },
   { copy: 'Hard-edged playful docs widget.', name: 'neo' },
   { copy: 'Monospace assistant for dev-tool pages.', name: 'terminal' },
   { copy: 'High-contrast editorial surface.', name: 'brutalist' }
-];
-
-const events = [
-  { copy: 'Widget instance is mounted and ready for imperative calls.', name: 'ready' },
-  { copy: 'Panel was opened by launcher, trigger, global API, or send().', name: 'open' },
-  { copy: 'Panel closed by close button, Escape, outside click, or API.', name: 'close' },
-  { copy: 'Question text is available before the network request streams.', name: 'question' },
-  { copy: 'First visible response token arrived; useful for latency metrics.', name: 'first-token' },
-  { copy: 'Every streamed answer update for custom live rendering.', name: 'answer' },
-  { copy: 'The final assistant message is available for analytics.', name: 'answer-complete' },
-  { copy: 'Documentation search was invoked by the Context7 backend.', name: 'tool-call' },
-  { copy: 'Context7 backend returned a tool result payload.', name: 'tool-result' },
-  { copy: 'Transport or configuration failures can be logged.', name: 'error' }
 ];
 </script>

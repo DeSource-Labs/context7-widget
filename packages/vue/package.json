@@ -1,10 +1,14 @@
 {
   "name": "@desource/context7-widget-vue",
   "version": "0.1.0",
-  "description": "Vue 3 bindings for the themeable Context7 widget.",
+  "description": "Vue 3 component and composable for a customizable Context7 documentation chat widget.",
   "keywords": [
     "context7",
+    "context7-widget",
     "widget",
+    "chat-widget",
+    "ai-docs",
+    "docs-chat",
     "vue",
     "vue3",
     "component",
@@ -12,7 +16,9 @@
     "docs",
     "documentation",
     "chat",
-    "typescript"
+    "typescript",
+    "customizable",
+    "themeable"
   ],
   "author": "Stefan Popov <stefan@desource-labs.org>",
   "license": "MIT",

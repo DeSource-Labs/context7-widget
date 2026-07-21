@@ -15,12 +15,13 @@ export default defineNuxtConfig({
         {
           name: 'description',
           content:
-            'Themeable Context7 widget script, TypeScript core package, Vue bindings, and integration examples for polished docs and product sites.'
+            'Customizable Context7 documentation chat widget for product sites, docs portals, dashboards, and developer tools. Script, TypeScript core, and Vue integrations.'
         },
         { property: 'og:title', content: 'Context7 Widget by DeSource Labs' },
         {
           property: 'og:description',
-          content: 'A customizable Context7-compatible widget with script, core, and Vue integration paths.'
+          content:
+            'Add a Context7-powered AI docs assistant to your site, then match it to your product with presets, CSS variables, events, and framework bindings.'
         },
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: 'https://context7.desource-labs.org' },

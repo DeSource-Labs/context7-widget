@@ -1,25 +1,44 @@
 <template>
   <main class="customization-page">
-    <section class="examples-hero customization-hero">
-      <header class="site-header">
-        <a class="brand" href="/" aria-label="Context7 Widget home">
-          <span>7</span>
-          Context7 Widget
-        </a>
-        <nav aria-label="Primary navigation">
-          <a href="/">Home</a>
-          <a href="/#lab">Lab</a>
-          <a href="/examples">Examples</a>
-          <a href="/customization">Customize</a>
-        </nav>
-      </header>
+    <section class="examples-hero examples-hero--with-scan customization-hero">
+      <GridScan
+        class="examples-hero__background"
+        lines-color="#5a5736"
+        scan-color="#ffb45e"
+        line-style="solid"
+        scan-direction="pingpong"
+        :bloom-intensity="0.32"
+        :bloom-smoothing="0.36"
+        :bloom-threshold="0.05"
+        :chromatic-aberration="0.0015"
+        :grid-scale="0.09"
+        :line-jitter="0.04"
+        :line-thickness="1.12"
+        :noise-intensity="0.012"
+        :scan-delay="1"
+        :scan-duration="3.3"
+        :scan-glow="0.86"
+        :scan-on-click="true"
+        :scan-opacity="0.74"
+        :scan-phase-taper="0.38"
+        :scan-softness="1.6"
+        :sensitivity="0.38"
+      />
+      <SiteHeader
+        :items="[
+          { href: '/', label: 'Home' },
+          { href: '/examples', label: 'Examples' },
+          { href: '#variables', label: 'Variables' },
+          { href: '#parts', label: 'Parts' }
+        ]"
+      />
 
       <div class="examples-hero__content customization-hero__content">
-        <p class="eyebrow">Design system contract</p>
-        <h1>Make the widget look native.</h1>
+        <p class="eyebrow">Styling contract</p>
+        <h1>Make the widget look owned.</h1>
         <p>
-          Start with a preset, override stable CSS variables, then use shadow parts only for targeted block-level
-          styling. The public surface below is safe to theme without depending on internal class names.
+          Start with a preset, map your product colors and radius to stable variables, then polish exact blocks with
+          shadow parts.
         </p>
         <div class="hero__actions customization-hero__actions">
           <a class="button button--primary" href="#variables">
@@ -33,15 +52,33 @@
         </div>
       </div>
 
-      <div class="customization-hero__panel">
-        <CodeBlock id="customization-hero-code" label="Product style baseline" :code="brandTokenSnippet" />
+      <div class="customization-hero__preview" aria-label="Widget customization preview">
+        <div class="style-receipt">
+          <span>product tokens</span>
+          <strong>#7cffb2</strong>
+          <strong>8px radius</strong>
+          <strong>Inter</strong>
+        </div>
+        <div class="style-widget">
+          <div class="style-widget__header">Context7 Docs</div>
+          <div class="style-widget__body">
+            <span>Matches the shell.</span>
+            <span>Uses your trigger.</span>
+          </div>
+          <div class="style-widget__input">Ask about setup...</div>
+        </div>
+        <div class="style-parts">
+          <span>::part(panel)</span>
+          <span>::part(send-button)</span>
+          <span>::part(launcher)</span>
+        </div>
       </div>
     </section>
 
     <section class="examples-section customization-section">
       <div class="section-heading">
-        <p class="eyebrow">Playbook</p>
-        <h2>Customize in layers, not by reaching into internals.</h2>
+        <p class="eyebrow">Start here</p>
+        <h2>Style the stable surface, not internal markup.</h2>
       </div>
 
       <div class="customization-playbook">
@@ -55,12 +92,12 @@
 
     <section id="variables" class="examples-section customization-section">
       <div class="section-heading">
-        <p class="eyebrow">Complete variable map</p>
-        <h2>Stable CSS variables you can override.</h2>
+        <p class="eyebrow">CSS variables</p>
+        <h2>Override tokens without reaching into the widget.</h2>
         <p>
           Set these on `context7-widget`, on a scoped instance such as `context7-widget[widget-id="docs"]`, or inside
-          theme/preset selectors. Runtime anchor variables are intentionally not listed because the widget writes them
-          while positioning anchored panels.
+          theme and preset selectors. Use them for brand color, radius, surfaces, message bubbles, controls, and layout
+          dimensions.
         </p>
       </div>
 
@@ -80,11 +117,10 @@
     <section id="parts" class="examples-section customization-section">
       <div class="section-heading">
         <p class="eyebrow">Shadow parts</p>
-        <h2>Safe block selectors for targeted overrides.</h2>
+        <h2>Target exact blocks when variables are not enough.</h2>
         <p>
-          Use `::part(...)` when a product system needs direct styling for one surface. Prefer variables for colors,
-          radius, spacing, and typography; use parts for layout-neutral changes such as text transform, borders, and
-          component-level shadows.
+          Use `::part(...)` when a product system needs direct styling for one stable surface. Prefer variables for
+          colors, radius, spacing, and typography; use parts for borders, shadows, text transform, and focused polish.
         </p>
       </div>
 
@@ -98,8 +134,8 @@
 
     <section class="examples-section customization-section">
       <div class="section-heading">
-        <p class="eyebrow">Copyable CSS blocks</p>
-        <h2>Recipes that are safe to paste into product apps.</h2>
+        <p class="eyebrow">CSS recipes</p>
+        <h2>Copy a starting point, then replace the tokens.</h2>
       </div>
 
       <div class="recipe-grid recipe-grid--expanded">
@@ -115,22 +151,15 @@
     <section class="examples-section customization-section">
       <div class="customization-callout">
         <div>
-          <p class="eyebrow">Rule of thumb</p>
-          <h2>Variables are the contract. Parts are the escape hatch.</h2>
+          <p class="eyebrow">Public styling contract</p>
+          <h2>Variables are the contract. Parts are the precision tool.</h2>
         </div>
         <p>
           Avoid styling `.c7-*` classes inside the shadow DOM. They are implementation details. The variables and
-          `::part` names documented here are the intended stable customization layer.
+          `::part` names documented here are the stable customization layer.
         </p>
       </div>
     </section>
-
-    <footer class="site-footer">
-      <span>DeSource Labs</span>
-      <a href="/">Home</a>
-      <a href="/examples">Examples</a>
-      <a href="/widget.js">Hosted widget.js</a>
-    </footer>
   </main>
 </template>
 

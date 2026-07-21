@@ -1,7 +1,22 @@
 {
   "name": "context7-widget-monorepo",
   "private": true,
+  "description": "Customizable Context7 documentation chat widget for product sites, docs portals, dashboards, and developer tools.",
   "type": "module",
+  "keywords": [
+    "context7",
+    "context7-widget",
+    "chat-widget",
+    "ai-docs",
+    "docs-chat",
+    "documentation",
+    "typescript",
+    "vue",
+    "nuxt",
+    "react",
+    "svelte",
+    "angular"
+  ],
   "packageManager": "pnpm@11.10.0",
   "engines": {
     "node": ">=25"

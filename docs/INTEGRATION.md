@@ -1,23 +1,104 @@
-# Integration
+# Integration Guide
+
+This guide is for teams that want an AI documentation assistant on a site, but
+do not want a generic widget that clashes with the product.
+
+Context7 provides the hosted documentation backend and grounded answers. This
+repo provides the customizable client layer: script replacement, custom element,
+TypeScript helpers, Vue bindings, styling contract, event stream, and
+positioning modes.
+
+## Which Integration Should I Use?
+
+| Project type                           | Recommended path                                      |
+| -------------------------------------- | ----------------------------------------------------- |
+| Existing Context7 script install       | Replace only the script URL                           |
+| Static docs or marketing page          | Use `/widget.js`                                      |
+| Docusaurus, Astro, Next.js, Nuxt, Vite | Use `/widget.js` in the root layout                   |
+| Product app with custom controls       | Use `@desource/context7-widget`                       |
+| Vue 3 app                              | Use `@desource/context7-widget-vue`                   |
+| Nuxt, React, Svelte, Angular app later | Use script/core today; dedicated packages are planned |
 
 ## Drop-In Replacement
 
 Official Context7:
 
 ```html
-<script async src="https://context7.com/widget.js" data-library="/vercel/next.js"></script>
+<script async src="https://context7.com/widget.js" data-library="/owner/repo"></script>
 ```
 
-Replacement:
+Customizable replacement:
 
 ```html
-<script async src="https://context7.desource-labs.org/widget.js" data-library="/vercel/next.js"></script>
+<script async src="https://context7.desource-labs.org/widget.js" data-library="/owner/repo"></script>
 ```
 
-Keep your Context7 allowed-domain configuration unchanged. The browser request
-still goes to Context7 by default.
+Keep your Context7 library and allowed-domain configuration unchanged. Chat
+requests still go to `https://context7.com`.
+
+## Branded Script Install
+
+```html
+<script
+  async
+  src="https://context7.desource-labs.org/widget.js"
+  data-library="/owner/repo"
+  data-position="anchor"
+  data-preset="glass"
+  data-theme="auto"
+  data-placeholder="Ask about setup, API usage, or examples..."
+></script>
+```
+
+Omit `data-color` when you want the selected preset to own the action color. Set
+`data-color` only for a brand override.
+
+## Custom Trigger
+
+Use a custom trigger when the assistant belongs to an existing button, command
+menu, help item, or navigation action.
+
+```html
+<button id="docs-chat">Ask docs</button>
+
+<script
+  async
+  src="https://context7.desource-labs.org/widget.js"
+  data-library="/owner/repo"
+  data-custom-trigger="#docs-chat"
+  data-position="anchor"
+  data-preset="minimal"
+></script>
+```
+
+With `position="anchor"`, the panel opens above the trigger when there is enough
+space and below it otherwise.
+
+## Centered Help Dialog
+
+Use `center` when the user intentionally asks for help, for example from an
+onboarding flow, command palette, empty state, or support menu.
+
+```html
+<button id="docs-help">Open docs help</button>
+
+<script
+  async
+  src="https://context7.desource-labs.org/widget.js"
+  data-library="/owner/repo"
+  data-custom-trigger="#docs-help"
+  data-position="center"
+  data-preset="terminal"
+  data-backdrop="true"
+  data-close-on-outside-click="true"
+></script>
+```
 
 ## Core TypeScript
+
+```bash
+pnpm add @desource/context7-widget
+```
 
 ```ts
 import { defineContext7Widget, mountContext7Widget, buildContext7WidgetScriptTag } from '@desource/context7-widget';
@@ -25,37 +106,49 @@ import { defineContext7Widget, mountContext7Widget, buildContext7WidgetScriptTag
 defineContext7Widget();
 
 mountContext7Widget({
-  library: '/vercel/next.js',
+  library: '/owner/repo',
   theme: 'auto',
   position: 'center',
   preset: 'glass',
-  backdrop: true
+  backdrop: true,
+  closeOnOutsideClick: true
 });
 
 const script = buildContext7WidgetScriptTag({
-  library: '/vercel/next.js',
-  color: '#10b981'
+  library: '/owner/repo',
+  customTrigger: '#docs-chat',
+  position: 'anchor'
 });
 ```
 
 ## Vue
 
+```bash
+pnpm add @desource/context7-widget-vue
+```
+
 ```vue
+<script setup lang="ts">
+import { Context7Widget, type Context7WidgetQuestionEventDetail } from '@desource/context7-widget-vue';
+
+function trackQuestion(detail: Context7WidgetQuestionEventDetail) {
+  analytics.track('Docs question', {
+    library: detail.library,
+    question: detail.question
+  });
+}
+</script>
+
 <template>
   <Context7Widget
-    library="/vercel/next.js"
-    color="#10b981"
-    custom-trigger="#docs-chat"
+    library="/owner/repo"
     position="anchor"
     preset="glass"
+    custom-trigger
+    launcher-label="Ask docs"
     @question="trackQuestion"
-    @answer-complete="trackAnswer"
   />
 </template>
-
-<script setup lang="ts">
-import { Context7Widget } from '@desource/context7-widget-vue';
-</script>
 ```
 
 Composable:
@@ -65,12 +158,12 @@ import { useContext7Widget } from '@desource/context7-widget-vue';
 
 const docs = useContext7Widget({
   autoMount: true,
-  library: '/vercel/next.js',
+  library: '/owner/repo',
   widgetId: 'docs'
 });
 
 docs.open();
-await docs.send('Show middleware examples');
+await docs.send('Show setup examples');
 ```
 
 ## Next.js App Router
@@ -87,7 +180,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <Script
           src="https://context7.desource-labs.org/widget.js"
-          data-library="/vercel/next.js"
+          data-library="/owner/repo"
+          data-preset="minimal"
           strategy="afterInteractive"
         />
       </body>
@@ -106,57 +200,39 @@ export default {
     {
       src: 'https://context7.desource-labs.org/widget.js',
       async: true,
-      'data-library': '/facebook/docusaurus'
+      'data-library': '/owner/repo',
+      'data-preset': 'minimal'
     }
   ]
 };
 ```
 
-## Custom Trigger
+## Styling
 
-```html
-<button id="docs-chat">Ask docs</button>
+Use presets for a starting point, then override public CSS variables:
 
-<script
-  async
-  src="https://context7.desource-labs.org/widget.js"
-  data-library="/vercel/next.js"
-  data-custom-trigger="#docs-chat"
-  data-position="anchor"
-></script>
+```css
+context7-widget[widget-id='docs'] {
+  --c7-accent: #7cffb2;
+  --c7-panel-background: #101513;
+  --c7-panel-color: #f7f2e8;
+  --c7-border-color: rgba(247, 242, 232, 0.18);
+  --c7-panel-radius: 8px;
+}
+
+context7-widget::part(send-button) {
+  min-width: 5rem;
+  text-transform: uppercase;
+}
 ```
 
-## Position And Presets
-
-Use fixed corners for conventional docs pages, `center` when the user
-is intentionally asking for help, and `anchor` when the widget belongs to an app
-button, nav item, support menu, or command palette.
-
-```html
-<script
-  async
-  src="https://context7.desource-labs.org/widget.js"
-  data-library="/vercel/next.js"
-  data-position="center"
-  data-preset="terminal"
-  data-backdrop="true"
-  data-close-on-outside-click="true"
-></script>
-```
-
-Presets are CSS variable blocks: `default`, `minimal`, `glass`, `neo`,
-`terminal`, and `brutalist`. Override any `--c7-*` variable or `::part()` after
-choosing a preset.
-
-When `data-color` or `color` is omitted, the preset supplies the launcher and
-send-button accent. Provide `color` only when the host app needs a brand color
-override.
+Do not target internal `.c7-*` classes. They are implementation details.
 
 ## Analytics
 
 ```js
 document.addEventListener('c7:question', (event) => {
-  analytics.track('Context7 Question', {
+  analytics.track('Docs question', {
     library: event.detail.library,
     question: event.detail.question,
     widgetId: event.detail.widgetId
@@ -164,16 +240,17 @@ document.addEventListener('c7:question', (event) => {
 });
 
 document.addEventListener('c7:answer-complete', (event) => {
-  analytics.track('Context7 Answer Complete', {
+  analytics.track('Docs answer complete', {
     answerLength: event.detail.answer.length,
-    library: event.detail.library
+    library: event.detail.library,
+    widgetId: event.detail.widgetId
   });
 });
 ```
 
 ## CSP
 
-For the default hosted script and Context7 backend:
+For the hosted script and default Context7 backend:
 
 ```http
 Content-Security-Policy:
@@ -181,6 +258,6 @@ Content-Security-Policy:
   connect-src 'self' https://context7.com;
 ```
 
-If you host the script elsewhere, add that script origin. Keep
-`https://context7.com` in `connect-src` because chat requests always use the
-Context7 backend.
+If you host `widget.js` elsewhere, add that script origin. Keep
+`https://context7.com` in `connect-src` because chat requests use the Context7
+backend.

@@ -28,12 +28,10 @@ context7-widget/
 ├── packages/
 │   ├── core/        # @desource/context7-widget
 │   └── vue/         # @desource/context7-widget-vue
-├── apps/
-│   └── site/        # Nuxt documentation and examples site
 ├── common/
 │   └── tests/       # shared unit/e2e test helpers
+├── demo/            # Nuxt documentation, examples, and visual lab
 ├── docs/            # architecture and integration notes
-├── examples/        # static HTML examples
 └── scripts/         # maintenance scripts
 ```
 

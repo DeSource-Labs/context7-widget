@@ -7,6 +7,9 @@ This monorepo uses [Changesets](https://github.com/changesets/changesets) for pa
 - `@desource/context7-widget`
 - `@desource/context7-widget-vue`
 
+Planned framework packages, including Nuxt, React, Svelte, and Angular bindings, should be added to this list only when
+they become publishable packages in the monorepo.
+
 ## Contributor Flow
 
 For public package changes:

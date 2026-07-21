@@ -1,155 +1,155 @@
 # Context7 Widget
 
-[![CI](https://github.com/DeSource-Labs/context7-widget/actions/workflows/ci.yml/badge.svg)](https://github.com/DeSource-Labs/context7-widget/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/DeSource-Labs/context7-widget/branch/main/graph/badge.svg)](https://codecov.io/gh/DeSource-Labs/context7-widget)
 [![npm core](https://img.shields.io/npm/v/@desource/context7-widget?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget)
 [![npm vue](https://img.shields.io/npm/v/@desource/context7-widget-vue?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget-vue)
 [![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
-A themeable, Context7-compatible widget system for teams that like the official
-`https://context7.com/widget.js` install path, but need the UI to feel native in
-polished product and documentation sites.
+Add an AI documentation assistant to a product, docs site, dashboard, SDK portal,
+or internal tool, then make it look like it belongs there.
 
-This repository now ships three surfaces:
+Context7 indexes documentation and serves grounded answers through its hosted
+chat widget. The official `https://context7.com/widget.js` script is fast to
+install, but it exposes only a small styling and positioning surface. This
+project keeps the same Context7 backend and install model, then adds the product
+layer teams usually need before shipping a public support surface.
 
-- `https://context7.desource-labs.org/widget.js`: one-line script replacement.
-- `@desource/context7-widget`: core TypeScript package and custom element.
-- `@desource/context7-widget-vue`: Vue 3 component, composable, plugin helper,
-  typed events, and SCSS-built helper styles.
+## What This Solves
 
-The Nuxt information site lives in `demo` and is designed for Vercel static
-hosting at `context7.desource-labs.org`.
+- Visitors can ask product and API questions without leaving your site.
+- Existing Context7 users can replace the script URL instead of rewriting an
+  integration.
+- Product teams can match the widget to their brand, layout, and interaction
+  model.
+- Developers get typed helpers, events, framework bindings, and a stable CSS
+  customization contract.
 
-## Packages
+If you are not familiar with Context7 yet: think of it as hosted, searchable,
+AI-powered documentation for a library or product. After your library is
+available in Context7, this package gives you a polished widget layer for your
+own site.
 
-| Package                                           | Description                                                                                |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| [`@desource/context7-widget`](./packages/core)    | Core custom element, loader, transport, helper APIs, event types, and `./widget.js` export |
-| [`@desource/context7-widget-vue`](./packages/vue) | Vue 3 component, composable, plugin helper, typed events, and optional trigger styles      |
+## Package Surfaces
 
-## Open Source
+| Surface                                           | Use it when                                                                                     |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `https://context7.desource-labs.org/widget.js`    | You want a drop-in script tag for HTML, Docusaurus, Next.js, Astro, Nuxt, Vite, or static pages |
+| [`@desource/context7-widget`](./packages/core)    | You want TypeScript helpers, the custom element, script generation, or direct runtime control   |
+| [`@desource/context7-widget-vue`](./packages/vue) | You want a Vue 3 component, composable, plugin helper, typed events, and managed triggers       |
 
-- [Contributing guide](./CONTRIBUTING.md)
-- [Release process](./RELEASE.md)
-- [Security policy](./SECURITY.md)
-- [Code of conduct](./CODE_OF_CONDUCT.md)
-- [Architecture notes](./docs/ARCHITECTURE.md)
-- [Integration recipes](./docs/INTEGRATION.md)
+Coming next: Nuxt, React, Svelte, and Angular packages. The core package is
+framework-agnostic so every future binding uses the same runtime contract.
 
 ## Quick Start
 
-Replace the official script URL and keep the existing Context7 attributes:
+Replace the official Context7 script URL and keep `data-library`:
 
 ```html
-<script async src="https://context7.desource-labs.org/widget.js" data-library="/vercel/next.js"></script>
+<script async src="https://context7.desource-labs.org/widget.js" data-library="/owner/repo"></script>
 ```
 
-Existing official attributes continue to work:
+For a branded widget:
 
 ```html
 <script
   async
   src="https://context7.desource-labs.org/widget.js"
-  data-library="/vercel/next.js"
-  data-color="#111827"
-  data-position="bottom-right"
-  data-placeholder="Ask about the docs..."
-  data-welcome-message="Ask me about Next.js."
+  data-library="/owner/repo"
+  data-position="anchor"
+  data-preset="glass"
+  data-theme="auto"
+  data-placeholder="Ask about setup, API usage, or examples..."
 ></script>
 ```
 
-The widget always calls `https://context7.com/api/v2/widget/chat`; replacing the
-script origin does not change the Context7 backend.
+The widget still calls `https://context7.com/api/v2/widget/chat`. This package
+does not proxy, fork, or replace Context7; it improves the client experience.
 
-Additional attributes cover product-app use cases that the official script does
-not expose:
+## Choose A Path
 
-- `data-position`: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `center`, or `anchor`.
-- `data-preset`: `default`, `minimal`, `glass`, `neo`, `terminal`, or `brutalist`.
-- `data-launcher-variant`: `icon`, `pill`, or `badge`.
-- `data-backdrop`, `data-close-on-outside-click`, `data-panel-width`, `data-panel-height`, and `data-show-powered-by`.
+### Existing Context7 widget user
 
-If `data-color` / `color` is omitted, the selected preset owns the action color.
-Set `color` only when you want a brand override.
+Swap the script origin. Your `data-library`, allowed-domain setup, and Context7
+backend behavior stay the same.
 
-## Core Package
+```html
+<!-- Before -->
+<script async src="https://context7.com/widget.js" data-library="/owner/repo"></script>
 
-```bash
-pnpm add @desource/context7-widget
+<!-- After -->
+<script async src="https://context7.desource-labs.org/widget.js" data-library="/owner/repo"></script>
 ```
 
-```ts
-import { buildContext7WidgetScriptTag, mountContext7Widget } from '@desource/context7-widget';
+### Product or docs team new to Context7
 
-mountContext7Widget({
-  backdrop: true,
-  color: '#10b981',
-  closeOnOutsideClick: true,
-  library: '/vercel/next.js',
-  position: 'center',
-  preset: 'glass',
-  theme: 'auto'
-});
+1. Add or claim your library in Context7.
+2. Put the widget script in the root layout of your docs or product site.
+3. Choose a preset and position.
+4. Add CSS variables or `::part()` overrides so the chat surface matches your UI.
+5. Listen to events such as `c7:question` and `c7:answer-complete` for product
+   analytics.
 
-const script = buildContext7WidgetScriptTag({
-  library: '/vercel/next.js',
-  customTrigger: '#docs-chat'
-});
-```
-
-The core package exports the custom element, stream transport, markdown renderer,
-script-tag helpers, typed widget options, and the global API types.
-
-## Vue Package
+### Vue application
 
 ```bash
 pnpm add @desource/context7-widget-vue
 ```
 
 ```vue
-<template>
-  <Context7Widget
-    library="/vercel/next.js"
-    color="#10b981"
-    position="anchor"
-    preset="glass"
-    theme="auto"
-    @question="trackQuestion"
-  />
-</template>
-
 <script setup lang="ts">
-import { Context7Widget, type Context7WidgetEventDetail } from '@desource/context7-widget-vue';
+import { Context7Widget, type Context7WidgetQuestionEventDetail } from '@desource/context7-widget-vue';
 
-function trackQuestion(detail: Context7WidgetEventDetail) {
-  console.log(detail.question);
+function trackQuestion(detail: Context7WidgetQuestionEventDetail) {
+  console.log(detail.library, detail.question);
 }
 </script>
+
+<template>
+  <Context7Widget library="/owner/repo" position="anchor" preset="glass" theme="auto" @question="trackQuestion" />
+</template>
 ```
 
-Composable:
+### TypeScript application
+
+```bash
+pnpm add @desource/context7-widget
+```
 
 ```ts
-import { useContext7Widget } from '@desource/context7-widget-vue';
+import { mountContext7Widget } from '@desource/context7-widget';
 
-const docs = useContext7Widget({
-  autoMount: true,
-  library: '/vercel/next.js',
-  widgetId: 'docs'
+mountContext7Widget({
+  library: '/owner/repo',
+  position: 'center',
+  preset: 'glass',
+  backdrop: true,
+  closeOnOutsideClick: true
 });
-
-await docs.send('How do I customize the widget?');
 ```
 
-## Styling And Full Customization
+## Feature Highlights
 
-The widget is a shadow-DOM custom element. Customize it through the public CSS
-contract: set variables on `context7-widget`, then use `::part(...)` for
-targeted block styling. Do not depend on internal `.c7-*` class names.
+- Official-compatible script replacement for the fastest migration path.
+- Fixed corners, centered dialog, backdrop, and trigger-anchored positioning.
+- Presets: `default`, `minimal`, `glass`, `neo`, `terminal`, and `brutalist`.
+- Theme modes: `light`, `dark`, and `auto`.
+- Preset-owned action colors when `color` is omitted.
+- Custom triggers by selector, including anchored popovers.
+- Typed DOM events for questions, streaming answers, tool calls, errors, and
+  lifecycle state.
+- Public CSS variables and stable shadow parts for product-grade styling.
+- Vue component, composable, plugin helper, managed trigger button, and trigger
+  slot.
+- Daily upstream scanner for the official unversioned Context7 widget script.
 
-The site includes a dedicated guide at `/customization`.
+## Customization
 
-Start with a scoped product-token block:
+The widget is a shadow-DOM custom element. Style it through the public contract:
+
+- CSS variables on `context7-widget`
+- `::part(...)` selectors for stable internal blocks
+- `widget-id` for per-instance scoping
+- presets as a starting point, not a design limit
 
 ```css
 context7-widget[widget-id='docs'] {
@@ -159,60 +159,42 @@ context7-widget[widget-id='docs'] {
   --c7-panel-background: #101513;
   --c7-panel-color: #f7f2e8;
   --c7-border-color: rgba(247, 242, 232, 0.18);
-  --c7-muted-color: rgba(247, 242, 232, 0.66);
-}
-```
-
-Public CSS variables:
-
-- Brand/type: `--c7-accent`, `--c7-accent-contrast`, `--c7-font-family`, `--c7-muted-color`, `--c7-focus-ring`
-- Panel: `--c7-panel-background`, `--c7-panel-backdrop-filter`, `--c7-panel-color`, `--c7-panel-width`, `--c7-panel-height`, `--c7-panel-radius`, `--c7-panel-shadow`, `--c7-border-color`, `--c7-spacing`, `--c7-z-index`
-- Launcher: `--c7-launcher-background`, `--c7-launcher-color`, `--c7-launcher-gap`, `--c7-launcher-radius`, `--c7-launcher-shadow`, `--c7-launcher-size`
-- Backdrop: `--c7-backdrop`, `--c7-backdrop-filter`
-- Header/footer: `--c7-header-background`, `--c7-footer-background`
-- Messages: `--c7-message-assistant-background`, `--c7-message-assistant-color`, `--c7-message-user-background`, `--c7-message-user-color`, `--c7-message-radius`, `--c7-error-background`, `--c7-error-color`
-- Controls: `--c7-control-background`, `--c7-control-border`, `--c7-control-color`
-
-Runtime anchor variables `--c7-anchor-left`, `--c7-anchor-top`, and
-`--c7-anchor-origin` are written by the widget while positioning anchored
-panels. Treat them as implementation-managed values.
-
-Stable shadow parts:
-
-`backdrop`, `panel`, `header`, `title`, `close-button`, `messages`,
-`message`, `assistant-message`, `user-message`, `error-message`, `typing`,
-`tool-call`, `tool-toggle`, `code-block`, `composer`, `input`, `send-button`,
-`footer`, `powered-by`, and `launcher`.
-
-Safe `::part` override examples:
-
-```css
-context7-widget::part(panel) {
-  border-width: 1px;
-}
-
-context7-widget::part(title) {
-  font-size: 0.875rem;
+  --c7-panel-radius: 8px;
 }
 
 context7-widget::part(send-button) {
   min-width: 5rem;
   text-transform: uppercase;
 }
-
-context7-widget::part(code-block) {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
 ```
 
-For Vue managed triggers, import `@desource/context7-widget-vue/styles.css`
-and override:
+See the live customization guide at `/customization` and the integration
+examples at `/examples`.
 
-`--c7-vue-trigger-background`, `--c7-vue-trigger-border`,
-`--c7-vue-trigger-color`, `--c7-vue-trigger-focus`,
-`--c7-vue-trigger-radius`, and `--c7-vue-trigger-shadow`.
+## Public Options
 
-## Events And API
+Common script attributes and component props:
+
+- `library`
+- `theme`
+- `preset`
+- `position`
+- `color`
+- `customTrigger`
+- `backdrop`
+- `closeOnOutsideClick`
+- `defaultOpen`
+- `initialMessage`
+- `launcherLabel`
+- `launcherVariant`
+- `panelHeight`
+- `panelWidth`
+- `placeholder`
+- `showPoweredBy`
+- `title`
+- `widgetId`
+
+## Events
 
 The host element dispatches composed DOM events:
 
@@ -227,82 +209,60 @@ The host element dispatches composed DOM events:
 - `c7:tool-result`
 - `c7:error`
 
-The script loader also registers `window.Context7Widget`:
+Example:
 
 ```js
-window.Context7Widget.open();
-window.Context7Widget.send('How do I configure middleware?');
-window.Context7Widget.close();
+document.addEventListener('c7:question', (event) => {
+  analytics.track('Docs question', {
+    library: event.detail.library,
+    question: event.detail.question,
+    widgetId: event.detail.widgetId
+  });
+});
 ```
 
-Use `data-custom-trigger` to connect the widget to your own UI. The built-in
-launcher is hidden automatically when a custom trigger is configured:
+## Documentation
 
-```html
-<button id="docs-chat">Ask docs</button>
-
-<script
-  async
-  src="https://context7.desource-labs.org/widget.js"
-  data-library="/vercel/next.js"
-  data-custom-trigger="#docs-chat"
-></script>
-```
-
-The Nuxt site includes live examples at `/examples` for centered, anchored, script,
-core, Vue component, and Vue composable integrations.
+- [Core package](./packages/core)
+- [Vue package](./packages/vue)
+- [Integration recipes](./docs/INTEGRATION.md)
+- [Architecture notes](./docs/ARCHITECTURE.md)
+- [Contributing guide](./CONTRIBUTING.md)
+- [Release process](./RELEASE.md)
+- [Security policy](./SECURITY.md)
 
 ## Local Development
 
 ```bash
 pnpm install
 pnpm lint
-pnpm format
-pnpm clean
 pnpm build
+pnpm test:unit
+pnpm test:e2e
 pnpm dev:prepare
 pnpm dev:demo
 ```
 
-Core and Vue package builds use Vite 8. The Nuxt site build first builds both
-packages, then copies `packages/core/dist/widget.js` into `demo/public`.
-
-Testing follows the package structure so future framework packages can plug into
-the same root commands:
-
-- shared fixtures/helpers live in `common/tests`
-- package unit tests live in `packages/*/tests/unit`
-- framework e2e fixtures live beside the package, for example
-  `packages/vue/demo`
-- package e2e tests live in `packages/*/tests/e2e`
-- unit coverage is generated with `pnpm test:unit:coverage` and uploaded from
-  each package `coverage/lcov.info` by the Coverage workflow
-
-Useful workspaces:
-
-- core package: `packages/core` (`@desource/context7-widget`)
-- Vue package: `packages/vue`
-- Nuxt site: `demo`
-
-The site build syncs `packages/core/dist/widget.js` to
-`demo/public/widget.js` before Nuxt generates the static output.
+Core and Vue package builds use Vite 8. The demo site builds both packages,
+copies `packages/core/dist/widget.js` into `demo/public/widget.js`, then runs
+Nuxt.
 
 ## Maintenance
 
-The daily upstream scanner downloads `https://context7.com/widget.js`, stores the
-latest raw script in `upstream/context7-widget.latest.js`, and opens a GitHub
-issue when the upstream hash changes. Functional compatibility still depends on
-Context7's hosted backend, so behavior changes can happen without a script diff.
+The scheduled scanner downloads `https://context7.com/widget.js`, stores a raw
+snapshot, normalized copy, metadata, and SHA-256 hash under `upstream/`, then
+opens a GitHub issue when the official script changes.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for project boundaries and
-[docs/INTEGRATION.md](docs/INTEGRATION.md) for integration recipes.
+That scanner watches client-script drift. Runtime answers still depend on the
+Context7 hosted backend, so manual smoke testing remains part of release work.
 
 ## Release
 
-This repo uses Changesets for npm releases. Public package changes should include:
+This repo uses Changesets for npm releases. Public package changes should
+include:
 
 ```bash
 pnpm changeset
 ```
 
-Maintainers publish through the release workflow documented in [RELEASE.md](./RELEASE.md).
+Maintainers publish through the workflow documented in [RELEASE.md](./RELEASE.md).

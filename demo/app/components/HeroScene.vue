@@ -1,5 +1,5 @@
 <template>
-  <div class="hero-scene" aria-hidden="true">
+  <div class="hero-scene">
     <GridScan
       class="hero-scene__background"
       lines-color="#265746"
@@ -41,15 +41,7 @@
         <div class="chat-line chat-line--user">Can I use a custom trigger?</div>
         <div class="chat-line chat-line--assistant">Yes. Keep the widget, replace the button.</div>
       </div>
-      <div class="browser-frame browser-frame--events">
-        <span>c7:question</span>
-        <span>c7:first-token</span>
-        <span>c7:answer-complete</span>
-      </div>
-      <div class="browser-frame browser-frame--token">
-        <strong>MIT</strong>
-        <span>upstream watched daily</span>
-      </div>
+      <LogoBallpit class="hero-scene__frameworks" />
     </div>
   </div>
 </template>

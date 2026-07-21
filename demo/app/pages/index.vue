@@ -2,31 +2,23 @@
   <main>
     <section class="hero">
       <HeroScene />
-      <header class="site-header">
-        <a class="brand" href="/" aria-label="Context7 Widget home">
-          <span>7</span>
-          Context7 Widget
-        </a>
-        <nav aria-label="Primary navigation">
-          <a href="#paths">Paths</a>
-          <a href="#lab">Lab</a>
-          <a href="/examples">Examples</a>
-          <a href="/customization">Customize</a>
-          <a href="#use-cases">Use cases</a>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <div class="hero__content">
-        <p class="eyebrow">Script replacement · TypeScript core · Vue bindings</p>
+        <p class="eyebrow">Context7 answers, your interface</p>
         <h1>Context7 Widget</h1>
         <p>
-          A themeable Context7-compatible widget system for product sites that need the docs chat to look native, emit
-          useful events, and still ship through a single hosted script.
+          Add docs chat to your product, docs, or dashboard. Use the Context7 backend, but control the trigger,
+          position, theme, and product feel.
         </p>
         <div class="hero__actions">
-          <a class="button button--primary" href="#lab">
+          <a class="button button--primary" href="/examples">
             <SlidersHorizontal :size="18" aria-hidden="true" />
-            Configure
+            Try it now
+          </a>
+          <a class="button button--ghost" href="/customization">
+            <Palette :size="18" aria-hidden="true" />
+            Customize
           </a>
           <a
             class="button button--ghost"
@@ -37,25 +29,36 @@
             <Github :size="18" aria-hidden="true" />
             GitHub
           </a>
-          <a class="button button--ghost" href="/examples">
-            <BookOpen :size="18" aria-hidden="true" />
-            Examples
-          </a>
-          <a class="button button--ghost" href="/customization">
-            <Palette :size="18" aria-hidden="true" />
-            Customize
-          </a>
         </div>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="audience-section">
+      <div class="section-heading">
+        <p class="eyebrow">Who it is for</p>
+        <h2>Same answers. Better surface.</h2>
+        <p>
+          Some teams already use the official script and need styling. Others just want users to find answers without
+          opening support. Both start here.
+        </p>
+      </div>
+
+      <div class="audience-grid">
+        <article v-for="item in audiences" :key="item.title" class="audience-card">
+          <span>{{ item.kicker }}</span>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.copy }}</p>
+        </article>
       </div>
     </section>
 
     <section class="showcase-section">
       <div class="showcase-copy">
-        <p class="eyebrow">Documentation as an interface</p>
-        <h2>Readable enough to ship, visual enough to remember.</h2>
+        <p class="eyebrow">Documentation as a product surface</p>
+        <h2>The assistant should match the product it explains.</h2>
         <p>
-          The page teaches the install paths while demonstrating the design contract: shadow parts, CSS variables,
-          events, custom triggers, and package-level helpers all appear as live surfaces instead of a static README.
+          Context7 provides the grounded documentation answers. This widget provides the production layer around them:
+          placement, presets, custom triggers, analytics events, and a styling contract that design systems can trust.
         </p>
       </div>
 
@@ -98,11 +101,11 @@ context7-widget::part(send-button) {
 
     <section id="paths" class="paths-section">
       <div class="section-heading">
-        <p class="eyebrow">Three integration paths</p>
-        <h2>Pick the surface that matches the project.</h2>
+        <p class="eyebrow">Choose an entry point</p>
+        <h2>One widget contract, three ways to ship it.</h2>
         <p>
-          Replace the script URL, install the core helpers, or use Vue props and composables when the widget belongs
-          inside a component tree.
+          Start with a script tag. Move to TypeScript helpers or Vue when the widget becomes part of your application
+          code.
         </p>
       </div>
 
@@ -112,6 +115,7 @@ context7-widget::part(send-button) {
           <component :is="path.icon" :size="22" aria-hidden="true" />
           <h3>{{ path.title }}</h3>
           <p>{{ path.copy }}</p>
+          <a :href="path.href">{{ path.cta }}</a>
         </article>
       </div>
 
@@ -122,15 +126,13 @@ context7-widget::part(send-button) {
       </div>
     </section>
 
-    <LiveWidgetLab />
-
     <section id="use-cases" class="use-cases-section">
       <div class="section-heading">
-        <p class="eyebrow">Use cases</p>
-        <h2>Useful beyond a prettier launcher.</h2>
+        <p class="eyebrow">Where it fits</p>
+        <h2>Put docs help where the question happens.</h2>
       </div>
 
-      <div class="use-case-list">
+      <div class="use-case-grid">
         <article v-for="item in useCases" :key="item.title" class="use-case">
           <span>{{ item.number }}</span>
           <div>
@@ -140,24 +142,6 @@ context7-widget::part(send-button) {
         </article>
       </div>
     </section>
-
-    <section class="maintenance-section">
-      <div>
-        <p class="eyebrow">Maintenance loop</p>
-        <h2>Upstream stays visible.</h2>
-        <p>
-          The scanner keeps the official Context7 widget snapshot in the repository and opens an issue when the
-          unversioned script changes, so compatibility work is explicit instead of accidental.
-        </p>
-      </div>
-      <CodeBlock id="scanner" label="Daily scanner" :code="scannerCode" />
-    </section>
-
-    <footer class="site-footer">
-      <span>DeSource Labs</span>
-      <a href="/widget.js">Hosted widget.js</a>
-      <a href="https://context7.com" target="_blank" rel="noopener noreferrer">Context7</a>
-    </footer>
   </main>
 </template>
 
@@ -200,31 +184,48 @@ const vueInstall = `pnpm add @desource/context7-widget-vue
   @question="trackQuestion"
 />`;
 
-const scannerCode = `pnpm scan:upstream
-
-# stores:
-# upstream/context7-widget.latest.js
-# upstream/context7-widget.normalized.js
-# upstream/context7-widget.sha256`;
-
 const paths = [
   {
     class: 'path-card--large',
-    copy: 'The lowest-friction replacement for existing Context7 users. Keep data-library, swap the script origin.',
+    copy: 'For static docs, Docusaurus, Astro, marketing pages, and quick product installs. Paste one tag and keep moving.',
+    cta: 'Open hosted script',
+    href: '/widget.js',
     icon: PanelRightOpen,
     title: '/widget.js'
   },
   {
     class: '',
-    copy: 'Typed helpers for creating widgets, generating copy-paste script tags, and controlling instances from app code.',
+    copy: 'For apps that need typed options, runtime control, script generation, and shared types for framework bindings.',
+    cta: 'View core package',
+    href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/core',
     icon: Braces,
     title: 'Core TypeScript'
   },
   {
     class: '',
-    copy: 'A Vue 3 component, composable, plugin helper, typed events, and optional SCSS-built trigger styles.',
+    copy: 'For Vue apps that want a component, composable, typed events, managed trigger button, and scoped styles.',
+    cta: 'View Vue package',
+    href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue',
     icon: Package,
     title: 'Vue package'
+  }
+];
+
+const audiences = [
+  {
+    copy: 'Change the script URL. Keep Context7. Add presets, custom triggers, centered dialogs, variables, parts, and events.',
+    kicker: 'Already using Context7',
+    title: 'Keep the backend. Replace the surface.'
+  },
+  {
+    copy: 'Context7 reads your docs. This widget gives visitors a branded place to ask questions on your site.',
+    kicker: 'New to Context7',
+    title: 'Add docs help without building support chat.'
+  },
+  {
+    copy: 'Start with the script. Developers can move to Vue or TypeScript later without changing the visitor experience.',
+    kicker: 'Product owner',
+    title: 'Ship a helpful assistant before a long roadmap.'
   }
 ];
 
@@ -232,24 +233,24 @@ const eventPulses = ['ready', 'open', 'question', 'first-token', 'tool-call', 'a
 
 const useCases = [
   {
-    copy: 'Expose custom properties and shadow parts so the widget can match dense dashboards, editorial docs, or launch pages.',
+    copy: 'Put a small trigger in the product shell and answer setup questions before users leave the screen.',
     number: '01',
-    title: 'Design-system theming'
+    title: 'Developer dashboards'
   },
   {
-    copy: 'Listen for question, first-token, answer-complete, tool-call, and error events for analytics or user research.',
+    copy: 'Use a centered dialog for deliberate help moments: onboarding, empty states, and pricing or API pages.',
     number: '02',
-    title: 'Product instrumentation'
+    title: 'Guided product moments'
   },
   {
-    copy: 'Bind the widget to a header button, command palette, or support menu item; the launcher hides automatically.',
+    copy: 'Anchor the widget to a nav item, command palette action, header button, or existing support menu.',
     number: '03',
-    title: 'Custom triggers'
+    title: 'Custom help entry points'
   },
   {
-    copy: 'Use the same runtime from plain HTML, framework code, Vue apps, and this Nuxt information site.',
+    copy: 'Use script, TypeScript, or Vue today. React, Nuxt, Svelte, and Angular packages are next on the same core.',
     number: '04',
-    title: 'One runtime, many hosts'
+    title: 'Framework-ready apps'
   }
 ];
 </script>

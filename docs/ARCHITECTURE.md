@@ -1,18 +1,18 @@
 # Architecture
 
-This project is a compatibility client, not a replacement for Context7's hosted
-backend. The browser widget defaults to the same hosted chat endpoint used by
-the official widget:
+This project is a client layer for Context7 documentation chat, not a
+replacement for Context7's hosted backend. The browser widget defaults to the
+same hosted chat endpoint used by the official widget:
 
 ```text
 https://context7.com/api/v2/widget/chat
 ```
 
-That boundary keeps integration simple and maintenance realistic. The project
-owns the client UX, styling contract, loader, typed helper APIs, Vue bindings,
-Nuxt information site, event API, and compatibility monitoring. Context7 still
-owns library claiming, allowed-domain validation, retrieval, model behavior, and
-the streaming protocol.
+That boundary is intentional. Context7 owns library claiming, allowed-domain
+validation, retrieval, model behavior, and the streaming protocol. This
+repository owns the product-facing client experience: loader, custom element,
+styling contract, typed helpers, Vue bindings, Nuxt demo site, events, and
+compatibility monitoring.
 
 ## Workspace Deliverables
 
@@ -21,6 +21,8 @@ the streaming protocol.
   integrations.
 - `context7-widget` custom element: the canonical runtime surface.
 - `packages/vue`: Vue 3 component, composable, plugin helper, and SCSS output.
+- planned framework packages: Nuxt, React, Svelte, and Angular bindings on top
+  of the same core runtime.
 - `demo`: Nuxt static site for `context7.desource-labs.org`.
 - `scripts/scan-upstream.mts`: daily upstream byte and hash monitor.
 - GitHub Actions: monorepo CI, Vercel site build check, and scheduled scanner.

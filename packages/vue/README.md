@@ -1,72 +1,92 @@
 # @desource/context7-widget-vue
 
-Vue 3 bindings for `@desource/context7-widget`.
+Vue 3 bindings for the customizable Context7 documentation chat widget.
 
-```vue
-<template>
-  <Context7Widget
-    library="/desource-labs/context7-widget"
-    color="#10b981"
-    theme="auto"
-    position="anchor"
-    preset="glass"
-    launcher-variant="pill"
-    @question="trackQuestion"
-  />
-</template>
+Use this package when the widget belongs inside a Vue component tree and you
+want typed props, typed events, a composable API, a plugin helper, managed
+triggers, and optional trigger styles.
 
-<script setup lang="ts">
-import { Context7Widget, type Context7WidgetEventDetail } from '@desource/context7-widget-vue';
+## What You Get
 
-function trackQuestion(detail: Context7WidgetEventDetail) {
-  console.log(detail.question);
-}
-</script>
+- `Context7Widget.vue` as a standard Vue single-file component
+- `useContext7Widget` composable for programmatic control
+- Vue event names mapped from the underlying `c7:*` DOM events
+- `customTrigger` as `true`, selector string, or omitted
+- managed trigger slot for product-specific buttons
+- optional `styles.css` for the Vue-managed trigger
+- the same core runtime used by script, TypeScript, and future Nuxt, React,
+  Svelte, and Angular packages
+
+## Install
+
+```bash
+pnpm add @desource/context7-widget-vue
 ```
 
-Composable usage:
+## Component
+
+```vue
+<script setup lang="ts">
+import { Context7Widget, type Context7WidgetQuestionEventDetail } from '@desource/context7-widget-vue';
+
+function trackQuestion(detail: Context7WidgetQuestionEventDetail) {
+  console.log(detail.library, detail.question);
+}
+</script>
+
+<template>
+  <Context7Widget library="/owner/repo" position="anchor" preset="glass" theme="auto" @question="trackQuestion" />
+</template>
+```
+
+## Composable
 
 ```ts
 import { useContext7Widget } from '@desource/context7-widget-vue';
 
 const docs = useContext7Widget({
   autoMount: true,
-  library: '/desource-labs/context7-widget',
+  library: '/owner/repo',
   position: 'center',
   preset: 'terminal',
   widgetId: 'docs'
 });
 
-await docs.send('How do I theme the widget?');
+await docs.send('How do I customize the widget?');
 ```
 
-Custom trigger modes:
+## Trigger Modes
 
 ```vue
-<!-- Use the built-in widget launcher -->
-<Context7Widget library="/desource-labs/context7-widget" />
+<!-- Built-in floating launcher -->
+<Context7Widget library="/owner/repo" />
 
-<!-- Render the Vue package trigger button -->
-<Context7Widget library="/desource-labs/context7-widget" custom-trigger launcher-label="Ask docs" />
+<!-- Vue renders a package-managed button -->
+<Context7Widget library="/owner/repo" custom-trigger launcher-label="Ask docs" />
 
-<!-- Bind to your own button by id, with or without # -->
+<!-- Vue renders the button, you control its markup -->
+<Context7Widget library="/owner/repo" custom-trigger>
+  <template #trigger="{ label }">
+    <span class="docs-dot" />
+    <span>{{ label }}</span>
+  </template>
+</Context7Widget>
+
+<!-- Bind to a button anywhere by id, with or without # -->
 <button id="docs-help">Ask docs</button>
-<Context7Widget library="/desource-labs/context7-widget" custom-trigger="docs-help" />
+<Context7Widget library="/owner/repo" custom-trigger="docs-help" />
 ```
 
-Optional SCSS-built styles are published as:
-
-```ts
-import '@desource/context7-widget-vue/styles.css';
-```
+When `customTrigger` is set, the core floating launcher is not rendered. That is
+intentional: your app owns the button, the widget owns the panel.
 
 ## Styling
 
 The Vue component renders the same `context7-widget` custom element as the core
-package, so all core CSS variables and shadow parts still apply:
+package. Core CSS variables and shadow parts still apply:
 
 ```css
-context7-widget {
+context7-widget[widget-id='docs'] {
   --c7-accent: #7cffb2;
   --c7-panel-background: #101513;
   --c7-panel-color: #f7f2e8;
@@ -80,32 +100,11 @@ context7-widget::part(send-button) {
 }
 ```
 
-Core variables include:
+Optional managed-trigger styles:
 
-`--c7-accent`, `--c7-accent-contrast`, `--c7-font-family`,
-`--c7-muted-color`, `--c7-focus-ring`, `--c7-panel-background`,
-`--c7-panel-backdrop-filter`, `--c7-panel-color`, `--c7-panel-width`,
-`--c7-panel-height`, `--c7-panel-radius`, `--c7-panel-shadow`,
-`--c7-border-color`, `--c7-spacing`, `--c7-z-index`,
-`--c7-launcher-background`, `--c7-launcher-color`, `--c7-launcher-gap`,
-`--c7-launcher-radius`, `--c7-launcher-shadow`, `--c7-launcher-size`,
-`--c7-backdrop`, `--c7-backdrop-filter`, `--c7-header-background`,
-`--c7-footer-background`, `--c7-message-assistant-background`,
-`--c7-message-assistant-color`, `--c7-message-user-background`,
-`--c7-message-user-color`, `--c7-message-radius`, `--c7-error-background`,
-`--c7-error-color`, `--c7-control-background`, `--c7-control-border`, and
-`--c7-control-color`.
-
-Stable shadow parts are:
-
-`backdrop`, `panel`, `header`, `title`, `close-button`, `messages`, `message`,
-`assistant-message`, `user-message`, `error-message`, `typing`, `tool-call`,
-`tool-toggle`, `code-block`, `composer`, `input`, `send-button`, `footer`,
-`powered-by`, and `launcher`.
-
-When `custom-trigger` is `true`, the Vue package renders a managed trigger
-button. After importing `@desource/context7-widget-vue/styles.css`, customize it
-with:
+```ts
+import '@desource/context7-widget-vue/styles.css';
+```
 
 ```css
 .context7-widget-trigger {
@@ -118,8 +117,15 @@ with:
 }
 ```
 
-`Context7Widget.vue` is a standard Vue SFC. It exposes the underlying custom
-element through `ref`, maps all `c7:*` DOM events to Vue events, and accepts the
-same typed options as the core package. Vue additionally accepts
-`customTrigger` as `true` to render a managed trigger button; internally it is
-mapped back to the core widget's selector-based `customTrigger` API.
+## Props And Events
+
+The component accepts the same public widget options as the core package:
+`library`, `theme`, `preset`, `position`, `color`, `customTrigger`, `backdrop`,
+`closeOnOutsideClick`, `defaultOpen`, `initialMessage`, `launcherLabel`,
+`launcherVariant`, `panelHeight`, `panelWidth`, `placeholder`,
+`showPoweredBy`, `title`, and `widgetId`.
+
+Vue events: `ready`, `open`, `close`, `question`, `first-token`, `answer`,
+`answer-complete`, `tool-call`, `tool-result`, and `error`.
+
+Each handler receives the typed event detail as its only argument.
