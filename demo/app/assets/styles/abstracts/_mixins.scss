@@ -19,6 +19,28 @@
   background-size: $size $size;
 }
 
+@mixin hero-split-grid {
+  align-items: center;
+  display: grid;
+  gap: clamp(2.5rem, 7vw, 6.5rem);
+  grid-template-columns: minmax(0, 1.05fr) minmax(390px, 0.8fr);
+  margin-inline: auto;
+  min-height: clamp(700px, calc(100svh - 5rem), 930px);
+  padding: clamp(3.25rem, 5vw, 4.75rem) 0 clamp(3.5rem, 6vw, 5.5rem);
+  position: relative;
+  width: min(1180px, 100%);
+}
+
+@mixin hero-product {
+  display: grid;
+  justify-self: end;
+  justify-items: center;
+  min-width: 0;
+  perspective: 1100px;
+  position: relative;
+  z-index: 3;
+}
+
 @mixin lift-transition {
   transition:
     border-color 0.24s ease,

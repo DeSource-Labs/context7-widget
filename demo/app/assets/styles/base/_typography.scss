@@ -15,24 +15,26 @@ p {
 }
 
 h1 {
-  font-size: clamp(4rem, 11vw, 9.5rem);
+  font-size: clamp(3.15rem, 6.4vw, 6rem);
   letter-spacing: 0;
-  line-height: 0.86;
-  max-width: 8ch;
+  line-height: 0.9;
+  max-width: 12.2ch;
+  text-wrap-style: balance;
 }
 
 h2 {
   font-size: clamp(2.1rem, 5vw, 5.5rem);
   letter-spacing: 0;
   line-height: 0.95;
+  text-wrap-style: balance;
 }
 
 h3 {
   font-size: 1.08rem;
   letter-spacing: 0;
+  text-wrap-style: balance;
 }
 
-.hero__content > p:not(.eyebrow),
 .section-heading p:not(.eyebrow) {
   color: var(--muted);
   font-size: clamp(1rem, 2vw, 1.25rem);

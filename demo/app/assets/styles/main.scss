@@ -3,13 +3,12 @@
 @use './base/typography';
 @use './components/site-header';
 @use './components/buttons';
-@use './components/browser-frame';
 @use './components/hero-widget-dialog';
-@use './components/logo-ballpit';
+@use './components/hero-marquee';
+@use './components/site-hero';
 @use './components/code-block';
 @use './components/forms';
 @use './components/live-widget-lab';
-@use './pages/home-hero';
 @use './pages/shared-sections';
 @use './pages/home';
 @use './pages/examples';

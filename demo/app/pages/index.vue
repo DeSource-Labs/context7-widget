@@ -1,38 +1,36 @@
 <template>
   <main>
-    <section class="hero">
-      <HeroScene />
-      <SiteHeader />
+    <SiteHero
+      eyebrow="Context7 answers, your interface"
+      title="Context7 Widget"
+      description="Add docs chat to your product, docs, or dashboard. Use the Context7 backend, but control the trigger, position, theme, and product feel."
+      tone="mint"
+      :marquee-items="heroMarqueeItems"
+    >
+      <template #actions>
+        <a class="button button--primary" href="/examples">
+          <SlidersHorizontal :size="18" aria-hidden="true" />
+          Try it now
+        </a>
+        <a class="button button--ghost" href="/customization">
+          <Palette :size="18" aria-hidden="true" />
+          Customize
+        </a>
+        <a
+          class="button button--ghost"
+          href="https://github.com/DeSource-Labs/context7-widget"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Github :size="18" aria-hidden="true" />
+          GitHub
+        </a>
+      </template>
 
-      <div class="hero__content">
-        <p class="eyebrow">Context7 answers, your interface</p>
-        <h1>Context7 Widget</h1>
-        <p>
-          Add docs chat to your product, docs, or dashboard. Use the Context7 backend, but control the trigger,
-          position, theme, and product feel.
-        </p>
-        <div class="hero__actions">
-          <a class="button button--primary" href="/examples">
-            <SlidersHorizontal :size="18" aria-hidden="true" />
-            Try it now
-          </a>
-          <a class="button button--ghost" href="/customization">
-            <Palette :size="18" aria-hidden="true" />
-            Customize
-          </a>
-          <a
-            class="button button--ghost"
-            href="https://github.com/DeSource-Labs/context7-widget"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Github :size="18" aria-hidden="true" />
-            GitHub
-          </a>
-        </div>
-        <LogoBallpit compact class="hero__frameworks" />
-      </div>
-    </section>
+      <template #product>
+        <HeroWidgetDialog class="site-hero__dialog site-hero__dialog--home" tone="mint" />
+      </template>
+    </SiteHero>
 
     <section id="how-it-works" class="audience-section">
       <div class="section-heading">
@@ -184,6 +182,8 @@ const vueInstall = `pnpm add @desource/context7-widget-vue
   color="#10b981"
   @question="trackQuestion"
 />`;
+
+const heroMarqueeItems = librariesArray.map(({ key, href, label, logo }) => ({ key, href, label, logo }));
 
 const paths = [
   {

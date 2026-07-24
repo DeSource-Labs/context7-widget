@@ -10,25 +10,9 @@
 }
 
 @media (max-width: 980px) {
-  .hero {
-    height: auto;
-    min-height: auto;
-  }
-
-  .examples-hero {
-    height: auto;
-    min-height: 100dvh;
-  }
-
-  .hero__content {
-    padding-top: 8rem;
-  }
-
-  .hero-scene__stack {
-    opacity: 0.55;
-    right: -18rem;
-    top: 10rem;
-    transform: scale(0.86);
+  .site-hero__layout {
+    grid-template-columns: 1fr;
+    padding: clamp(5rem, 8dvh, 6rem) 0 clamp(5rem, 7dvh, 5.75rem);
   }
 
   .path-grid,
@@ -54,25 +38,11 @@
     min-height: 720px;
   }
 
-  .customization-hero {
-    min-height: 100dvh;
+  .site-hero__product {
+    justify-self: stretch;
   }
 
-  .customization-hero__dialog {
-    margin-top: 2rem;
-    position: relative;
-    right: auto;
-    bottom: auto;
-    top: auto;
-    transform: none;
-    width: auto;
-  }
-
-  .examples-hero__dialog {
-    margin-top: 2rem;
-    position: relative;
-    right: auto;
-    top: auto;
+  .site-hero__dialog {
     transform: none;
     width: 100%;
   }
@@ -83,63 +53,6 @@
 }
 
 @media (max-width: 640px) {
-  .site-header {
-    align-items: stretch;
-    min-height: 2.9rem;
-
-    nav {
-      display: none;
-    }
-  }
-
-  .site-header .brand {
-    font-size: 0.88rem;
-    width: max-content;
-  }
-
-  .site-header .brand span {
-    height: 1.75rem;
-    width: 1.75rem;
-  }
-
-  nav {
-    justify-content: flex-start;
-    max-width: none;
-    overflow-x: auto;
-    padding-bottom: 0.08rem;
-
-    a {
-      flex: 0 0 auto;
-      font-size: 0.76rem;
-      min-height: 2rem;
-      padding: 0 0.6rem;
-      white-space: nowrap;
-    }
-
-    a[href='#use-cases'],
-    a[href='#positions'] {
-      display: none;
-    }
-  }
-
-  .hero__content {
-    padding-top: 7rem;
-  }
-
-  h1 {
-    font-size: clamp(3.2rem, 18vw, 5rem);
-  }
-
-  .hero-scene__stack {
-    opacity: 0.42;
-    right: -23rem;
-    top: 8rem;
-  }
-
-  .hero__frameworks {
-    display: none;
-  }
-
   .showcase-stage {
     min-height: 790px;
   }
@@ -163,25 +76,7 @@
     grid-template-columns: 1fr;
   }
 
-  .examples-hero {
-    min-height: 100dvh;
-  }
-
-  .examples-hero__content {
-    padding-top: 7rem;
-  }
-
-  .examples-hero__frameworks {
-    display: none;
-  }
-
-  .logo-ballpit--compact {
-    height: 160px;
-    min-height: 160px;
-    width: min(100%, 360px);
-  }
-
-  .customization-hero__actions {
+  .site-hero__actions {
     align-items: stretch;
     flex-direction: column;
   }

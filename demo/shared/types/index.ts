@@ -6,3 +6,23 @@ export type SocialMediaItem = {
 };
 
 export type SocialMedia = Record<SocialMediaKey, string>;
+
+export type LibraryKey = 'js' | 'ts' | 'vue' | 'nuxt' | 'react' | 'svelte' | 'angular';
+
+export type LibraryItem = {
+  key: LibraryKey;
+  href: string;
+  examplesHref: string;
+  customizationHref: string;
+  logo: string;
+  label: string;
+  delivered?: boolean;
+};
+
+export type HeroMarqueeItem = {
+  key: LibraryKey;
+  href: string;
+  logo: string;
+  label: string;
+  delivered?: boolean;
+};

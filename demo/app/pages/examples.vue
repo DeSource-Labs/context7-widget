@@ -1,66 +1,44 @@
 <template>
   <main class="examples-page">
-    <section class="examples-hero examples-hero--with-scan">
-      <GridScan
-        class="examples-hero__background"
-        lines-color="#315f68"
-        scan-color="#7ab8ff"
-        line-style="solid"
-        scan-direction="pingpong"
-        :bloom-intensity="0.36"
-        :bloom-smoothing="0.34"
-        :bloom-threshold="0.05"
-        :chromatic-aberration="0.0016"
-        :grid-scale="0.085"
-        :line-jitter="0.04"
-        :line-thickness="1.15"
-        :noise-intensity="0.012"
-        :scan-delay="0.7"
-        :scan-duration="3.1"
-        :scan-glow="0.92"
-        :scan-on-click="true"
-        :scan-opacity="0.78"
-        :scan-phase-taper="0.35"
-        :scan-softness="1.5"
-        :sensitivity="0.42"
-      />
-      <SiteHeader
-        :items="[
-          { href: '/', label: 'Home' },
-          { href: '#live', label: 'Constructor' },
-          { href: '#positions', label: 'Positions' },
-          { href: '/customization', label: 'Customize' }
-        ]"
-      />
+    <SiteHero
+      eyebrow="Examples"
+      title="Try the widget before you install it."
+      description="Test trigger modes, positions, presets, and generated snippets. Pick the version that fits your app today."
+      tone="blue"
+      product-aria-label="Examples widget preview"
+      :marquee-items="heroMarqueeItems"
+      :nav-items="[
+        { href: '/', label: 'Home' },
+        { href: '#live', label: 'Constructor' },
+        { href: '#positions', label: 'Positions' },
+        { href: '/customization', label: 'Customize' }
+      ]"
+    >
+      <template #actions>
+        <a class="button button--primary" href="#live">Try constructor</a>
+        <a class="button button--ghost" href="#positions">See positions</a>
+      </template>
 
-      <div class="examples-hero__content">
-        <p class="eyebrow">Examples</p>
-        <h1>Try the widget before you install it.</h1>
-        <p>
-          Test trigger modes, positions, presets, and generated snippets. Pick the version that fits your app today.
-        </p>
-        <div class="hero__actions">
-          <a class="button button--primary" href="#live">Try constructor</a>
-          <a class="button button--ghost" href="#positions">See positions</a>
-        </div>
-        <LogoBallpit compact class="examples-hero__frameworks" />
-      </div>
-
-      <HeroWidgetDialog
-        class="examples-hero__dialog"
-        placeholder="Ask integration questions..."
-        title="Context7 Widget Docs"
-        tone="blue"
-        :messages="[
-          { kind: 'assistant', text: 'Test position, preset, trigger mode, and panel size before touching your app.' },
-          { kind: 'user', text: 'Show the Vue setup.' },
-          {
-            kind: 'assistant',
-            text: 'Copy a component, composable, core helper, or hosted script from the same constructor.'
-          }
-        ]"
-      />
-    </section>
+      <template #product>
+        <HeroWidgetDialog
+          class="site-hero__dialog site-hero__dialog--examples"
+          placeholder="Ask integration questions..."
+          title="Context7 Widget Docs"
+          tone="blue"
+          :messages="[
+            {
+              kind: 'assistant',
+              text: 'Test position, preset, trigger mode, and panel size before touching your app.'
+            },
+            { kind: 'user', text: 'Show the Vue setup.' },
+            {
+              kind: 'assistant',
+              text: 'Copy a component, composable, core helper, or hosted script from the same constructor.'
+            }
+          ]"
+        />
+      </template>
+    </SiteHero>
 
     <section id="live" class="examples-section examples-section--constructor">
       <div class="section-heading">
@@ -486,6 +464,12 @@ const presetOptions = [
   'brutalist'
 ] as const satisfies readonly Context7WidgetPreset[];
 const launcherOptions = ['icon', 'pill', 'badge'] as const satisfies readonly Context7LauncherVariant[];
+const heroMarqueeItems = librariesArray.map(({ key, examplesHref, label, logo }) => ({
+  key,
+  href: examplesHref,
+  label,
+  logo
+}));
 const triggerModes = [
   { copy: 'Vue renders the button and exposes a slot.', label: 'Slot trigger', value: 'slot' },
   { copy: 'Vue renders the default package button.', label: 'Managed button', value: 'managed' },

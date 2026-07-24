@@ -1,72 +1,47 @@
 <template>
   <main class="customization-page">
-    <section class="examples-hero examples-hero--with-scan customization-hero">
-      <GridScan
-        class="examples-hero__background"
-        lines-color="#5a5736"
-        scan-color="#ffb45e"
-        line-style="solid"
-        scan-direction="pingpong"
-        :bloom-intensity="0.32"
-        :bloom-smoothing="0.36"
-        :bloom-threshold="0.05"
-        :chromatic-aberration="0.0015"
-        :grid-scale="0.09"
-        :line-jitter="0.04"
-        :line-thickness="1.12"
-        :noise-intensity="0.012"
-        :scan-delay="1"
-        :scan-duration="3.3"
-        :scan-glow="0.86"
-        :scan-on-click="true"
-        :scan-opacity="0.74"
-        :scan-phase-taper="0.38"
-        :scan-softness="1.6"
-        :sensitivity="0.38"
-      />
-      <SiteHeader
-        :items="[
-          { href: '/', label: 'Home' },
-          { href: '/examples', label: 'Examples' },
-          { href: '#variables', label: 'Variables' },
-          { href: '#parts', label: 'Parts' }
-        ]"
-      />
+    <SiteHero
+      eyebrow="Styling contract"
+      title="Make the widget look owned."
+      description="Start with a preset, map your product colors and radius to stable variables, then polish exact blocks with shadow parts."
+      tone="amber"
+      product-aria-label="Customization widget preview"
+      :marquee-items="heroMarqueeItems"
+      :nav-items="[
+        { href: '/', label: 'Home' },
+        { href: '/examples', label: 'Examples' },
+        { href: '#variables', label: 'Variables' },
+        { href: '#parts', label: 'Parts' }
+      ]"
+    >
+      <template #actions>
+        <a class="button button--primary" href="#variables">
+          <Palette :size="18" aria-hidden="true" />
+          CSS variables
+        </a>
+        <a class="button button--ghost" href="#parts">
+          <Layers :size="18" aria-hidden="true" />
+          Shadow parts
+        </a>
+      </template>
 
-      <div class="examples-hero__content customization-hero__content">
-        <p class="eyebrow">Styling contract</p>
-        <h1>Make the widget look owned.</h1>
-        <p>
-          Start with a preset, map your product colors and radius to stable variables, then polish exact blocks with
-          shadow parts.
-        </p>
-        <div class="hero__actions customization-hero__actions">
-          <a class="button button--primary" href="#variables">
-            <Palette :size="18" aria-hidden="true" />
-            CSS variables
-          </a>
-          <a class="button button--ghost" href="#parts">
-            <Layers :size="18" aria-hidden="true" />
-            Shadow parts
-          </a>
-        </div>
-      </div>
-
-      <HeroWidgetDialog
-        class="customization-hero__dialog"
-        placeholder="Ask about setup..."
-        title="Context7 Widget Docs"
-        tone="amber"
-        :messages="[
-          { kind: 'assistant', text: 'Start from a preset, then map the widget to your product tokens.' },
-          { kind: 'user', text: 'Can it match our product system?' },
-          {
-            kind: 'assistant',
-            text: 'Use stable CSS variables and shadow parts instead of fragile internal selectors.'
-          }
-        ]"
-      />
-    </section>
+      <template #product>
+        <HeroWidgetDialog
+          class="site-hero__dialog site-hero__dialog--customization"
+          placeholder="Ask about setup..."
+          title="Context7 Widget Docs"
+          tone="amber"
+          :messages="[
+            { kind: 'assistant', text: 'Start from a preset, then map the widget to your product tokens.' },
+            { kind: 'user', text: 'Can it match our product system?' },
+            {
+              kind: 'assistant',
+              text: 'Use stable CSS variables and shadow parts instead of fragile internal selectors.'
+            }
+          ]"
+        />
+      </template>
+    </SiteHero>
 
     <section class="examples-section customization-section">
       <div class="section-heading">
@@ -158,6 +133,13 @@
 
 <script setup lang="ts">
 import { Layers, Palette, ShieldCheck, Sparkles } from 'lucide-vue-next';
+
+const heroMarqueeItems = librariesArray.map(({ key, customizationHref, label, logo }) => ({
+  key,
+  href: customizationHref,
+  label,
+  logo
+}));
 
 const playbookSteps = [
   {

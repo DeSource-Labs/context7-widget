@@ -1,4 +1,6 @@
-import type { SocialMediaItem, SocialMediaKey } from '../types';
+import type { SocialMediaItem, SocialMediaKey, LibraryItem, LibraryKey } from '../types';
+
+const repoUrlFull = 'https://github.com/DeSource-Labs/context7-widget/tree/main';
 
 export const socialMedia = {
   email: 'mailto:hello@desource-labs.org',
@@ -35,3 +37,54 @@ export const icons: Record<SocialMediaKey, { viewBox: string; path: string }> = 
     path: 'M 25.5 15 q 0 2.277 -0.923 4.286 a 10.7 10.7 0 0 1 -2.543 3.486 a 10.8 10.8 0 0 1 -3.691 2.215 a 1 1 0 0 1 -0.185 0.02 a 0.55 0.55 0 0 1 -0.369 -0.143 q -0.144 -0.143 -0.144 -0.43 v -2.872 q 0 -0.696 -0.205 -1.189 q -0.204 -0.492 -0.512 -0.738 q 2.133 -0.247 3.445 -1.354 q 1.333 -1.107 1.333 -3.794 q 0 -1.66 -1.087 -2.85 q 0.205 -0.472 0.205 -1.149 a 4.3 4.3 0 0 0 -0.328 -1.62 a 1 1 0 0 0 -0.226 -0.02 q -0.369 0 -1.045 0.225 q -0.657 0.226 -1.641 0.882 q -0.944 -0.308 -2.625 -0.308 q -1.251 0 -2.645 0.308 q -0.882 -0.636 -1.539 -0.882 q -0.635 -0.246 -1.025 -0.246 a 0.6 0.6 0 0 0 -0.267 0.041 a 3.8 3.8 0 0 0 -0.328 1.538 q 0 0.739 0.246 1.23 q -1.087 1.231 -1.087 2.851 q 0 2.687 1.292 3.794 q 1.312 1.108 3.466 1.395 q -0.573 0.471 -0.635 1.415 q -0.575 0.267 -1.19 0.266 q -1.19 0 -1.846 -1.168 a 2.7 2.7 0 0 0 -0.676 -0.739 a 1.6 1.6 0 0 0 -0.923 -0.328 q -0.472 0 -0.472 0.205 q 0 0.145 0.39 0.43 q 0.307 0.165 0.615 0.554 q 0.328 0.39 0.554 0.985 q 0.245 0.636 0.861 1.087 q 0.636 0.45 1.62 0.451 q 0.492 0 1.067 -0.123 v 1.805 q 0 0.225 -0.164 0.369 a 0.63 0.63 0 0 1 -0.431 0.143 h -0.123 a 11.3 11.3 0 0 1 -3.733 -2.235 a 10.8 10.8 0 0 1 -2.563 -3.507 A 10.15 10.15 0 0 1 4.5 15 q 0 -2.87 1.415 -5.27 a 10.4 10.4 0 0 1 3.814 -3.815 A 10.26 10.26 0 0 1 15 4.5 q 2.85 0 5.25 1.415 a 10.37 10.37 0 0 1 3.835 3.814 Q 25.5 12.13 25.5 15'
   }
 };
+
+export const supportedLibraries: LibraryKey[] = ['js', 'ts', 'vue', 'nuxt', 'react', 'svelte', 'angular'];
+
+const librariesLabels: Record<LibraryKey, string> = {
+  js: 'JS Widget',
+  ts: 'TypeScript',
+  vue: 'Vue',
+  nuxt: 'Nuxt',
+  react: 'React',
+  svelte: 'Svelte',
+  angular: 'Angular'
+};
+
+const librariesStates: Record<LibraryKey, boolean> = {
+  js: true,
+  ts: true,
+  vue: true,
+  nuxt: false,
+  react: false,
+  svelte: false,
+  angular: false
+};
+
+const getLibHref = (key: LibraryKey, path?: string) => {
+  let _key: string = key;
+  if (key === 'js') {
+    return '/widget.js';
+  }
+  if (key === 'ts') {
+    _key = 'core';
+  }
+  return path ? `${repoUrlFull}/packages/${_key}#${path}` : `${repoUrlFull}/packages/${_key}`;
+};
+
+export const librariesArray: LibraryItem[] = supportedLibraries.map((key) => ({
+  key,
+  href: getLibHref(key),
+  examplesHref: getLibHref(key, 'examples'),
+  customizationHref: getLibHref(key, 'customization'),
+  logo: `/img/${key}.png`,
+  label: librariesLabels[key],
+  delivered: librariesStates[key]
+}));
+
+export const librariesMap = librariesArray.reduce<Record<LibraryKey, LibraryItem>>(
+  (acc, item) => {
+    acc[item.key] = item;
+    return acc;
+  },
+  {} as Record<LibraryKey, LibraryItem>
+);

@@ -1,0 +1,118 @@
+$wedge: 1rem;
+$wedge-bg: rgba(7, 11, 9, 0.88);
+$wedge-padding: -0.2px; // -0.2px -> fix a weird rendering bug in some browsers
+$img-filter-hover: grayscale(0.16) saturate(0.82) brightness(0.99) drop-shadow(0 0 14px rgba(124, 255, 178, 0.18));
+$img-filter: grayscale(0.32) saturate(0.72) brightness(0.92) drop-shadow(0 0 12px rgba(124, 255, 178, 0.14));
+$img-size: clamp(2rem, 2.15vw, 2.65rem);
+
+.hero-marquee {
+  pointer-events: auto;
+
+  &__viewport {
+    border-block: 1px solid rgba(247, 242, 232, 0.22);
+    border-inline: 0;
+    border-radius: 0;
+    box-shadow:
+      inset 0 1px rgba(255, 255, 255, 0.05),
+      0 18px 54px rgba(0, 0, 0, 0.22);
+    overflow: hidden;
+    padding-block: 0;
+  }
+
+  &__track {
+    width: max-content;
+    display: flex;
+    gap: 0;
+    animation: hero-marquee-right 28s linear infinite;
+    will-change: transform;
+  }
+
+  &__group {
+    display: flex;
+    gap: 1px; // 1px -> fix hover/focus between item and its triangle wedge
+  }
+
+  &:hover,
+  &:focus-within {
+    .hero-marquee__track {
+      animation-play-state: paused;
+    }
+  }
+}
+
+.hero-marquee__item {
+  position: relative;
+  z-index: auto;
+  min-width: clamp(13.2rem, 15.5vw, 19.5rem);
+  padding: 0.78rem clamp(1.25rem, 1.7vw, 1.85rem) 0.78rem clamp(1.3rem, 1.5vw, 1.75rem);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.75rem, 1vw, 1rem);
+  background-image:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 44%),
+    linear-gradient(rgba(7, 11, 9, 0.72), rgba(7, 11, 9, 0.88));
+  color: color-mix(in srgb, var(--green) 50%, var(--muted));
+  font-size: clamp(0.9rem, 1.02vw, 1.22rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  transition:
+    color 160ms ease,
+    text-shadow 160ms ease;
+  text-decoration: none;
+  text-shadow: none;
+  text-transform: uppercase;
+  // Triangle wedge on the right side of each item
+  &::after {
+    background-color: $wedge-bg;
+    content: '';
+    inset: 0;
+    left: 100%;
+    pointer-events: auto;
+    position: absolute;
+    width: $wedge;
+    z-index: 1;
+    clip-path: polygon($wedge-padding 0, 100% 50%, $wedge-padding 100%);
+  }
+
+  + .hero-marquee__item {
+    padding-left: calc($wedge + 1rem);
+  }
+
+  img {
+    display: block;
+    width: $img-size;
+    height: $img-size;
+    object-fit: contain;
+    filter: $img-filter;
+    transition: filter 160ms ease;
+  }
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    color:  color-mix(in srgb, var(--green) 88%, var(--ink));
+    text-shadow: 0 0 18px rgba(124, 255, 178, 0.16);
+
+    img {
+      filter: $img-filter-hover;
+    }
+  }
+}
+
+@keyframes hero-marquee-right {
+  from {
+    transform: translate3d(calc(-50% - 0.275rem), 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-marquee__track {
+    animation: none;
+    transform: translate3d(0, 0, 0);
+  }
+}
