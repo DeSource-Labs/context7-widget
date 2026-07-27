@@ -20,7 +20,6 @@ export type {
   Context7WidgetVueEventMap,
   Context7WidgetVueEventName
 } from './types';
-export { context7WidgetEvents, vueEventNames } from './internal/events';
 export { context7WidgetDefaultsKey, createContext7WidgetPlugin } from './plugin';
 export type { Context7WidgetPluginOptions } from './plugin';
 export { useContext7Widget } from './composables/useContext7Widget';
@@ -38,4 +37,4 @@ export type {
   Context7WidgetEventName,
   Context7WidgetOptions,
   Context7WidgetPreset
-} from '@desource/context7-widget';
+} from '@desource/context7-widget/kit';

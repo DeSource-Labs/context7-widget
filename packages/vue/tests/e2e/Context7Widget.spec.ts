@@ -13,5 +13,5 @@ testContext7WidgetDemo('[data-testid="context7-demo"]', {
   programmaticSend: '[data-testid="programmatic-send"]',
   theme: '[data-testid="theme"]',
   triggerMode: '[data-testid="trigger-mode"]',
-  widget: 'context7-widget'
+  widget: '.context7-widget'
 });

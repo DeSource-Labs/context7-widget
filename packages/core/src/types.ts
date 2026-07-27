@@ -41,7 +41,6 @@ export interface Context7WidgetOptions {
   placeholder?: string;
   position?: Context7Position;
   preset?: Context7WidgetPreset;
-  showPoweredBy?: boolean;
   theme?: Context7Theme;
   title?: string;
   widgetId?: string;
@@ -62,7 +61,6 @@ export interface Context7WidgetConfig {
   placeholder: string;
   position: Context7Position;
   preset: Context7WidgetPreset;
-  showPoweredBy: boolean;
   theme: Context7Theme;
   title: string;
   widgetId: string;

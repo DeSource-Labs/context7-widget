@@ -149,21 +149,24 @@
   border-top: 1px solid rgba(247, 242, 232, 0.1);
   color: var(--muted);
   display: flex;
-  font-size: 0.78rem;
-  gap: 0.38rem;
+  font-size: 0.68rem;
+  gap: 0.28rem;
   justify-content: center;
-  min-height: 2.7rem;
-  padding: 0.58rem;
+  min-height: 1.9rem;
+  padding: 0.3rem;
 
-  strong {
-    align-items: center;
-    background: var(--ink);
-    border-radius: 7px;
-    color: #101513;
-    display: inline-flex;
-    font-size: 0.76rem;
-    height: 1.26rem;
-    justify-content: center;
-    width: 1.26rem;
+  svg,
+  img {
+    display: block;
+    height: 0.9rem;
+    width: 0.9rem;
   }
+
+  img {
+    border-radius: 0.18rem;
+  }
+}
+
+.hero-widget-dialog__brand {
+  display: inline-flex;
 }

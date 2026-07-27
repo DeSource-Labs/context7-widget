@@ -9,10 +9,6 @@ export default defineConfig({
       {
         find: '@desource/context7-widget/kit',
         replacement: fileURLToPath(new URL('../../core/src/kit.ts', import.meta.url))
-      },
-      {
-        find: '@desource/context7-widget',
-        replacement: fileURLToPath(new URL('../../core/src/index.ts', import.meta.url))
       }
     ]
   }

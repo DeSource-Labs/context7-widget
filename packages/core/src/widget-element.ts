@@ -1,4 +1,6 @@
+import { renderWidgetBranding } from './branding';
 import { escapeHtml, renderMarkdown } from './markdown';
+import { buildContext7ErrorHtml, DEFAULT_CONTEXT7_INITIAL_MESSAGE, isAbortError } from './runtime';
 import { widgetStyles } from './styles';
 import { Context7TransportError, streamContext7Response } from './transport';
 import type {
@@ -15,8 +17,6 @@ import type {
 } from './types';
 
 const registry = new Map<string, HTMLElement>();
-const DEFAULT_INITIAL_MESSAGE =
-  "Hello! I'm here to help you with documentation for **{library}**.\n\nAsk me about features, code examples, setup, configuration, API details, or best practices.";
 const BaseHTMLElement = typeof HTMLElement === 'undefined' ? (class {} as typeof HTMLElement) : HTMLElement;
 
 let globalApiInstalled = false;
@@ -41,7 +41,6 @@ export class Context7WidgetElement extends BaseHTMLElement {
     'data-placeholder',
     'data-position',
     'data-preset',
-    'data-show-powered-by',
     'data-theme',
     'data-title',
     'data-welcome-message',
@@ -56,7 +55,6 @@ export class Context7WidgetElement extends BaseHTMLElement {
     'placeholder',
     'position',
     'preset',
-    'show-powered-by',
     'theme',
     'title',
     'widget-id'
@@ -324,11 +322,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
           <button class="c7-send" data-c7-send part="send-button" type="submit">Send</button>
         </form>
         <footer class="c7-footer" data-c7-footer part="footer">
-          <a class="c7-powered" part="powered-by" href="https://context7.com" target="_blank" rel="noopener noreferrer">
-            <span>Powered by</span>
-            <span class="c7-mark" aria-hidden="true">7</span>
-            <strong>Context7</strong>
-          </a>
+          <div class="c7-branding" part="powered-by" aria-label="Powered by Context7, Enhanced by DeSource Labs">
+            ${renderWidgetBranding()}
+          </div>
         </footer>
       </section>
       <button class="c7-launcher" data-c7-launcher part="launcher" type="button" aria-label="Open documentation chat">
@@ -365,7 +361,6 @@ export class Context7WidgetElement extends BaseHTMLElement {
     syncHostAttribute(this, 'theme', this.config.theme);
     syncStateAttribute(this, 'backdrop-active', this.config.backdrop);
     syncStateAttribute(this, 'custom-trigger-active', Boolean(this.config.customTrigger));
-    syncStateAttribute(this, 'hide-powered-by', !this.config.showPoweredBy);
   }
 
   private updateStaticText(): void {
@@ -377,7 +372,6 @@ export class Context7WidgetElement extends BaseHTMLElement {
       this.panel.setAttribute('aria-label', this.config.title);
       this.panel.setAttribute('aria-modal', String(this.config.position === 'center'));
     }
-    if (this.footer) this.footer.hidden = !this.config.showPoweredBy;
   }
 
   private resetConversation(): void {
@@ -402,7 +396,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     const error = document.createElement('div');
     error.className = 'c7-message c7-message--error';
     error.setAttribute('part', 'message error-message');
-    error.innerHTML = buildErrorHtml(message, this.config.library);
+    error.innerHTML = buildContext7ErrorHtml(message, this.config.library);
     this.messagesElement.append(error);
     this.scrollToBottom();
   }
@@ -600,10 +594,6 @@ export class Context7WidgetElement extends BaseHTMLElement {
     return this.root.querySelector('[data-c7-backdrop]');
   }
 
-  private get footer(): HTMLElement | null {
-    return this.root.querySelector('[data-c7-footer]');
-  }
-
   private get form(): HTMLFormElement | null {
     return this.root.querySelector('[data-c7-form]');
   }
@@ -682,7 +672,7 @@ function readConfig(element: HTMLElement): Context7WidgetConfig {
     defaultOpen: readBooleanAttribute(element, false, 'default-open', 'data-default-open'),
     initialMessage:
       readAttribute(element, 'initial-message', 'data-initial-message', 'welcome-message', 'data-welcome-message') ||
-      DEFAULT_INITIAL_MESSAGE,
+      DEFAULT_CONTEXT7_INITIAL_MESSAGE,
     launcherLabel: readAttribute(element, 'launcher-label', 'data-launcher-label') || 'Ask Docs AI',
     launcherVariant: normalizeLauncherVariant(readAttribute(element, 'launcher-variant', 'data-launcher-variant')),
     library,
@@ -691,7 +681,6 @@ function readConfig(element: HTMLElement): Context7WidgetConfig {
     placeholder: readAttribute(element, 'placeholder', 'data-placeholder') || 'Ask about the docs...',
     position,
     preset: normalizePreset(readAttribute(element, 'preset', 'data-preset')),
-    showPoweredBy: readBooleanAttribute(element, true, 'show-powered-by', 'data-show-powered-by'),
     theme: normalizeTheme(readAttribute(element, 'theme', 'data-theme')),
     title: readAttribute(element, 'title', 'data-title') || 'Chat with Documentation',
     widgetId: readAttribute(element, 'widget-id', 'data-widget-id') || element.id || 'default'
@@ -813,14 +802,6 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-function buildErrorHtml(message: string, library: string): string {
-  const safeMessage = escapeHtml(message || 'Something went wrong.');
-  const safeLibrary = library.startsWith('/') ? library : `/${library}`;
-  const adminUrl = escapeHtml(encodeURI(`https://context7.com${safeLibrary}/admin?tab=chat`));
-
-  return `${safeMessage}<br><br>If you are the library owner, check your <a href="${adminUrl}" target="_blank" rel="noopener noreferrer">widget settings</a> on Context7.`;
-}
-
 function trapFocus(event: KeyboardEvent, root: ShadowRoot): void {
   const focusable = Array.from(
     root.querySelectorAll<HTMLElement>(
@@ -843,10 +824,6 @@ function trapFocus(event: KeyboardEvent, root: ShadowRoot): void {
     event.preventDefault();
     first.focus();
   }
-}
-
-function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === 'AbortError';
 }
 
 declare global {

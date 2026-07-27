@@ -136,5 +136,6 @@ Events: `c7:ready`, `c7:open`, `c7:close`, `c7:question`, `c7:first-token`,
 ## Exports
 
 - `@desource/context7-widget`
-- `@desource/context7-widget/kit`
+- `@desource/context7-widget/kit` — rendering-independent transport, markdown,
+  contracts, defaults, and brand assets for framework packages
 - `@desource/context7-widget/widget.js`

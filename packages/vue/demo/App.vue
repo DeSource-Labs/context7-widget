@@ -119,8 +119,13 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
-import { Context7Widget, type Context7Position, type Context7Theme, type Context7WidgetExpose } from '../src';
-import type { Context7WidgetPreset } from '@desource/context7-widget';
+import {
+  Context7Widget,
+  type Context7Position,
+  type Context7Theme,
+  type Context7WidgetExpose,
+  type Context7WidgetPreset
+} from '../src';
 
 type TriggerMode = 'managed' | 'external' | 'built-in';
 

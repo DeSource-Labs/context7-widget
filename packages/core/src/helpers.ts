@@ -23,7 +23,6 @@ const OPTION_ATTRIBUTES: Array<[keyof Context7WidgetOptions, string]> = [
   ['placeholder', 'placeholder'],
   ['position', 'position'],
   ['preset', 'preset'],
-  ['showPoweredBy', 'show-powered-by'],
   ['theme', 'theme'],
   ['title', 'title'],
   ['widgetId', 'widget-id']
@@ -44,7 +43,6 @@ const SCRIPT_OPTION_ATTRIBUTES: Array<[keyof Context7WidgetOptions, string]> = [
   ['placeholder', 'data-placeholder'],
   ['position', 'data-position'],
   ['preset', 'data-preset'],
-  ['showPoweredBy', 'data-show-powered-by'],
   ['theme', 'data-theme'],
   ['title', 'data-title'],
   ['widgetId', 'data-widget-id']

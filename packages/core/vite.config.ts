@@ -11,6 +11,9 @@ export default defineConfig({
       fileName: (_format, entryName) => `${entryName}.js`,
       formats: ['es']
     },
+    // Keep shared ESM chunk identifiers descriptive. Nuxt auto-import analysis
+    // can otherwise mistake one-letter minified bindings for Vue helpers.
+    minify: false,
     sourcemap: true,
     target: 'es2020'
   },

@@ -19,10 +19,10 @@ compatibility monitoring.
 - `packages/core/dist/widget.js`: zero-build browser loader for script-tag replacement.
 - `packages/core/dist/index.js`: core TypeScript module build for frameworks and custom
   integrations.
-- `context7-widget` custom element: the canonical runtime surface.
+- `context7-widget` custom element: the framework-agnostic core runtime surface.
 - `packages/vue`: Vue 3 component, composable, plugin helper, and SCSS output.
-- planned framework packages: Nuxt, React, Svelte, and Angular bindings on top
-  of the same core runtime.
+- planned framework packages: Nuxt, React, Svelte, and Angular implementations
+  built on the shared kit.
 - `demo`: Nuxt static site for `context7.desource-labs.org`.
 - `scripts/scan-upstream.mts`: daily upstream byte and hash monitor.
 - GitHub Actions: monorepo CI, Vercel site build check, and scheduled scanner.
@@ -32,13 +32,13 @@ compatibility monitoring.
 The auto-loader reads the current script tag:
 
 ```html
-<script async src="https://context7.desource-labs.org/widget.js" data-library="/vercel/next.js"></script>
+<script async src="https://context7.desource-labs.org/widget.js" data-library="/owner/repo"></script>
 ```
 
 It creates:
 
 ```html
-<context7-widget library="/vercel/next.js"></context7-widget>
+<context7-widget library="/owner/repo"></context7-widget>
 ```
 
 The custom element attaches an open shadow root. Open shadow DOM is intentional:
@@ -70,7 +70,6 @@ It also adds:
 - `data-panel-height`
 - `data-panel-width`
 - `data-preset`
-- `data-show-powered-by`
 - `data-theme`
 - `data-title`
 - `data-widget-id`
@@ -81,30 +80,42 @@ is what makes replacing only `https://context7.com/widget.js` with
 
 ## Package Boundaries
 
-`packages/core` / `@desource/context7-widget` owns:
+`@desource/context7-widget` owns the browser-native integration:
 
 - the custom element;
 - script mounting;
-- stream transport compatibility;
-- markdown rendering;
-- DOM event names and payload types;
 - framework-agnostic helper functions.
 
-`@desource/context7-widget-vue` owns:
+`@desource/context7-widget/kit` is the shared, rendering-independent layer:
 
-- a typed `Context7Widget` Vue component;
-- a `useContext7Widget` composable;
+- Context7 API transport and stream compatibility;
+- markdown and HTML safety helpers;
+- option, message, event, and tool-call contracts;
+- shared defaults and brand assets.
+
+`@desource/context7-widget-vue` depends on the kit instead of the core custom
+element. It owns:
+
+- native Vue DOM rendering and reactive conversation state;
+- Vue lifecycle, focus, trigger, and positioning behavior;
+- typed Vue props, emits, slots, and exposed methods;
+- a composable that mounts and controls the Vue component;
 - an optional plugin helper;
-- Vue event mapping from `c7:*` DOM events;
-- SCSS-built convenience styles.
+- SCSS-built widget styles.
 
-The Vue package depends on the core package and does not duplicate widget
-transport, styling, or loader internals.
+Future React, Svelte, and Angular packages should follow the Vue boundary: own
+their framework UI and lifecycle, share backend/protocol code through `/kit`,
+and never wrap the core custom element.
+
+Both implementations always show compact linked attribution for Context7 and
+DeSource Labs. Attribution is part of the product contract rather than a
+configurable display option.
 
 ## Styling Contract
 
-CSS custom properties are the safest customization layer. They are inherited by
-the custom element and do not depend on internal DOM shape.
+CSS custom properties are the safest customization layer in every package. Core
+also exposes shadow parts; framework packages expose native framework DOM and
+document their root selector.
 
 Shadow parts are available when design systems need direct styling:
 

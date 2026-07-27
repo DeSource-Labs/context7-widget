@@ -196,10 +196,6 @@
                 <input v-model="constructorDefaultOpen" type="checkbox" />
                 Default open
               </label>
-              <label class="constructor-toggle">
-                <input v-model="constructorShowPoweredBy" type="checkbox" />
-                Powered by
-              </label>
             </div>
           </div>
         </div>
@@ -267,7 +263,6 @@
                     :placeholder="constructorPlaceholder"
                     :position="constructorPosition"
                     :preset="constructorPreset"
-                    :show-powered-by="constructorShowPoweredBy"
                     :theme="constructorTheme"
                     :title="constructorTitle"
                     :widget-id="constructorWidgetId"
@@ -505,7 +500,6 @@ const constructorLauncherLabel = ref('Ask docs');
 const constructorBackdrop = ref(false);
 const constructorCloseOnOutsideClick = ref(true);
 const constructorDefaultOpen = ref(false);
-const constructorShowPoweredBy = ref(true);
 const constructorWidget = ref<Context7WidgetExpose | null>(null);
 const constructorStats = reactive({
   answers: 0,
@@ -561,7 +555,6 @@ const constructorVueCode = computed(() => {
     vueBooleanProp('backdrop', constructorBackdrop.value),
     vueBooleanProp('close-on-outside-click', constructorCloseOnOutsideClick.value),
     vueBooleanProp('default-open', constructorDefaultOpen.value),
-    vueBooleanProp('show-powered-by', constructorShowPoweredBy.value),
     vueStringProp('widget-id', constructorWidgetId.value),
     '@question="trackQuestion"',
     '@answer-complete="trackAnswer"'
@@ -620,7 +613,6 @@ const constructorScriptCode = computed(() => {
     placeholder: constructorPlaceholder.value,
     position: constructorPosition.value,
     preset: constructorPreset.value,
-    showPoweredBy: constructorShowPoweredBy.value,
     theme: constructorTheme.value,
     title: constructorTitle.value,
     widgetId: constructorWidgetId.value
@@ -663,7 +655,6 @@ const constructorCoreCode = computed(() => {
     ['backdrop', constructorBackdrop.value],
     ['closeOnOutsideClick', constructorCloseOnOutsideClick.value],
     ['defaultOpen', constructorDefaultOpen.value],
-    ['showPoweredBy', constructorShowPoweredBy.value],
     ['widgetId', constructorWidgetId.value]
   ];
   const compactEntries = entries.filter((entry): entry is [string, string | boolean] => entry[1] !== undefined);

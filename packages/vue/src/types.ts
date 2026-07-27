@@ -1,5 +1,5 @@
-import type { Context7WidgetElement, Context7WidgetOptions } from '@desource/context7-widget';
 import type {
+  Context7WidgetOptions,
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
   Context7WidgetErrorEventDetail,
@@ -67,7 +67,7 @@ export interface Context7WidgetEmits {
   (event: 'open', detail: Context7WidgetLifecycleEventDetail): void;
   /** Emitted after the user submits a question. */
   (event: 'question', detail: Context7WidgetQuestionEventDetail): void;
-  /** Emitted when the custom element is mounted and registered. */
+  /** Emitted when the Vue widget is mounted and registered. */
   (event: 'ready', detail: Context7WidgetLifecycleEventDetail): void;
   /** Emitted when Context7 reports backend tool input. */
   (event: 'tool-call', detail: Context7WidgetToolCallEventDetail): void;
@@ -81,12 +81,13 @@ export interface Context7WidgetSlots {
     label: string;
     triggerId: string;
   };
-  /** Optional content rendered next to the managed custom element host. */
+  /** Optional content rendered inside the Vue widget root. */
   default: {};
 }
 
 export interface Context7WidgetExpose {
-  readonly element: Context7WidgetElement | null;
+  /** Root element rendered and owned by Vue. */
+  readonly element: HTMLElement | null;
   cancel: () => void;
   close: () => void;
   isOpen: () => boolean;

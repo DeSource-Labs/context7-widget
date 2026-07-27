@@ -34,7 +34,7 @@ export const widgetStyles = `
     --c7-panel-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
     --c7-panel-width: min(400px, calc(100vw - 32px));
     --c7-spacing: 16px;
-    --c7-z-index: 2147483647;
+    --c7-z-index: 99999999;
 
     all: initial;
     color: var(--c7-panel-color);
@@ -846,39 +846,56 @@ export const widgetStyles = `
     border-top: 1px solid var(--c7-border-color);
     display: flex;
     justify-content: center;
-    min-height: 44px;
-    padding: 8px 12px;
+    min-height: 30px;
+    padding: 4px 10px;
   }
 
-  :host([hide-powered-by]) .c7-footer {
-    display: none;
-  }
-
-  .c7-powered {
+  .c7-branding {
     align-items: center;
     color: var(--c7-muted-color);
-    display: inline-flex;
-    gap: 6px;
-    font-size: 12px;
-    text-decoration: none;
-  }
-
-  .c7-powered:hover {
-    color: var(--c7-accent);
-  }
-
-  .c7-mark {
-    align-items: center;
-    background: var(--c7-panel-color);
-    border-radius: 4px;
-    color: var(--c7-panel-background);
-    display: inline-flex;
+    display: flex;
     font-size: 10px;
-    font-weight: 800;
-    height: 20px;
-    justify-content: center;
+    gap: 4px;
     line-height: 1;
-    width: 20px;
+    white-space: nowrap;
+  }
+
+  .c7-brand-link {
+    align-items: center;
+    border-radius: 4px;
+    color: var(--c7-panel-color);
+    display: inline-flex;
+    justify-content: center;
+    opacity: 0.78;
+    padding: 2px;
+    text-decoration: none;
+    transition: background 120ms ease, opacity 120ms ease, transform 120ms ease;
+  }
+
+  .c7-brand-link:hover {
+    background: color-mix(in srgb, var(--c7-muted-color) 12%, transparent);
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+
+  .c7-brand-link:focus-visible {
+    outline: 2px solid var(--c7-accent);
+    outline-offset: 1px;
+  }
+
+  .c7-brand-logo {
+    display: block;
+    height: 14px;
+    object-fit: contain;
+    width: 14px;
+  }
+
+  .c7-brand-logo--desource {
+    border-radius: 3px;
+  }
+
+  .c7-brand-separator {
+    opacity: 0.55;
   }
 
   @keyframes c7-spin {

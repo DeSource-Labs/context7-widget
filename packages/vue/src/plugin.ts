@@ -1,28 +1,23 @@
-import type { App, InjectionKey, Plugin } from 'vue';
-import type { Context7WidgetOptions } from '@desource/context7-widget';
-import { defineContext7Widget, mountContext7Widget } from '@desource/context7-widget';
+import type { App, Plugin } from 'vue';
+import type { Context7WidgetOptions } from '@desource/context7-widget/kit';
 import Context7Widget from './components/Context7Widget.vue';
+import { context7WidgetDefaultsKey } from './internal/injection';
 
 export interface Context7WidgetPluginOptions {
   componentName?: string;
-  defaultWidget?: Context7WidgetOptions;
+  /** Default props inherited by every Context7Widget in this Vue app. */
+  defaults?: Partial<Context7WidgetOptions>;
+  /** @deprecated Use `defaults`. This alias no longer auto-mounts a widget. */
+  defaultWidget?: Partial<Context7WidgetOptions>;
 }
 
-export const context7WidgetDefaultsKey: InjectionKey<Partial<Context7WidgetOptions>> = Symbol('context7WidgetDefaults');
+export { context7WidgetDefaultsKey };
 
 export function createContext7WidgetPlugin(options: Context7WidgetPluginOptions = {}): Plugin {
   return {
     install(app: App) {
-      if (typeof customElements !== 'undefined') {
-        defineContext7Widget();
-      }
-
       app.component(options.componentName || 'Context7Widget', Context7Widget);
-      app.provide(context7WidgetDefaultsKey, options.defaultWidget ?? {});
-
-      if (options.defaultWidget && typeof document !== 'undefined') {
-        mountContext7Widget(options.defaultWidget);
-      }
+      app.provide(context7WidgetDefaultsKey, options.defaults ?? options.defaultWidget ?? {});
     }
   };
 }

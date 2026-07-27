@@ -26,13 +26,24 @@
 
     <div class="hero-widget-dialog__powered">
       <span>Powered by</span>
-      <strong>7</strong>
-      <span>Context7</span>
+      <span v-safe-html="context7LogoSvg" class="hero-widget-dialog__brand" />
+      <span aria-hidden="true">·</span>
+      <span>Enhanced by</span>
+      <img :src="deSourceLabsLogoUrl" alt="" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { context7LogoSvg, deSourceLabsLogoUrl } from '@desource/context7-widget/kit';
+import type { Directive } from 'vue';
+
+const vSafeHtml: Directive<HTMLElement, string> = {
+  beforeMount(element, binding) {
+    element.innerHTML = binding.value;
+  }
+};
+
 type HeroWidgetDialogTone = 'amber' | 'blue' | 'mint';
 
 type HeroWidgetDialogMessage = {

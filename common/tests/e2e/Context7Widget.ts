@@ -101,7 +101,8 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await expect
         .poll(async () =>
           widget.evaluate((element) => {
-            const backdrop = element.shadowRoot?.querySelector('[part~="backdrop"]');
+            const backdrop =
+              element.shadowRoot?.querySelector('[part~="backdrop"]') ?? element.querySelector('[part~="backdrop"]');
             if (!(backdrop instanceof HTMLElement)) return false;
             const styles = window.getComputedStyle(backdrop);
             return styles.visibility === 'visible' && styles.pointerEvents === 'auto';

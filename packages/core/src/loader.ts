@@ -15,7 +15,6 @@ const ATTRIBUTE_MAP: Array<[scriptAttribute: string, widgetAttribute: string]> =
   ['data-placeholder', 'placeholder'],
   ['data-position', 'position'],
   ['data-preset', 'preset'],
-  ['data-show-powered-by', 'show-powered-by'],
   ['data-theme', 'theme'],
   ['data-title', 'title'],
   ['data-welcome-message', 'initial-message'],

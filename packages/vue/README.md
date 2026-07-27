@@ -4,18 +4,18 @@ Vue 3 bindings for the customizable Context7 documentation chat widget.
 
 Use this package when the widget belongs inside a Vue component tree and you
 want typed props, typed events, a composable API, a plugin helper, managed
-triggers, and optional trigger styles.
+triggers, and a framework-native implementation.
 
 ## What You Get
 
 - `Context7Widget.vue` as a standard Vue single-file component
 - `useContext7Widget` composable for programmatic control
-- Vue event names mapped from the underlying `c7:*` DOM events
+- idiomatic Vue emits backed by shared event-detail contracts
 - `customTrigger` as `true`, selector string, or omitted
 - managed trigger slot for product-specific buttons
-- optional `styles.css` for the Vue-managed trigger
-- the same core runtime used by script, TypeScript, and future Nuxt, React,
-  Svelte, and Angular packages
+- complete widget styles in `styles.css`
+- shared transport, markdown, types, defaults, and brand assets from
+  `@desource/context7-widget/kit`
 
 ## Install
 
@@ -23,11 +23,18 @@ triggers, and optional trigger styles.
 pnpm add @desource/context7-widget-vue
 ```
 
+Import the stylesheet once in your application entry:
+
+```ts
+import '@desource/context7-widget-vue/styles.css';
+```
+
 ## Component
 
 ```vue
 <script setup lang="ts">
 import { Context7Widget, type Context7WidgetQuestionEventDetail } from '@desource/context7-widget-vue';
+import '@desource/context7-widget-vue/styles.css';
 
 function trackQuestion(detail: Context7WidgetQuestionEventDetail) {
   console.log(detail.library, detail.question);
@@ -55,6 +62,30 @@ const docs = useContext7Widget({
 await docs.send('How do I customize the widget?');
 ```
 
+## Plugin
+
+Register the native component under a custom name and provide app-wide defaults:
+
+```ts
+import { createApp } from 'vue';
+import { createContext7WidgetPlugin } from '@desource/context7-widget-vue';
+
+createApp(App)
+  .use(
+    createContext7WidgetPlugin({
+      componentName: 'DocsWidget',
+      defaults: {
+        preset: 'glass',
+        theme: 'auto'
+      }
+    })
+  )
+  .mount('#app');
+```
+
+Defaults are inherited by rendered Vue components; the plugin does not create a
+second, imperative widget.
+
 ## Trigger Modes
 
 ```vue
@@ -77,16 +108,16 @@ await docs.send('How do I customize the widget?');
 <Context7Widget library="/owner/repo" custom-trigger="docs-help" />
 ```
 
-When `customTrigger` is set, the core floating launcher is not rendered. That is
-intentional: your app owns the button, the widget owns the panel.
+When `customTrigger` is set, the Vue floating launcher is not rendered. Your app
+owns the button while the Vue component owns the panel.
 
 ## Styling
 
-The Vue component renders the same `context7-widget` custom element as the core
-package. Core CSS variables and shadow parts still apply:
+The Vue component renders native Vue DOM under `.context7-widget`; it does not
+mount the core custom element. Customize it with the shared CSS variables:
 
 ```css
-context7-widget[widget-id='docs'] {
+.context7-widget[widget-id='docs'] {
   --c7-accent: #7cffb2;
   --c7-panel-background: #101513;
   --c7-panel-color: #f7f2e8;
@@ -94,16 +125,10 @@ context7-widget[widget-id='docs'] {
   --c7-panel-radius: 8px;
 }
 
-context7-widget::part(send-button) {
+.context7-widget [part~='send-button'] {
   min-width: 5rem;
   text-transform: uppercase;
 }
-```
-
-Optional managed-trigger styles:
-
-```ts
-import '@desource/context7-widget-vue/styles.css';
 ```
 
 ```css
@@ -123,7 +148,7 @@ The component accepts the same public widget options as the core package:
 `library`, `theme`, `preset`, `position`, `color`, `customTrigger`, `backdrop`,
 `closeOnOutsideClick`, `defaultOpen`, `initialMessage`, `launcherLabel`,
 `launcherVariant`, `panelHeight`, `panelWidth`, `placeholder`,
-`showPoweredBy`, `title`, and `widgetId`.
+`title`, and `widgetId`.
 
 Vue events: `ready`, `open`, `close`, `question`, `first-token`, `answer`,
 `answer-complete`, `tool-call`, `tool-result`, and `error`.

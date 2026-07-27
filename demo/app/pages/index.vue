@@ -161,7 +161,7 @@ const scriptInstall =
   `<script
   async
   src="https://context7.desource-labs.org/widget.js"
-  data-library="/vercel/next.js"
+  data-library="/owner/repo"
   data-color="#10b981"
 ></scr` + `ipt>`;
 
@@ -170,7 +170,7 @@ const coreInstall = `pnpm add @desource/context7-widget
 import { mountContext7Widget } from "@desource/context7-widget";
 
 mountContext7Widget({
-  library: "/vercel/next.js",
+  library: "/owner/repo",
   theme: "auto",
   color: "#10b981"
 });`;
@@ -178,7 +178,7 @@ mountContext7Widget({
 const vueInstall = `pnpm add @desource/context7-widget-vue
 
 <Context7Widget
-  library="/vercel/next.js"
+  library="/owner/repo"
   color="#10b981"
   @question="trackQuestion"
 />`;

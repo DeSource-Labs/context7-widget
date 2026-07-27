@@ -40,14 +40,16 @@ describe('createContext7WidgetPlugin', () => {
     app.use(
       createContext7WidgetPlugin({
         componentName: 'CustomContext7Widget',
-        defaultWidget: { library: '/default/docs', widgetId: 'default-docs' }
+        defaults: { library: '/default/docs', widgetId: 'default-docs' }
       })
     );
     app.mount(root);
     await nextTick();
 
     expect(root.querySelector('#defaults')?.textContent).toBe('/default/docs');
-    expect(root.querySelector('context7-widget[widget-id="component"]')).toBeTruthy();
-    expect(document.body.querySelector('context7-widget[widget-id="default-docs"]')).toBeTruthy();
+    const widget = root.querySelector('.context7-widget[widget-id="component"]');
+    expect(widget).toBeTruthy();
+    expect(widget?.getAttribute('library')).toBe('/desource-labs/context7-widget');
+    expect(document.body.querySelector('.context7-widget[widget-id="default-docs"]')).toBeNull();
   });
 });

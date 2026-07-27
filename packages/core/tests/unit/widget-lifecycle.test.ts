@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { defineContext7Widget } from '../../src';
 import { createSseStream } from '../../../../common/tests/unit/stream';
+import { expectAlwaysVisibleBranding } from '../../../../common/tests/unit/widget-contract';
 
 describe('Context7WidgetElement lifecycle behavior', () => {
   afterEach(() => {
@@ -8,7 +9,7 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     vi.restoreAllMocks();
   });
 
-  it('opens from defaultOpen and applies text/display options', () => {
+  it('opens from defaultOpen and applies text/display options with required branding', () => {
     defineContext7Widget();
 
     const widget = document.createElement('context7-widget');
@@ -16,7 +17,6 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     widget.setAttribute('initial-message', 'Ask about **{library}**');
     widget.setAttribute('library', '/desource-labs/context7-widget');
     widget.setAttribute('placeholder', 'Search docs');
-    widget.setAttribute('show-powered-by', 'false');
     widget.setAttribute('title', 'Product docs');
     document.body.append(widget);
 
@@ -24,7 +24,7 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     expect(widget.shadowRoot?.querySelector('[part~="title"]')?.textContent).toBe('Product docs');
     expect(widget.shadowRoot?.querySelector<HTMLInputElement>('[part~="input"]')?.placeholder).toBe('Search docs');
     expect(widget.shadowRoot?.textContent).toContain('/desource-labs/context7-widget');
-    expect(widget.shadowRoot?.querySelector<HTMLElement>('[part~="footer"]')?.hidden).toBe(true);
+    expectAlwaysVisibleBranding(widget.shadowRoot as ShadowRoot);
   });
 
   it('keeps the panel open when outside click closing is disabled', () => {

@@ -130,6 +130,7 @@ pnpm add @desource/context7-widget-vue
 ```vue
 <script setup lang="ts">
 import { Context7Widget, type Context7WidgetQuestionEventDetail } from '@desource/context7-widget-vue';
+import '@desource/context7-widget-vue/styles.css';
 
 function trackQuestion(detail: Context7WidgetQuestionEventDetail) {
   analytics.track('Docs question', {
@@ -226,7 +227,9 @@ context7-widget::part(send-button) {
 }
 ```
 
-Do not target internal `.c7-*` classes. They are implementation details.
+Do not target internal `.c7-*` classes. They are implementation details. In
+Vue, apply the same CSS variables to `.context7-widget`; shadow parts apply only
+to the core custom element.
 
 ## Analytics
 

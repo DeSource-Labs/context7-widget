@@ -1,26 +1,28 @@
 import {
-  defineContext7Widget,
-  getContext7Widget,
-  mountContext7Widget,
-  setContext7WidgetAttributes,
-  type Context7WidgetElement,
+  compactContext7WidgetOptions,
   type Context7WidgetOptions,
   type Context7WidgetTarget
-} from '@desource/context7-widget';
+} from '@desource/context7-widget/kit';
 import {
   computed,
+  createVNode,
+  nextTick,
   onBeforeUnmount,
   onMounted,
   readonly,
   ref,
+  render,
   shallowRef,
   toValue,
   watch,
   type MaybeRefOrGetter,
   type Ref,
-  type ShallowRef
+  type ShallowRef,
+  type VNode
 } from 'vue';
-import { compactContext7WidgetOptions } from '@desource/context7-widget/kit';
+import Context7Widget from '../components/Context7Widget.vue';
+import { getVueContext7Widget } from '../internal/registry';
+import type { Context7WidgetExpose } from '../types';
 
 export interface UseContext7WidgetOptions extends Partial<Context7WidgetOptions> {
   autoMount?: boolean;
@@ -32,117 +34,123 @@ export interface UseContext7WidgetReturn {
   cancel: () => void;
   close: () => void;
   isOpen: Readonly<Ref<boolean>>;
-  mount: (overrides?: Partial<Context7WidgetOptions>) => Context7WidgetElement;
+  mount: (overrides?: Partial<Context7WidgetOptions>) => HTMLElement;
   open: () => void;
   send: (message: string) => Promise<void>;
   toggle: () => void;
   unmount: () => void;
-  widget: Readonly<ShallowRef<Context7WidgetElement | null>>;
+  widget: Readonly<ShallowRef<HTMLElement | null>>;
 }
 
 export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOptions> = {}): UseContext7WidgetReturn {
-  const widget = shallowRef<Context7WidgetElement | null>(null);
+  const widget = shallowRef<HTMLElement | null>(null);
+  const controller = shallowRef<Context7WidgetExpose | null>(null);
   const isOpen = ref(false);
   const ownsWidget = ref(false);
+  let container: HTMLElement | null = null;
+  let vnode: VNode | null = null;
 
-  const options = computed<UseContext7WidgetOptions>(() => {
-    const value = toValue(source);
-    return {
-      ...compactContext7WidgetOptions(value),
-      autoMount: value.autoMount,
-      removeOnUnmount: value.removeOnUnmount,
-      target: value.target
-    };
-  });
-  const widgetId = computed(() => options.value.widgetId);
+  const options = computed<UseContext7WidgetOptions>(() => ({ ...toValue(source) }));
+  const widgetId = computed(() => options.value.widgetId ?? 'default');
 
-  const resolveWidget = () => {
-    if (widget.value) return widget.value;
-    const resolved = getContext7Widget(widgetId.value);
-    return typeof HTMLElement !== 'undefined' && resolved instanceof HTMLElement
-      ? (resolved as Context7WidgetElement)
-      : null;
-  };
+  function resolveController(): Context7WidgetExpose | null {
+    return controller.value ?? getVueContext7Widget(widgetId.value) ?? null;
+  }
 
-  const syncOpenState = () => {
-    isOpen.value = resolveWidget()?.isOpen() ?? false;
-  };
+  function syncState(): void {
+    const resolved = resolveController();
+    controller.value = resolved;
+    widget.value = resolved?.element ?? null;
+    isOpen.value = resolved?.isOpen() ?? false;
+  }
 
-  const mount = (overrides: Partial<Context7WidgetOptions> = {}) => {
-    if (widget.value) return widget.value;
-
-    const nextOptions = compactContext7WidgetOptions({
-      ...options.value,
-      ...overrides
-    }) as Context7WidgetOptions;
-
+  function mount(overrides: Partial<Context7WidgetOptions> = {}): HTMLElement {
+    if (widget.value && ownsWidget.value) return widget.value;
+    const nextOptions = { ...options.value, ...overrides };
     if (!nextOptions.library) {
       throw new Error('useContext7Widget mount requires a library option.');
     }
 
-    widget.value = mountContext7Widget(nextOptions, options.value.target);
+    container = document.createElement('div');
+    container.className = 'context7-widget-programmatic-root';
+    resolveTarget(options.value.target ?? document.body).append(container);
     ownsWidget.value = true;
-    syncOpenState();
-    return widget.value;
-  };
+    renderWidget(nextOptions);
+    syncState();
+    return widget.value as HTMLElement;
+  }
 
-  const unmount = () => {
-    widget.value?.remove();
+  function renderWidget(nextOptions: Partial<Context7WidgetOptions>): void {
+    if (!container) return;
+    const widgetOptions = compactContext7WidgetOptions(nextOptions);
+    vnode = createVNode(Context7Widget, {
+      ...widgetOptions,
+      onClose: syncState,
+      onOpen: syncState,
+      onReady: syncState
+    });
+    render(vnode, container);
+    controller.value = (vnode.component?.exposed as Context7WidgetExpose | null) ?? null;
+    widget.value = controller.value?.element ?? container.querySelector<HTMLElement>('.context7-widget');
+  }
+
+  function unmount(): void {
+    if (container) {
+      render(null, container);
+      container.remove();
+    }
+    container = null;
+    vnode = null;
+    controller.value = null;
     widget.value = null;
     ownsWidget.value = false;
-    syncOpenState();
-  };
+    syncState();
+  }
 
-  const open = () => {
-    resolveWidget()?.open();
-    syncOpenState();
-  };
+  function open(): void {
+    resolveController()?.open();
+    syncState();
+  }
 
-  const close = () => {
-    resolveWidget()?.close();
-    syncOpenState();
-  };
+  function close(): void {
+    resolveController()?.close();
+    syncState();
+  }
 
-  const toggle = () => {
-    resolveWidget()?.toggle();
-    syncOpenState();
-  };
+  function toggle(): void {
+    resolveController()?.toggle();
+    syncState();
+  }
 
-  const send = async (message: string) => {
-    await resolveWidget()?.send(message);
-    syncOpenState();
-  };
+  async function send(message: string): Promise<void> {
+    await resolveController()?.send(message);
+    syncState();
+  }
 
-  const cancel = () => {
-    resolveWidget()?.cancel();
-  };
+  function cancel(): void {
+    resolveController()?.cancel();
+  }
 
   onMounted(() => {
-    defineContext7Widget();
-
-    if (options.value.autoMount) {
-      mount();
-    } else {
-      widget.value = resolveWidget();
-      ownsWidget.value = false;
-    }
-
-    syncOpenState();
+    if (options.value.autoMount) mount();
+    else syncState();
   });
 
   watch(
     options,
     (nextOptions) => {
-      if (!widget.value) return;
-      setContext7WidgetAttributes(widget.value, nextOptions, ownsWidget.value);
+      if (ownsWidget.value) {
+        renderWidget(nextOptions);
+        void nextTick(syncState);
+      } else {
+        syncState();
+      }
     },
     { deep: true }
   );
 
   onBeforeUnmount(() => {
-    if (options.value.removeOnUnmount ?? options.value.autoMount) {
-      unmount();
-    }
+    if (ownsWidget.value && (options.value.removeOnUnmount ?? options.value.autoMount)) unmount();
   });
 
   return {
@@ -154,6 +162,13 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
     send,
     toggle,
     unmount,
-    widget: readonly(widget) as Readonly<ShallowRef<Context7WidgetElement | null>>
+    widget: readonly(widget) as Readonly<ShallowRef<HTMLElement | null>>
   };
+}
+
+function resolveTarget(target: Context7WidgetTarget): Element | DocumentFragment {
+  if (typeof target !== 'string') return target;
+  const element = document.querySelector(target);
+  if (!element) throw new Error(`Context7 widget target was not found: ${target}`);
+  return element;
 }

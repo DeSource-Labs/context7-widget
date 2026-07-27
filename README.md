@@ -37,8 +37,9 @@ own site.
 | [`@desource/context7-widget`](./packages/core)    | You want TypeScript helpers, the custom element, script generation, or direct runtime control   |
 | [`@desource/context7-widget-vue`](./packages/vue) | You want a Vue 3 component, composable, plugin helper, typed events, and managed triggers       |
 
-Coming next: Nuxt, React, Svelte, and Angular packages. The core package is
-framework-agnostic so every future binding uses the same runtime contract.
+Coming next: Nuxt, React, Svelte, and Angular packages. Each framework package
+will own its UI and lifecycle while sharing transport, markdown, types, defaults,
+and brand assets through `@desource/context7-widget/kit`.
 
 ## Quick Start
 
@@ -98,6 +99,7 @@ pnpm add @desource/context7-widget-vue
 ```vue
 <script setup lang="ts">
 import { Context7Widget, type Context7WidgetQuestionEventDetail } from '@desource/context7-widget-vue';
+import '@desource/context7-widget-vue/styles.css';
 
 function trackQuestion(detail: Context7WidgetQuestionEventDetail) {
   console.log(detail.library, detail.question);
@@ -144,7 +146,8 @@ mountContext7Widget({
 
 ## Customization
 
-The widget is a shadow-DOM custom element. Style it through the public contract:
+The core widget is a shadow-DOM custom element. Style it through the public
+contract:
 
 - CSS variables on `context7-widget`
 - `::part(...)` selectors for stable internal blocks
@@ -190,7 +193,6 @@ Common script attributes and component props:
 - `panelHeight`
 - `panelWidth`
 - `placeholder`
-- `showPoweredBy`
 - `title`
 - `widgetId`
 

@@ -2,7 +2,6 @@ import type {
   Context7Message,
   Context7ToolCall,
   Context7ToolResult,
-  Context7WidgetEventDetail,
   Context7WidgetEventName,
   Context7WidgetOptions
 } from './types';
@@ -35,7 +34,6 @@ export const context7WidgetOptionKeys = [
   'placeholder',
   'position',
   'preset',
-  'showPoweredBy',
   'theme',
   'title',
   'widgetId'
@@ -44,7 +42,7 @@ export const context7WidgetOptionKeys = [
 export interface Context7WidgetBaseEventDetail {
   /** Configured Context7 library id, for example "/vercel/next.js". */
   library: string;
-  /** Underlying custom element instance. */
+  /** Widget root element (custom element in core, native root in framework packages). */
   widget: HTMLElement;
   /** Instance id used by the global widget registry. */
   widgetId: string;
@@ -135,4 +133,23 @@ export function isContext7WidgetEventName(value: string): value is Context7Widge
   return (context7WidgetEvents as readonly string[]).includes(value);
 }
 
-export type { Context7WidgetEventDetail, Context7WidgetEventName };
+export { CONTEXT7_URL, DESOURCE_LABS_URL, context7LogoSvg, deSourceLabsLogoUrl } from './branding';
+export { escapeHtml, renderMarkdown } from './markdown';
+export { buildContext7ErrorHtml, DEFAULT_CONTEXT7_INITIAL_MESSAGE, isAbortError } from './runtime';
+export { Context7TransportError, streamContext7Response } from './transport';
+export type {
+  Context7LauncherVariant,
+  Context7Message,
+  Context7Position,
+  Context7Role,
+  Context7StreamCallbacks,
+  Context7Theme,
+  Context7ToolCall,
+  Context7ToolResult,
+  Context7WidgetConfig,
+  Context7WidgetEventDetail,
+  Context7WidgetEventName,
+  Context7WidgetOptions,
+  Context7WidgetPreset,
+  Context7WidgetTarget
+} from './types';

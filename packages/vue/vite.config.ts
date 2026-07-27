@@ -10,7 +10,7 @@ export default defineConfig({
       formats: ['es']
     },
     rollupOptions: {
-      external: ['@desource/context7-widget', '@desource/context7-widget/kit', 'vue']
+      external: ['@desource/context7-widget/kit', 'vue']
     },
     sourcemap: true,
     target: 'es2020'

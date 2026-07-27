@@ -259,7 +259,7 @@ const shadowParts = [
   { copy: 'Question input.', name: 'input' },
   { copy: 'Submit button.', name: 'send-button' },
   { copy: 'Powered-by footer container.', name: 'footer' },
-  { copy: 'Powered-by Context7 link.', name: 'powered-by' },
+  { copy: 'Always-visible Context7 and DeSource Labs attribution.', name: 'powered-by' },
   { copy: 'Built-in floating launcher.', name: 'launcher' }
 ];
 

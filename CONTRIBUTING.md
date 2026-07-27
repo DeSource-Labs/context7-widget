@@ -57,10 +57,16 @@ pnpm exec playwright install chromium
 ## Coding Standards
 
 - Use TypeScript for public package code.
-- Keep framework packages thin; shared behavior belongs in `packages/core` or `@desource/context7-widget/kit`.
+- Keep framework rendering and lifecycle native to that framework.
+- Put rendering-independent contracts, transport, markdown, defaults, and
+  reusable helpers in `@desource/context7-widget/kit`.
+- Do not implement a framework package by mounting or wrapping the core custom
+  element.
 - Prefer stable public APIs: options, events, CSS variables, and `::part(...)`.
 - Do not make internal shadow DOM class names public API.
 - Add tests for bug fixes and public behavior changes.
+- Put reusable unit adapters and cross-framework end-to-end behavior in
+  `common/tests`.
 
 ## Commits
 
