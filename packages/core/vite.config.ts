@@ -21,7 +21,7 @@ export default defineConfig({
     dts({
       entryRoot: 'src',
       include: ['src'],
-      outDir: 'dist'
+      outDirs: 'dist'
     })
   ]
 });

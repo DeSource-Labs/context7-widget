@@ -322,9 +322,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
           <button class="c7-send" data-c7-send part="send-button" type="submit">Send</button>
         </form>
         <footer class="c7-footer" data-c7-footer part="footer">
-          <div class="c7-branding" part="powered-by" aria-label="Powered by Context7, Enhanced by DeSource Labs">
+          <span class="c7-branding" part="powered-by" aria-label="Powered by Context7, Enhanced by DeSource Labs">
             ${renderWidgetBranding()}
-          </div>
+          </span>
         </footer>
       </section>
       <button class="c7-launcher" data-c7-launcher part="launcher" type="button" aria-label="Open documentation chat">

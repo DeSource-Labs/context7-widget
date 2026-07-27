@@ -139,10 +139,9 @@
       </form>
 
       <footer class="c7-footer" part="footer">
-        <div class="c7-branding" part="powered-by" aria-label="Powered by Context7, Enhanced by DeSource Labs">
-          <span class="c7-brand-prefix">Powered by</span>
+        <span class="c7-branding" part="powered-by" aria-label="Powered by Context7, Enhanced by DeSource Labs">
           <a
-            v-safe-html="context7LogoSvg"
+            v-safe-html="`<span class='c7-brand-prefix'>Powered by</span>` + context7LogoSvg"
             class="c7-brand-link"
             :href="CONTEXT7_URL"
             target="_blank"
@@ -151,7 +150,6 @@
             title="Powered by Context7"
           />
           <span class="c7-brand-separator" aria-hidden="true">·</span>
-          <span class="c7-brand-prefix">Enhanced by</span>
           <a
             class="c7-brand-link"
             :href="DESOURCE_LABS_URL"
@@ -160,9 +158,10 @@
             aria-label="Enhanced by DeSource Labs"
             title="Enhanced by DeSource Labs"
           >
+            <span class="c7-brand-prefix">Enhanced by</span>
             <img class="c7-brand-logo c7-brand-logo--desource" :src="deSourceLabsLogoUrl" alt="" />
           </a>
-        </div>
+        </span>
       </footer>
     </section>
 

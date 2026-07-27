@@ -865,6 +865,7 @@ export const widgetStyles = `
     border-radius: 4px;
     color: var(--c7-panel-color);
     display: inline-flex;
+    gap: 4px;
     justify-content: center;
     opacity: 0.78;
     padding: 2px;
