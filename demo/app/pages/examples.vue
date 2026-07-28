@@ -52,250 +52,308 @@
 
       <div class="constructor-shell">
         <div class="constructor-controls" aria-label="Context7 widget constructor controls">
-          <div class="constructor-group constructor-group--full">
-            <span>Identity</span>
-            <label class="constructor-field" for="constructor-library">
-              Library
-              <input id="constructor-library" v-model="constructorLibrary" spellcheck="false" type="text" />
-            </label>
-            <label class="constructor-field" for="constructor-title">
-              Title
-              <input id="constructor-title" v-model="constructorTitle" type="text" />
-            </label>
-            <label class="constructor-field" for="constructor-widget-id">
-              Widget id
-              <input id="constructor-widget-id" v-model="constructorWidgetId" spellcheck="false" type="text" />
-            </label>
-          </div>
-
-          <div class="constructor-group constructor-group--full">
-            <span>Copy</span>
-            <label class="constructor-field" for="constructor-placeholder">
-              Placeholder
-              <input id="constructor-placeholder" v-model="constructorPlaceholder" type="text" />
-            </label>
-            <label class="constructor-field constructor-field--wide" for="constructor-message">
-              Initial message
-              <textarea id="constructor-message" v-model="constructorInitialMessage" rows="3" />
-            </label>
-          </div>
-
-          <div class="constructor-group">
-            <span>Theme</span>
-            <div class="constructor-segmented" role="group" aria-label="Theme">
+          <div class="constructor-controls__header">
+            <div>
+              <span>Constructor controls</span>
+              <strong>{{ activeControlPanelLabel }}</strong>
+            </div>
+            <div class="constructor-control-tabs" role="tablist" aria-label="Control categories">
               <button
-                v-for="themeOption in themeOptions"
-                :key="themeOption"
-                :aria-pressed="constructorTheme === themeOption"
+                v-for="panel in constructorControlPanels"
+                :id="`constructor-${panel.value}-tab`"
+                :key="panel.value"
+                :aria-controls="`constructor-${panel.value}-panel`"
+                :aria-selected="constructorControlPanel === panel.value"
+                role="tab"
                 type="button"
-                @click="constructorTheme = themeOption"
+                @click="constructorControlPanel = panel.value"
               >
-                {{ themeOption }}
+                {{ panel.label }}
               </button>
             </div>
           </div>
 
-          <div class="constructor-group">
-            <span>Preset</span>
-            <select v-model="constructorPreset" aria-label="Preset">
-              <option v-for="presetOption in presetOptions" :key="presetOption" :value="presetOption">
-                {{ presetOption }}
-              </option>
-            </select>
+          <div
+            v-show="constructorControlPanel === 'content'"
+            id="constructor-content-panel"
+            aria-labelledby="constructor-content-tab"
+            class="constructor-controls__panel"
+            role="tabpanel"
+          >
+            <div class="constructor-group constructor-group--full">
+              <span>Identity</span>
+              <div class="constructor-fields-grid constructor-fields-grid--identity">
+                <label class="constructor-field constructor-field--wide" for="constructor-library">
+                  Library
+                  <input id="constructor-library" v-model="constructorLibrary" spellcheck="false" type="text" />
+                </label>
+                <label class="constructor-field" for="constructor-title">
+                  Title
+                  <input id="constructor-title" v-model="constructorTitle" type="text" />
+                </label>
+                <label class="constructor-field" for="constructor-widget-id">
+                  Widget id
+                  <input id="constructor-widget-id" v-model="constructorWidgetId" spellcheck="false" type="text" />
+                </label>
+              </div>
+            </div>
+
+            <div class="constructor-group constructor-group--full">
+              <span>Texts</span>
+              <div class="constructor-fields-grid">
+                <label class="constructor-field" for="constructor-placeholder">
+                  Placeholder
+                  <input id="constructor-placeholder" v-model="constructorPlaceholder" type="text" />
+                </label>
+                <label class="constructor-field constructor-field--wide" for="constructor-message">
+                  Initial message
+                  <textarea id="constructor-message" v-model="constructorInitialMessage" rows="2" />
+                </label>
+              </div>
+            </div>
           </div>
 
-          <div class="constructor-group">
-            <span>Position</span>
-            <select v-model="constructorPosition" aria-label="Position">
-              <option v-for="positionOption in positionOptions" :key="positionOption" :value="positionOption">
-                {{ positionOption }}
-              </option>
-            </select>
+          <div
+            v-show="constructorControlPanel === 'appearance'"
+            id="constructor-appearance-panel"
+            aria-labelledby="constructor-appearance-tab"
+            class="constructor-controls__panel"
+            role="tabpanel"
+          >
+            <div class="constructor-group">
+              <span>Theme</span>
+              <div class="constructor-segmented" role="group" aria-label="Theme">
+                <button
+                  v-for="themeOption in themeOptions"
+                  :key="themeOption"
+                  :aria-pressed="constructorTheme === themeOption"
+                  type="button"
+                  @click="constructorTheme = themeOption"
+                >
+                  {{ themeOption }}
+                </button>
+              </div>
+            </div>
+
+            <div class="constructor-group">
+              <span>Preset</span>
+              <select v-model="constructorPreset" aria-label="Preset">
+                <option v-for="presetOption in presetOptions" :key="presetOption" :value="presetOption">
+                  {{ presetOption }}
+                </option>
+              </select>
+            </div>
+
+            <div class="constructor-group constructor-group--full">
+              <span>Accent</span>
+              <div class="constructor-swatches" role="group" aria-label="Accent color">
+                <button
+                  v-for="accentOption in accentOptions"
+                  :key="accentOption.label"
+                  :aria-label="accentOption.label"
+                  :aria-pressed="constructorColor === accentOption.value"
+                  :class="{ 'constructor-swatch--preset': !accentOption.value }"
+                  :style="accentOption.swatch ? `--swatch: ${accentOption.swatch}` : undefined"
+                  type="button"
+                  @click="constructorColor = accentOption.value"
+                >
+                  <span v-if="!accentOption.value">preset</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="constructor-group constructor-group--full">
+              <span>Panel size</span>
+              <div class="constructor-size-grid">
+                <label class="constructor-field" for="constructor-width">
+                  Width
+                  <input id="constructor-width" v-model="constructorPanelWidth" spellcheck="false" type="text" />
+                </label>
+                <label class="constructor-field" for="constructor-height">
+                  Height
+                  <input id="constructor-height" v-model="constructorPanelHeight" spellcheck="false" type="text" />
+                </label>
+              </div>
+            </div>
           </div>
 
-          <div class="constructor-group">
-            <span>Launcher</span>
-            <select
-              v-model="constructorLauncherVariant"
-              aria-label="Launcher variant"
-              :disabled="constructorTriggerMode !== 'none'"
-            >
-              <option v-for="launcherOption in launcherOptions" :key="launcherOption" :value="launcherOption">
-                {{ launcherOption }}
-              </option>
-            </select>
-            <p v-if="constructorTriggerMode !== 'none'" class="field-note">
-              Launcher variant is ignored while a custom trigger replaces the built-in button.
-            </p>
-            <label class="constructor-field" for="constructor-launcher-label">
-              Label
-              <input id="constructor-launcher-label" v-model="constructorLauncherLabel" type="text" />
-            </label>
-          </div>
+          <div
+            v-show="constructorControlPanel === 'trigger'"
+            id="constructor-trigger-panel"
+            aria-labelledby="constructor-trigger-tab"
+            class="constructor-controls__panel"
+            role="tabpanel"
+          >
+            <div class="constructor-group">
+              <span>Position</span>
+              <select v-model="constructorPosition" aria-label="Position">
+                <option v-for="positionOption in positionOptions" :key="positionOption" :value="positionOption">
+                  {{ positionOption }}
+                </option>
+              </select>
+            </div>
 
-          <div class="constructor-group constructor-group--full">
-            <span>Trigger mode</span>
-            <div class="constructor-trigger-modes">
-              <button
-                v-for="mode in triggerModes"
-                :key="mode.value"
-                :aria-pressed="constructorTriggerMode === mode.value"
-                type="button"
-                @click="constructorTriggerMode = mode.value"
+            <div class="constructor-group">
+              <span>Launcher</span>
+              <select
+                v-model="constructorLauncherVariant"
+                aria-label="Launcher variant"
+                :disabled="constructorTriggerMode !== 'none'"
               >
-                <strong>{{ mode.label }}</strong>
-                <small>{{ mode.copy }}</small>
-              </button>
+                <option v-for="launcherOption in launcherOptions" :key="launcherOption" :value="launcherOption">
+                  {{ launcherOption }}
+                </option>
+              </select>
+              <p v-if="constructorTriggerMode !== 'none'" class="field-note">Available with the built-in trigger.</p>
+              <label class="constructor-field" for="constructor-launcher-label">
+                Label
+                <input id="constructor-launcher-label" v-model="constructorLauncherLabel" type="text" />
+              </label>
+            </div>
+
+            <div class="constructor-group constructor-group--full">
+              <span>Trigger mode</span>
+              <div class="constructor-trigger-modes">
+                <button
+                  v-for="mode in triggerModes"
+                  :key="mode.value"
+                  :aria-pressed="constructorTriggerMode === mode.value"
+                  type="button"
+                  @click="constructorTriggerMode = mode.value"
+                >
+                  <strong>{{ mode.label }}</strong>
+                  <small>{{ mode.copy }}</small>
+                </button>
+              </div>
             </div>
           </div>
 
-          <div class="constructor-group constructor-group--full">
-            <span>Accent</span>
-            <div class="constructor-swatches" role="group" aria-label="Accent color">
-              <button
-                v-for="accentOption in accentOptions"
-                :key="accentOption.label"
-                :aria-label="accentOption.label"
-                :aria-pressed="constructorColor === accentOption.value"
-                :class="{ 'constructor-swatch--preset': !accentOption.value }"
-                :style="accentOption.swatch ? `--swatch: ${accentOption.swatch}` : undefined"
-                type="button"
-                @click="constructorColor = accentOption.value"
-              >
-                <span v-if="!accentOption.value">preset</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="constructor-group constructor-group--full">
-            <span>Panel size</span>
-            <div class="constructor-size-grid">
-              <label class="constructor-field" for="constructor-width">
-                Width
-                <input id="constructor-width" v-model="constructorPanelWidth" spellcheck="false" type="text" />
-              </label>
-              <label class="constructor-field" for="constructor-height">
-                Height
-                <input id="constructor-height" v-model="constructorPanelHeight" spellcheck="false" type="text" />
-              </label>
-            </div>
-          </div>
-
-          <div class="constructor-group constructor-group--full">
-            <span>Behavior</span>
-            <div class="constructor-toggles">
-              <label class="constructor-toggle">
-                <input v-model="constructorBackdrop" type="checkbox" />
-                Backdrop
-              </label>
-              <label class="constructor-toggle">
-                <input v-model="constructorCloseOnOutsideClick" type="checkbox" />
-                Close outside
-              </label>
-              <label class="constructor-toggle">
-                <input v-model="constructorDefaultOpen" type="checkbox" />
-                Default open
-              </label>
+          <div
+            v-show="constructorControlPanel === 'behavior'"
+            id="constructor-behavior-panel"
+            aria-labelledby="constructor-behavior-tab"
+            class="constructor-controls__panel"
+            role="tabpanel"
+          >
+            <div class="constructor-group constructor-group--full">
+              <span>Behavior</span>
+              <div class="constructor-toggles">
+                <label class="constructor-toggle">
+                  <input v-model="constructorBackdrop" type="checkbox" />
+                  Backdrop
+                </label>
+                <label class="constructor-toggle">
+                  <input v-model="constructorCloseOnOutsideClick" type="checkbox" />
+                  Close outside
+                </label>
+                <label class="constructor-toggle">
+                  <input v-model="constructorDefaultOpen" type="checkbox" />
+                  Default open
+                </label>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="constructor-preview">
-          <div class="constructor-preview__header">
-            <div>
-              <span>Live preview</span>
-              <strong>{{ constructorPreset }} · {{ constructorPosition }}</strong>
+          <div
+            class="constructor-device"
+            :data-preset="constructorPreset"
+            :data-theme="constructorTheme"
+            :style="constructorDeviceStyle"
+          >
+            <div class="constructor-device__bar">
+              <span />
+              <span />
+              <span />
+              <strong>Live preview · {{ constructorPreset }} · {{ constructorPosition }}</strong>
             </div>
-            <button class="constructor-mini-button" type="button" @click="sendConstructorPrompt">
-              <Send :size="15" aria-hidden="true" />
-              Ask install
-            </button>
-          </div>
 
-          <div class="constructor-stage">
-            <div class="constructor-device" :data-preset="constructorPreset" :data-theme="constructorTheme">
-              <div class="constructor-device__bar">
-                <span />
-                <span />
-                <span />
-                <strong>docs.example.dev</strong>
+            <div class="constructor-device__body">
+              <div class="constructor-doc">
+                <p class="eyebrow">Widget surface</p>
+                <h3>{{ constructorTitle }}</h3>
+                <p>{{ constructorPlaceholder }}</p>
               </div>
 
-              <div class="constructor-device__body">
-                <div class="constructor-doc">
-                  <p class="eyebrow">Widget surface</p>
-                  <h3>{{ constructorTitle }}</h3>
-                  <p>{{ constructorPlaceholder }}</p>
-                </div>
+              <button
+                v-if="constructorTriggerMode === 'external'"
+                id="examples-constructor-trigger"
+                class="constructor-external-trigger"
+                type="button"
+              >
+                <MessageSquare :size="18" aria-hidden="true" />
+                {{ constructorLauncherLabel }}
+              </button>
 
-                <button
-                  v-if="constructorTriggerMode === 'external'"
-                  id="examples-constructor-trigger"
-                  class="constructor-external-trigger"
-                  type="button"
+              <div class="constructor-highlight-grid">
+                <span v-for="item in constructorHighlights" :key="item.label">
+                  <small>{{ item.label }}</small>
+                  {{ item.value }}
+                </span>
+              </div>
+
+              <div class="constructor-widget">
+                <Context7Widget
+                  ref="constructorWidget"
+                  :key="constructorWidgetKey"
+                  :backdrop="constructorBackdrop"
+                  :close-on-outside-click="constructorCloseOnOutsideClick"
+                  :color="constructorColor || undefined"
+                  :custom-trigger="constructorCustomTrigger"
+                  :default-open="constructorDefaultOpen"
+                  :initial-message="constructorInitialMessage"
+                  :launcher-label="constructorLauncherLabel"
+                  :launcher-variant="constructorLauncherVariant"
+                  :library="constructorLibrary"
+                  :panel-height="constructorPanelHeight"
+                  :panel-width="constructorPanelWidth"
+                  :placeholder="constructorPlaceholder"
+                  :position="constructorPosition"
+                  :preset="constructorPreset"
+                  :theme="constructorTheme"
+                  :title="constructorTitle"
+                  :widget-id="constructorWidgetId"
                 >
-                  <MessageSquare :size="18" aria-hidden="true" />
-                  {{ constructorLauncherLabel }}
-                </button>
-
-                <div class="constructor-highlight-grid">
-                  <span v-for="item in constructorHighlights" :key="item.label">
-                    <small>{{ item.label }}</small>
-                    {{ item.value }}
-                  </span>
-                </div>
-
-                <div class="constructor-widget">
-                  <Context7Widget
-                    ref="constructorWidget"
-                    :key="constructorWidgetKey"
-                    :backdrop="constructorBackdrop"
-                    :close-on-outside-click="constructorCloseOnOutsideClick"
-                    :color="constructorColor || undefined"
-                    :custom-trigger="constructorCustomTrigger"
-                    :default-open="constructorDefaultOpen"
-                    :initial-message="constructorInitialMessage"
-                    :launcher-label="constructorLauncherLabel"
-                    :launcher-variant="constructorLauncherVariant"
-                    :library="constructorLibrary"
-                    :panel-height="constructorPanelHeight"
-                    :panel-width="constructorPanelWidth"
-                    :placeholder="constructorPlaceholder"
-                    :position="constructorPosition"
-                    :preset="constructorPreset"
-                    :theme="constructorTheme"
-                    :title="constructorTitle"
-                    :widget-id="constructorWidgetId"
-                    @answer-complete="onConstructorAnswerComplete"
-                    @close="constructorStats.closes++"
-                    @error="onConstructorError"
-                    @open="constructorStats.opens++"
-                    @question="onConstructorQuestion"
-                  >
-                    <template v-if="constructorUsesTriggerSlot" #trigger="{ label }">
-                      <span class="constructor-trigger-dot" />
-                      <span>{{ label }}</span>
-                      <Wand2 :size="16" aria-hidden="true" />
-                    </template>
-                  </Context7Widget>
-                </div>
+                  <template v-if="constructorUsesTriggerSlot" #trigger="{ label }">
+                    <span class="constructor-trigger-dot" />
+                    <span>{{ label }}</span>
+                    <Wand2 :size="16" aria-hidden="true" />
+                  </template>
+                </Context7Widget>
               </div>
             </div>
           </div>
 
-          <div class="constructor-stats" aria-label="Live event counters">
-            <span>opens {{ constructorStats.opens }}</span>
-            <span>closes {{ constructorStats.closes }}</span>
-            <span>questions {{ constructorStats.questions }}</span>
-            <span>answers {{ constructorStats.answers }}</span>
-            <span>errors {{ constructorStats.errors }}</span>
+          <div class="constructor-code">
+            <div class="constructor-code__tabs" role="tablist" aria-label="Integration code">
+              <button
+                v-for="option in constructorCodeOptions"
+                :id="`constructor-code-${option.value}-tab`"
+                :key="option.value"
+                aria-controls="constructor-code-panel"
+                :aria-selected="constructorCodeTarget === option.value"
+                role="tab"
+                type="button"
+                @click="constructorCodeTarget = option.value"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+            <div
+              id="constructor-code-panel"
+              :aria-labelledby="`constructor-code-${constructorCodeTarget}-tab`"
+              class="constructor-code__panel"
+              role="tabpanel"
+            >
+              <CodeBlock
+                :id="selectedConstructorCode.id"
+                :header="false"
+                :label="selectedConstructorCode.label"
+                :code="selectedConstructorCode.code"
+              />
+            </div>
           </div>
-        </div>
-
-        <div class="constructor-code">
-          <CodeBlock id="constructor-vue-code" label="Vue component" :code="constructorVueCode" />
-          <CodeBlock id="constructor-script-code" label="/widget.js" :code="constructorScriptCode" />
-          <CodeBlock id="constructor-core-code" label="Core package" :code="constructorCoreCode" />
         </div>
       </div>
     </section>
@@ -466,8 +524,8 @@ const heroMarqueeItems = librariesArray.map(({ key, examplesHref, label, logo })
   logo
 }));
 const triggerModes = [
-  { copy: 'Vue renders the button and exposes a slot.', label: 'Slot trigger', value: 'slot' },
-  { copy: 'Vue renders the default package button.', label: 'Managed button', value: 'managed' },
+  { copy: 'Renders the button and exposes a slot.', label: 'Slot trigger', value: 'slot' },
+  { copy: 'Renders the default package button.', label: 'Managed button', value: 'managed' },
   { copy: 'Bind to a button anywhere by id.', label: 'External id', value: 'external' },
   { copy: 'Use the built-in floating launcher.', label: 'Built-in', value: 'none' }
 ] as const;
@@ -478,8 +536,21 @@ const accentOptions = [
   { label: 'Action orange', swatch: '#ffb45e', value: '#ffb45e' },
   { label: 'Hot rose', swatch: '#ff6f91', value: '#ff6f91' }
 ] as const;
+const constructorControlPanels = [
+  { label: 'Content', value: 'content' },
+  { label: 'Style', value: 'appearance' },
+  { label: 'Trigger', value: 'trigger' },
+  { label: 'Behavior', value: 'behavior' }
+] as const;
+const constructorCodeOptions = [
+  { label: 'Vue', value: 'vue' },
+  { label: 'widget.js', value: 'script' },
+  { label: 'Core', value: 'core' }
+] as const;
 
 type ConstructorTriggerMode = (typeof triggerModes)[number]['value'];
+type ConstructorControlPanel = (typeof constructorControlPanels)[number]['value'];
+type ConstructorCodeTarget = (typeof constructorCodeOptions)[number]['value'];
 
 const constructorLibrary = ref('/desource-labs/context7-widget');
 const constructorTitle = ref('Context7 Widget Docs');
@@ -500,24 +571,22 @@ const constructorLauncherLabel = ref('Ask docs');
 const constructorBackdrop = ref(false);
 const constructorCloseOnOutsideClick = ref(true);
 const constructorDefaultOpen = ref(false);
-const constructorWidget = ref<Context7WidgetExpose | null>(null);
-const constructorStats = reactive({
-  answers: 0,
-  closes: 0,
-  errors: 0,
-  lastAnswer: '',
-  lastError: '',
-  lastQuestion: '',
-  opens: 0,
-  questions: 0
-});
+const constructorControlPanel = ref<ConstructorControlPanel>('content');
+const constructorCodeTarget = ref<ConstructorCodeTarget>('vue');
+const constructorWidget = useTemplateRef('constructorWidget');
 
+const activeControlPanelLabel = computed(
+  () => constructorControlPanels.find((panel) => panel.value === constructorControlPanel.value)?.label ?? 'Content'
+);
 const constructorUsesTriggerSlot = computed(() => constructorTriggerMode.value === 'slot');
 const constructorCustomTrigger = computed<Context7WidgetCustomTrigger | undefined>(() => {
   if (constructorTriggerMode.value === 'none') return undefined;
   if (constructorTriggerMode.value === 'external') return 'examples-constructor-trigger';
   return true;
 });
+const constructorDeviceStyle = computed(() => ({
+  '--constructor-accent': constructorColor.value || undefined
+}));
 const constructorWidgetKey = computed(() =>
   [
     constructorLibrary.value,
@@ -674,21 +743,29 @@ ${prefix}mountContext7Widget({
 ${objectBody}
 });`;
 });
+const selectedConstructorCode = computed(() => {
+  if (constructorCodeTarget.value === 'script') {
+    return {
+      code: constructorScriptCode.value,
+      id: 'constructor-script-code',
+      label: '/widget.js'
+    };
+  }
 
-function onConstructorQuestion(detail: Context7WidgetQuestionEventDetail) {
-  constructorStats.questions += 1;
-  constructorStats.lastQuestion = detail.question;
-}
+  if (constructorCodeTarget.value === 'core') {
+    return {
+      code: constructorCoreCode.value,
+      id: 'constructor-core-code',
+      label: 'Core package'
+    };
+  }
 
-function onConstructorAnswerComplete(detail: Context7WidgetAnswerCompleteEventDetail) {
-  constructorStats.answers += 1;
-  constructorStats.lastAnswer = detail.answer;
-}
-
-function onConstructorError(detail: Context7WidgetErrorEventDetail) {
-  constructorStats.errors += 1;
-  constructorStats.lastError = typeof detail.error === 'string' ? detail.error : detail.error.message;
-}
+  return {
+    code: constructorVueCode.value,
+    id: 'constructor-vue-code',
+    label: 'Vue component'
+  };
+});
 
 async function sendConstructorPrompt() {
   await constructorWidget.value?.send('Show me the fastest Vue install path.');

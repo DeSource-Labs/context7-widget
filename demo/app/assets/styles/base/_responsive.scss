@@ -23,7 +23,6 @@
   .preset-strip,
   .recipe-grid,
   .constructor-shell,
-  .constructor-code,
   .customization-playbook,
   .token-grid,
   .parts-grid,
@@ -49,6 +48,16 @@
 
   .hero-widget-dialog {
     width: 100%;
+  }
+
+  .constructor-controls,
+  .constructor-preview {
+    height: auto;
+  }
+
+  .constructor-controls__panel {
+    min-height: 27rem;
+    overflow: visible;
   }
 }
 
@@ -96,7 +105,8 @@
     flex-direction: column;
   }
 
-  .constructor-controls,
+  .constructor-controls__panel,
+  .constructor-fields-grid,
   .constructor-trigger-modes,
   .constructor-size-grid,
   .constructor-toggles,
@@ -104,17 +114,8 @@
     grid-template-columns: 1fr;
   }
 
-  .constructor-preview__header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .constructor-stage {
-    min-height: 690px;
-  }
-
   .constructor-device {
-    min-height: 650px;
+    min-height: 540px;
   }
 
   .constructor-highlight-grid {

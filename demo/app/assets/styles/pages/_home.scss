@@ -54,9 +54,7 @@
 .token-card::after,
 .parts-grid article::after,
 .customization-playbook article::after,
-.constructor-controls::after,
-.constructor-preview::after,
-.constructor-code::after {
+.constructor-controls::after {
   background: linear-gradient(115deg, transparent 10%, rgba(247, 242, 232, 0.14), transparent 38%);
   content: '';
   inset: -45% -60%;
@@ -86,9 +84,7 @@
 .token-card:hover::after,
 .parts-grid article:hover::after,
 .customization-playbook article:hover::after,
-.constructor-controls:hover::after,
-.constructor-preview:hover::after,
-.constructor-code:hover::after {
+.constructor-controls:hover::after {
   opacity: 1;
   transform: translateX(16%) rotate(9deg);
 }

@@ -12,6 +12,7 @@
 
   min-width: 0;
   overflow: hidden;
+  position: relative;
 }
 
 .code-block__bar {
@@ -31,10 +32,16 @@
   color: var(--ink);
   height: 2rem;
   width: 2rem;
-}
 
-.icon-button:hover {
-  background: rgba(247, 242, 232, 0.08);
+  &:hover {
+    background: rgba(247, 242, 232, 0.08);
+  }
+
+  &--fixed {
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+  }
 }
 
 .code-block pre {
