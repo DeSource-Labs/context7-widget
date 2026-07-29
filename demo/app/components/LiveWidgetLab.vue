@@ -139,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquare } from 'lucide-vue-next';
+import { MessageSquare } from '@lucide/vue';
 import {
   Context7Widget,
   type Context7LauncherVariant,

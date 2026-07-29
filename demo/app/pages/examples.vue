@@ -442,7 +442,7 @@
 </template>
 
 <script setup lang="ts">
-import { ExternalLink, MessageSquare, Search } from 'lucide-vue-next';
+import { ExternalLink, MessageSquare, Search } from '@lucide/vue';
 import {
   buildContext7WidgetScriptTag,
   type Context7LauncherVariant,

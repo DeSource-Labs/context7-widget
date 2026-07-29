@@ -22,7 +22,7 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Github :size="18" aria-hidden="true" />
+          <GitFork :size="18" aria-hidden="true" />
           GitHub
         </a>
       </template>
@@ -145,17 +145,7 @@ context7-widget::part(send-button) {
 </template>
 
 <script setup lang="ts">
-import {
-  ArrowUp,
-  BookOpen,
-  Braces,
-  Github,
-  Package,
-  Palette,
-  PanelRightOpen,
-  SlidersHorizontal,
-  X
-} from 'lucide-vue-next';
+import { ArrowUp, Braces, GitFork, Package, Palette, PanelRightOpen, SlidersHorizontal, X } from '@lucide/vue';
 
 const scriptInstall =
   `<script

@@ -17,7 +17,7 @@
   "dependencies": {
     "@desource/context7-widget": "workspace:*",
     "@desource/context7-widget-vue": "workspace:*",
-    "lucide-vue-next": "^1.0.0",
+    "@lucide/vue": "^1.27.0",
     "nuxt": "^4.4.8",
     "postprocessing": "^6.39.2",
     "three": "^0.185.1",
@@ -25,7 +25,6 @@
   },
   "devDependencies": {
     "@types/three": "^0.185.1",
-    "sass": "^1.101.0",
     "vue-tsc": "^3.3.7"
   }
 }

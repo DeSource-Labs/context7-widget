@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquare, Wand2 } from 'lucide-vue-next';
+import { MessageSquare, Wand2 } from '@lucide/vue';
 import { Context7Widget, type Context7WidgetCustomTrigger } from '@desource/context7-widget-vue';
 import { parseLiveExampleQuery } from '~/utils/live-example';
 

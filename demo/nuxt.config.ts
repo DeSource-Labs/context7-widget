@@ -36,8 +36,13 @@ export default defineNuxtConfig({
     }
   },
   vite: {
+    build: {
+      modulePreload: {
+        polyfill: false
+      }
+    },
     optimizeDeps: {
-      include: ['lucide-vue-next', 'postprocessing', 'three']
+      include: ['@lucide/vue', 'postprocessing', 'three']
     }
   },
   typescript: {
