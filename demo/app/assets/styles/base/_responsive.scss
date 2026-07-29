@@ -10,11 +10,6 @@
 }
 
 @media (max-width: 980px) {
-  .site-hero__layout {
-    grid-template-columns: 1fr;
-    padding: clamp(5rem, 8dvh, 6rem) 0 clamp(5rem, 7dvh, 5.75rem);
-  }
-
   .path-grid,
   .audience-grid,
   .install-grid,
@@ -37,6 +32,23 @@
     min-height: 720px;
   }
 
+  .constructor-controls,
+  .constructor-preview {
+    height: auto;
+  }
+
+  .constructor-controls__panel {
+    min-height: 27rem;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 800px) {
+  .site-hero__layout {
+    grid-template-columns: 1fr;
+    padding: clamp(5rem, 8dvh, 6rem) 0 clamp(5rem, 7dvh, 5.75rem);
+  }
+
   .site-hero__product {
     justify-self: stretch;
   }
@@ -48,16 +60,6 @@
 
   .hero-widget-dialog {
     width: 100%;
-  }
-
-  .constructor-controls,
-  .constructor-preview {
-    height: auto;
-  }
-
-  .constructor-controls__panel {
-    min-height: 27rem;
-    overflow: visible;
   }
 }
 
@@ -109,8 +111,7 @@
   .constructor-fields-grid,
   .constructor-trigger-modes,
   .constructor-size-grid,
-  .constructor-toggles,
-  .constructor-highlight-grid {
+  .constructor-toggles {
     grid-template-columns: 1fr;
   }
 
@@ -125,8 +126,11 @@
   .constructor-device__open span {
     display: none;
   }
+}
 
+@media (max-width: 480px) {
   .constructor-highlight-grid {
+    grid-template-columns: 1fr;
     margin-top: 1rem;
     position: static;
     width: auto;

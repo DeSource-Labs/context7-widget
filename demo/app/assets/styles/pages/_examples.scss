@@ -272,7 +272,7 @@
 
 .constructor-preview {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
   background:
     radial-gradient(circle at 20% 20%, rgba(124, 255, 178, 0.1), transparent 19rem),
     radial-gradient(circle at 78% 72%, rgba(122, 184, 255, 0.12), transparent 20rem), rgba(7, 12, 10, 0.5);
@@ -668,30 +668,72 @@
 }
 
 .constructor-code {
-  display: grid;
-  grid-template-columns: 1fr;
   background: rgba(247, 242, 232, 0.055);
+  min-height: 0;
+
   .code-block pre {
     font-size: 0.7rem;
   }
 }
 
 .constructor-code__tabs {
-  border-bottom: 1px solid var(--line);
-  padding: 0 0.65rem;
+  align-items: center;
+  backdrop-filter: blur(14px);
+  background: rgba(8, 14, 11, 0.9);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  gap: 0.15rem;
+  left: 0.5rem;
+  max-width: calc(100% - 3.75rem);
+  padding: 0.2rem;
+  position: absolute;
+  top: 0.5rem;
+  z-index: 2;
+  font-size: 0.8rem;
+
+  button {
+    border: 0;
+    border-radius: 6px;
+    min-height: 2rem;
+    padding: 0 0.6rem;
+  }
+
+  button[aria-selected='true'] {
+    background: var(--green);
+    color: #101513;
+  }
 }
 
 .constructor-code__panel {
+  height: 100%;
+  min-height: 0;
   min-width: 0;
+  overflow: hidden;
 
   .code-block {
     background: transparent;
     border: 0;
     border-radius: 0;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .icon-button--fixed {
+    backdrop-filter: blur(14px);
+    background: rgba(8, 14, 11, 0.9);
+    border: 1px solid var(--line);
+    z-index: 3;
+    height: 2.5rem;
+    width: 2.5rem;
   }
 
   .code-block pre {
-    max-height: 20rem;
+    box-sizing: border-box;
+    height: 100%;
+    max-height: none;
+    overflow: auto;
+    padding: 3.5rem 1rem 1rem;
+    scrollbar-gutter: stable;
   }
 }
 
