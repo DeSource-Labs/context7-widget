@@ -66,6 +66,7 @@
 }
 
 .site-hero__layout {
+  pointer-events: none;
   align-items: center;
   display: grid;
   gap: clamp(2.5rem, 7vw, 6.5rem);
