@@ -118,6 +118,14 @@
     min-height: 540px;
   }
 
+  .live-example-page.constructor-device {
+    min-height: 100dvh;
+  }
+
+  .constructor-device__open span {
+    display: none;
+  }
+
   .constructor-highlight-grid {
     margin-top: 1rem;
     position: static;

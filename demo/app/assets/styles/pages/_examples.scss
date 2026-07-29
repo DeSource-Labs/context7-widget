@@ -522,21 +522,21 @@
   min-height: 2.65rem;
   padding: 0 0.85rem;
 
-  span {
+  > span {
     border-radius: 999px;
     height: 0.55rem;
     width: 0.55rem;
   }
 
-  span:nth-child(1) {
+  > span:nth-child(1) {
     background: var(--rose);
   }
 
-  span:nth-child(2) {
+  > span:nth-child(2) {
     background: var(--orange);
   }
 
-  span:nth-child(3) {
+  > span:nth-child(3) {
     background: var(--green);
   }
 
@@ -544,20 +544,56 @@
     color: var(--constructor-muted);
     font-size: 0.78rem;
     margin-left: 0.45rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
+.constructor-device__open {
+  align-items: center;
+  background: var(--constructor-card);
+  border: 1px solid var(--constructor-border);
+  border-radius: 6px;
+  color: var(--constructor-color);
+  display: inline-flex;
+  flex: none;
+  font-size: 0.72rem;
+  font-weight: 800;
+  gap: 0.4rem;
+  margin-left: auto;
+  min-height: 1.9rem;
+  padding: 0 0.65rem;
+  text-decoration: none;
+}
+
 .constructor-device__body {
+  background: var(--constructor-surface);
+  border: 0;
+  display: block;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.live-example-page.constructor-device {
+  border: 0;
+  box-shadow: none;
+  grid-template-rows: minmax(0, 1fr);
+  height: 100dvh;
+  min-height: 100dvh;
+  width: 100%;
+}
+
+.live-example-stage {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  isolation: isolate;
-  min-height: 0;
-  overflow: hidden;
-  overflow: clip;
+  min-height: 100%;
+  overflow: auto;
   padding: clamp(1rem, 3vw, 2rem);
   position: relative;
-  transform: translateZ(0);
 }
 
 .constructor-doc {
@@ -569,9 +605,12 @@
     color: var(--constructor-accent);
   }
 
+  h1,
   h3 {
     font-size: clamp(1.9rem, 4vw, 4.2rem);
     line-height: 0.95;
+    margin: 0;
+    max-width: none;
   }
 
   p:not(.eyebrow) {
@@ -626,10 +665,6 @@
   border-radius: 999px;
   height: 0.58rem;
   width: 0.58rem;
-}
-
-.constructor-widget .context7-widget {
-  --c7-z-index: 10;
 }
 
 .constructor-code {

@@ -267,62 +267,23 @@
               <span />
               <span />
               <strong>Live preview · {{ constructorPreset }} · {{ constructorPosition }}</strong>
-            </div>
-
-            <div class="constructor-device__body">
-              <div class="constructor-doc">
-                <p class="eyebrow">Widget surface</p>
-                <h3>{{ constructorTitle }}</h3>
-                <p>{{ constructorPlaceholder }}</p>
-              </div>
-
-              <button
-                v-if="constructorTriggerMode === 'external'"
-                id="examples-constructor-trigger"
-                class="constructor-external-trigger"
-                type="button"
+              <a
+                class="constructor-device__open"
+                :href="constructorLiveExampleUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open selected live example in a new tab"
               >
-                <MessageSquare :size="18" aria-hidden="true" />
-                {{ constructorLauncherLabel }}
-              </button>
-
-              <div class="constructor-highlight-grid">
-                <span v-for="item in constructorHighlights" :key="item.label">
-                  <small>{{ item.label }}</small>
-                  {{ item.value }}
-                </span>
-              </div>
-
-              <div class="constructor-widget">
-                <Context7Widget
-                  ref="constructorWidget"
-                  :key="constructorWidgetKey"
-                  :backdrop="constructorBackdrop"
-                  :close-on-outside-click="constructorCloseOnOutsideClick"
-                  :color="constructorColor || undefined"
-                  :custom-trigger="constructorCustomTrigger"
-                  :default-open="constructorDefaultOpen"
-                  :initial-message="constructorInitialMessage"
-                  :launcher-label="constructorLauncherLabel"
-                  :launcher-variant="constructorLauncherVariant"
-                  :library="constructorLibrary"
-                  :panel-height="constructorPanelHeight"
-                  :panel-width="constructorPanelWidth"
-                  :placeholder="constructorPlaceholder"
-                  :position="constructorPosition"
-                  :preset="constructorPreset"
-                  :theme="constructorTheme"
-                  :title="constructorTitle"
-                  :widget-id="constructorWidgetId"
-                >
-                  <template v-if="constructorUsesTriggerSlot" #trigger="{ label }">
-                    <span class="constructor-trigger-dot" />
-                    <span>{{ label }}</span>
-                    <Wand2 :size="16" aria-hidden="true" />
-                  </template>
-                </Context7Widget>
-              </div>
+                <ExternalLink :size="15" aria-hidden="true" />
+                <span>Open in new tab</span>
+              </a>
             </div>
+
+            <iframe
+              class="constructor-device__body"
+              :src="constructorLiveExampleUrl"
+              :title="`${constructorTitle} live preview`"
+            />
           </div>
 
           <div class="constructor-code">
@@ -481,7 +442,7 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquare, Search, Send, Wand2 } from 'lucide-vue-next';
+import { ExternalLink, MessageSquare, Search } from 'lucide-vue-next';
 import {
   buildContext7WidgetScriptTag,
   type Context7LauncherVariant,
@@ -490,14 +451,8 @@ import {
   type Context7WidgetPreset,
   type Context7WidgetScriptOptions
 } from '@desource/context7-widget';
-import {
-  Context7Widget,
-  type Context7WidgetAnswerCompleteEventDetail,
-  type Context7WidgetCustomTrigger,
-  type Context7WidgetErrorEventDetail,
-  type Context7WidgetExpose,
-  type Context7WidgetQuestionEventDetail
-} from '@desource/context7-widget-vue';
+import { Context7Widget } from '@desource/context7-widget-vue';
+import { buildLiveExampleUrl, LIVE_EXAMPLE_DEFAULTS, type LiveExampleTriggerMode } from '~/utils/live-example';
 
 const themeOptions = ['auto', 'light', 'dark'] as const satisfies readonly Context7Theme[];
 const positionOptions = [
@@ -548,65 +503,58 @@ const constructorCodeOptions = [
   { label: 'Core', value: 'core' }
 ] as const;
 
-type ConstructorTriggerMode = (typeof triggerModes)[number]['value'];
+type ConstructorTriggerMode = LiveExampleTriggerMode;
 type ConstructorControlPanel = (typeof constructorControlPanels)[number]['value'];
 type ConstructorCodeTarget = (typeof constructorCodeOptions)[number]['value'];
 
-const constructorLibrary = ref('/desource-labs/context7-widget');
-const constructorTitle = ref('Context7 Widget Docs');
-const constructorWidgetId = ref('docs-widget');
-const constructorInitialMessage = ref(
-  "Hello! I'm here to help with **{library}** docs.\n\nAsk about setup, props, events, styling, or integration patterns."
-);
-const constructorPlaceholder = ref('Ask integration questions...');
-const constructorTheme = ref<Context7Theme>('auto');
-const constructorPosition = ref<Context7Position>('anchor');
-const constructorPreset = ref<Context7WidgetPreset>('glass');
-const constructorLauncherVariant = ref<Context7LauncherVariant>('pill');
-const constructorTriggerMode = ref<ConstructorTriggerMode>('slot');
-const constructorColor = ref('');
-const constructorPanelWidth = ref('440px');
-const constructorPanelHeight = ref('460px');
-const constructorLauncherLabel = ref('Ask docs');
-const constructorBackdrop = ref(false);
-const constructorCloseOnOutsideClick = ref(true);
-const constructorDefaultOpen = ref(false);
+const constructorLibrary = ref<string>(LIVE_EXAMPLE_DEFAULTS.library);
+const constructorTitle = ref<string>(LIVE_EXAMPLE_DEFAULTS.title);
+const constructorWidgetId = ref<string>(LIVE_EXAMPLE_DEFAULTS.widgetId);
+const constructorInitialMessage = ref<string>(LIVE_EXAMPLE_DEFAULTS.initialMessage);
+const constructorPlaceholder = ref<string>(LIVE_EXAMPLE_DEFAULTS.placeholder);
+const constructorTheme = ref<Context7Theme>(LIVE_EXAMPLE_DEFAULTS.theme);
+const constructorPosition = ref<Context7Position>(LIVE_EXAMPLE_DEFAULTS.position);
+const constructorPreset = ref<Context7WidgetPreset>(LIVE_EXAMPLE_DEFAULTS.preset);
+const constructorLauncherVariant = ref<Context7LauncherVariant>(LIVE_EXAMPLE_DEFAULTS.launcherVariant);
+const constructorTriggerMode = ref<ConstructorTriggerMode>(LIVE_EXAMPLE_DEFAULTS.triggerMode);
+const constructorColor = ref<string>(LIVE_EXAMPLE_DEFAULTS.color);
+const constructorPanelWidth = ref<string>(LIVE_EXAMPLE_DEFAULTS.panelWidth);
+const constructorPanelHeight = ref<string>(LIVE_EXAMPLE_DEFAULTS.panelHeight);
+const constructorLauncherLabel = ref<string>(LIVE_EXAMPLE_DEFAULTS.launcherLabel);
+const constructorBackdrop = ref<boolean>(LIVE_EXAMPLE_DEFAULTS.backdrop);
+const constructorCloseOnOutsideClick = ref<boolean>(LIVE_EXAMPLE_DEFAULTS.closeOnOutsideClick);
+const constructorDefaultOpen = ref<boolean>(LIVE_EXAMPLE_DEFAULTS.defaultOpen);
 const constructorControlPanel = ref<ConstructorControlPanel>('content');
 const constructorCodeTarget = ref<ConstructorCodeTarget>('vue');
-const constructorWidget = useTemplateRef('constructorWidget');
 
 const activeControlPanelLabel = computed(
   () => constructorControlPanels.find((panel) => panel.value === constructorControlPanel.value)?.label ?? 'Content'
 );
 const constructorUsesTriggerSlot = computed(() => constructorTriggerMode.value === 'slot');
-const constructorCustomTrigger = computed<Context7WidgetCustomTrigger | undefined>(() => {
-  if (constructorTriggerMode.value === 'none') return undefined;
-  if (constructorTriggerMode.value === 'external') return 'examples-constructor-trigger';
-  return true;
-});
 const constructorDeviceStyle = computed(() => ({
   '--constructor-accent': constructorColor.value || undefined
 }));
-const constructorWidgetKey = computed(() =>
-  [
-    constructorLibrary.value,
-    constructorInitialMessage.value,
-    constructorTriggerMode.value,
-    constructorPreset.value,
-    constructorTheme.value,
-    constructorPosition.value,
-    constructorWidgetId.value
-  ].join('|')
+const constructorLiveExampleUrl = computed(() =>
+  buildLiveExampleUrl({
+    backdrop: constructorBackdrop.value,
+    closeOnOutsideClick: constructorCloseOnOutsideClick.value,
+    color: constructorColor.value,
+    defaultOpen: constructorDefaultOpen.value,
+    initialMessage: constructorInitialMessage.value,
+    launcherLabel: constructorLauncherLabel.value,
+    launcherVariant: constructorLauncherVariant.value,
+    library: constructorLibrary.value,
+    panelHeight: constructorPanelHeight.value,
+    panelWidth: constructorPanelWidth.value,
+    placeholder: constructorPlaceholder.value,
+    position: constructorPosition.value,
+    preset: constructorPreset.value,
+    theme: constructorTheme.value,
+    title: constructorTitle.value,
+    triggerMode: constructorTriggerMode.value,
+    widgetId: constructorWidgetId.value
+  })
 );
-const constructorHighlights = computed(() => [
-  { label: 'theme', value: constructorTheme.value },
-  {
-    label: 'trigger',
-    value: triggerModes.find((mode) => mode.value === constructorTriggerMode.value)?.label ?? 'built-in'
-  },
-  { label: 'accent', value: constructorColor.value || 'preset' },
-  { label: 'size', value: `${constructorPanelWidth.value} x ${constructorPanelHeight.value}` }
-]);
 
 const constructorVueCode = computed(() => {
   const props = [
@@ -766,10 +714,6 @@ const selectedConstructorCode = computed(() => {
     label: 'Vue component'
   };
 });
-
-async function sendConstructorPrompt() {
-  await constructorWidget.value?.send('Show me the fastest Vue install path.');
-}
 
 function vueStringProp(name: string, value: string): string {
   return `${name}="${escapeAttribute(value)}"`;
