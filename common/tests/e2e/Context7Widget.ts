@@ -20,15 +20,25 @@ const CONTEXT7_CHAT_ENDPOINT = 'https://context7.com/api/v2/widget/chat';
 
 export function testContext7WidgetDemo(containerSelector: string, selectors: Context7WidgetSelectors): void {
   test.describe('Context7Widget demo', () => {
+    let browserErrors: string[];
     let container: Locator;
     let widget: Locator;
 
     test.beforeEach(async ({ page }) => {
+      browserErrors = [];
+      page.on('console', (message) => {
+        if (message.type() === 'error') browserErrors.push(message.text());
+      });
+      page.on('pageerror', (error) => browserErrors.push(error.message));
       await mockContext7Chat(page);
       await page.goto('/');
 
       container = page.locator(containerSelector);
       widget = container.locator(selectors.widget);
+    });
+
+    test.afterEach(() => {
+      expect(browserErrors).toEqual([]);
     });
 
     test('renders managed trigger and opens the anchored panel', async () => {
@@ -143,6 +153,38 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
           })
         )
         .toBe(true);
+    });
+
+    test('keeps centered-dialog focus inside the panel', async ({ page }) => {
+      await container.locator(selectors.position).selectOption('center');
+      await container.locator('.context7-widget-trigger').click();
+
+      const close = widget.getByRole('button', { name: 'Close chat' });
+      const input = widget.getByRole('textbox', { name: 'Ask a documentation question' });
+      const brandingLinks = widget.locator('[part~="footer"] a');
+      const lastLink = brandingLinks.last();
+      await expect(input).toBeFocused();
+      await lastLink.focus();
+      await page.keyboard.press('Tab');
+      await expect(close).toBeFocused();
+
+      await page.keyboard.press('Shift+Tab');
+      await expect
+        .poll(() =>
+          lastLink.evaluate((element) => {
+            const root = element.getRootNode();
+            return 'activeElement' in root && root.activeElement === element;
+          })
+        )
+        .toBe(true);
+    });
+
+    test('keeps mobile inputs at a zoom-safe font size', async ({ page }) => {
+      await page.setViewportSize({ height: 844, width: 390 });
+      await container.locator('.context7-widget-trigger').click();
+
+      const input = widget.getByRole('textbox', { name: 'Ask a documentation question' });
+      await expect(input).toHaveCSS('font-size', '16px');
     });
   });
 }

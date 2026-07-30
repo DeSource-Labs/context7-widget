@@ -1,6 +1,6 @@
 import { createApp, defineComponent, h, nextTick, ref, type App } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Context7Widget, useContext7Widget, type Context7WidgetExpose } from '../../src';
+import { Context7Widget, createContext7WidgetPlugin, useContext7Widget, type Context7WidgetExpose } from '../../src';
 import { createSseStream } from '../../../../common/tests/unit/stream';
 import { expectAlwaysVisibleBranding } from '../../../../common/tests/unit/widget-contract';
 
@@ -290,6 +290,43 @@ describe('@desource/context7-widget-vue', () => {
     expect(root.querySelector('.context7-widget')?.getAttribute('preset')).toBe('terminal');
   });
 
+  it('inherits plugin defaults in composable-owned widgets', async () => {
+    const target = document.createElement('div');
+    const hostRoot = document.createElement('div');
+    document.body.append(target, hostRoot);
+
+    const Host = defineComponent({
+      setup() {
+        return {
+          controller: useContext7Widget({
+            autoMount: true,
+            target
+          })
+        };
+      },
+      render: () => h('div')
+    });
+    const hostApp = createApp(Host);
+    mountedApps.push(hostApp);
+    hostApp.use(
+      createContext7WidgetPlugin({
+        defaults: {
+          library: '/plugin/defaults',
+          preset: 'terminal',
+          widgetId: 'plugin-docs'
+        }
+      })
+    );
+    hostApp.mount(hostRoot);
+
+    await nextTick();
+
+    const widget = target.querySelector('.context7-widget');
+    expect(widget?.getAttribute('library')).toBe('/plugin/defaults');
+    expect(widget?.getAttribute('preset')).toBe('terminal');
+    expect(widget?.getAttribute('widget-id')).toBe('plugin-docs');
+  });
+
   it('throws a useful composable error when mounting without a library', async () => {
     let controller: ReturnType<typeof useContext7Widget> | undefined;
     const root = mount(() =>
@@ -305,6 +342,10 @@ describe('@desource/context7-widget-vue', () => {
     await nextTick();
     expect(root).toBeTruthy();
     expect(() => controller?.mount()).toThrow('useContext7Widget mount requires a library option.');
+  });
+
+  it('throws a focused error when the composable is called outside component setup', () => {
+    expect(() => useContext7Widget()).toThrow('useContext7Widget must be called during a Vue component setup.');
   });
 
   it('isolates replacement requests from stale frames after cancellation', async () => {

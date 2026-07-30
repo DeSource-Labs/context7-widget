@@ -73,4 +73,29 @@ describe('createContext7WidgetPlugin', () => {
     expect(root.querySelector('.context7-widget')?.getAttribute('preset')).toBe('default');
     expect(document.querySelectorAll('.context7-widget')).toHaveLength(1);
   });
+
+  it('captures plugin defaults so later option mutations cannot change app behavior', async () => {
+    const root = document.createElement('div');
+    document.body.append(root);
+    const defaults = { library: '/initial/docs', preset: 'glass' } as const;
+    const options: {
+      componentName: string;
+      defaults: { library: string; preset: 'glass' };
+    } = {
+      componentName: '  Context7Widget  ',
+      defaults: { ...defaults }
+    };
+    const Root = defineComponent({
+      render: () => h(resolveComponent('Context7Widget'))
+    });
+    const app = createApp(Root);
+    mountedApps.push(app);
+    app.use(createContext7WidgetPlugin(options));
+    options.defaults.library = '/mutated/docs';
+    app.mount(root);
+    await nextTick();
+
+    expect(root.querySelector('.context7-widget')?.getAttribute('library')).toBe('/initial/docs');
+    expect(root.querySelector('.context7-widget')?.getAttribute('preset')).toBe('glass');
+  });
 });
