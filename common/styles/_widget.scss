@@ -43,6 +43,12 @@
     z-index: var(--c7-z-index);
   }
 
+  @supports (height: 100dvh) {
+    & {
+      --c7-panel-height: min(600px, calc(100dvh - 120px));
+    }
+  }
+
   &[theme='dark'] {
     --c7-border-color: rgba(255, 255, 255, 0.14);
     --c7-control-background: #0b0b0c;
@@ -395,7 +401,7 @@
     background: var(--c7-launcher-background);
     border: 0;
     border-radius: var(--c7-launcher-radius);
-    bottom: 20px;
+    bottom: max(20px, env(safe-area-inset-bottom));
     box-shadow: var(--c7-launcher-shadow);
     color: var(--c7-launcher-color);
     cursor: pointer;
@@ -405,7 +411,7 @@
     justify-content: center;
     padding: 0;
     position: fixed;
-    right: 20px;
+    right: max(20px, env(safe-area-inset-right));
     transition:
       box-shadow 160ms ease,
       opacity 160ms ease,
@@ -467,20 +473,20 @@
   }
 
   &[position='bottom-left'] .c7-launcher {
-    left: 20px;
+    left: max(20px, env(safe-area-inset-left));
     right: auto;
   }
 
   &[position='top-right'] .c7-launcher {
     bottom: auto;
-    top: 20px;
+    top: max(20px, env(safe-area-inset-top));
   }
 
   &[position='top-left'] .c7-launcher {
     bottom: auto;
-    left: 20px;
+    left: max(20px, env(safe-area-inset-left));
     right: auto;
-    top: 20px;
+    top: max(20px, env(safe-area-inset-top));
   }
 
   &[custom-trigger-active] .c7-launcher {
@@ -546,6 +552,7 @@
     bottom: auto;
     left: 50%;
     max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
     max-width: calc(100vw - 32px);
     right: auto;
     top: 50%;
@@ -561,6 +568,7 @@
     bottom: auto;
     left: var(--c7-anchor-left, 20px);
     max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
     max-width: calc(100vw - 24px);
     right: auto;
     top: var(--c7-anchor-top, 20px);
@@ -974,8 +982,10 @@
       border-right: 0;
       bottom: 0;
       height: min(82vh, 720px);
+      height: min(82dvh, 720px);
       left: 0;
       max-height: calc(100vh - 12px);
+      max-height: calc(100dvh - 12px);
       right: 0;
       top: auto;
       transform: translateY(100%);
@@ -993,7 +1003,9 @@
       border-radius: var(--c7-panel-radius);
       bottom: auto;
       height: min(var(--c7-panel-height), calc(100vh - 28px));
+      height: min(var(--c7-panel-height), calc(100dvh - 28px));
       max-height: calc(100vh - 28px);
+      max-height: calc(100dvh - 28px);
       max-width: calc(100vw - 24px);
       right: auto;
       width: min(var(--c7-panel-width), calc(100vw - 24px));
@@ -1022,8 +1034,8 @@
     }
 
     .c7-launcher {
-      bottom: 16px;
-      right: 16px;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      right: max(16px, env(safe-area-inset-right));
     }
 
     .c7-composer {
@@ -1032,20 +1044,21 @@
     }
 
     .c7-input {
-      font-size: 14px;
+      // iOS zooms the viewport when focusing form controls below 16px.
+      font-size: 16px;
       padding-inline: 10px;
     }
 
     &[position='bottom-left'] .c7-launcher,
     &[position='top-left'] .c7-launcher {
-      left: 16px;
+      left: max(16px, env(safe-area-inset-left));
       right: auto;
     }
 
     &[position='top-right'] .c7-launcher,
     &[position='top-left'] .c7-launcher {
       bottom: auto;
-      top: 16px;
+      top: max(16px, env(safe-area-inset-top));
     }
   }
 }
