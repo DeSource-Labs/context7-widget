@@ -632,7 +632,7 @@ const onKeyDown = (event: KeyboardEvent) => {
     return;
   }
   if (event.key === 'Tab' && isOpen.value && resolvedPosition.value === 'center' && root.value) {
-    trapFocus(event, root.value);
+    if (panel.value) trapFocus(event, panel.value);
   }
 };
 

@@ -143,7 +143,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     }
 
     if (event.key !== 'Tab' || !this.isOpen() || this.config.position !== 'center') return;
-    trapFocus(event, this.root, true);
+    trapFocus(event, this.panel);
   };
 
   private readonly onCloseClick = () => {
@@ -752,7 +752,8 @@ export class Context7WidgetElement extends BaseHTMLElement {
       registryStacks.delete(this.registeredId);
       registry.delete(this.registeredId);
     } else {
-      registry.set(this.registeredId, registrations[registrations.length - 1]);
+      const previous = registrations[registrations.length - 1];
+      if (previous) registry.set(this.registeredId, previous);
     }
     this.registeredId = '';
   }
@@ -824,7 +825,8 @@ export class Context7WidgetElement extends BaseHTMLElement {
 export function defineContext7Widget(tagName = 'context7-widget'): void {
   if (typeof customElements === 'undefined') return;
   if (customElements.get(tagName)) return;
-  customElements.define(tagName, Context7WidgetElement);
+  const WidgetElement = tagName === 'context7-widget' ? Context7WidgetElement : class extends Context7WidgetElement {};
+  customElements.define(tagName, WidgetElement);
 }
 
 function installGlobalApi(): void {

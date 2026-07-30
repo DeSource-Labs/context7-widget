@@ -88,7 +88,7 @@ export function restoreTriggerAccessibility(state: Context7TriggerA11yState): vo
   restoreAttribute(state.element, 'aria-haspopup', state.ariaHasPopup);
 }
 
-export function trapFocus(event: KeyboardEvent, container: HTMLElement | ShadowRoot, isRoot = false): void {
+export function trapFocus(event: KeyboardEvent, container: HTMLElement | ShadowRoot): void {
   const focusable = Array.from(
     container.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -100,7 +100,8 @@ export function trapFocus(event: KeyboardEvent, container: HTMLElement | ShadowR
   const last = focusable[focusable.length - 1];
   if (!first || !last) return;
 
-  const active = (isRoot ? (container as ShadowRoot) : document).activeElement;
+  const root = container instanceof ShadowRoot ? container : container.getRootNode();
+  const active = root instanceof ShadowRoot ? root.activeElement : document.activeElement;
 
   if (event.shiftKey && active === first) {
     event.preventDefault();
