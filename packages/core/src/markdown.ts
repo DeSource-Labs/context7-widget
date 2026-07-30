@@ -7,94 +7,105 @@ export function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
+type ListKind = 'ol' | 'ul';
+
+interface MarkdownState {
+  codeFence: string[] | null;
+  list: ListKind | null;
+  output: string[];
+  paragraph: string[];
+}
+
 export function renderMarkdown(markdown: string): string {
-  const lines = markdown.replace(/\r\n/g, '\n').split('\n');
-  const output: string[] = [];
-  let paragraph: string[] = [];
-  let list: 'ul' | 'ol' | null = null;
-  let codeFence: string[] | null = null;
+  const state: MarkdownState = {
+    codeFence: null,
+    list: null,
+    output: [],
+    paragraph: []
+  };
 
-  function flushParagraph() {
-    if (paragraph.length === 0) return;
-    output.push(`<p>${paragraph.join(' ')}</p>`);
-    paragraph = [];
+  for (const line of markdown.replace(/\r\n/g, '\n').split('\n')) {
+    consumeMarkdownLine(state, line);
   }
 
-  function closeList() {
-    if (!list) return;
-    output.push(`</${list}>`);
-    list = null;
+  if (state.codeFence !== null) state.output.push(renderCodeBlock(state.codeFence));
+  flushParagraph(state);
+  closeList(state);
+
+  return state.output.join('');
+}
+
+function consumeMarkdownLine(state: MarkdownState, rawLine: string): void {
+  if (/^\s*```/.test(rawLine)) {
+    toggleCodeFence(state);
+    return;
   }
 
-  function openList(kind: 'ul' | 'ol') {
-    if (list === kind) return;
-    closeList();
-    output.push(`<${kind}>`);
-    list = kind;
+  if (state.codeFence !== null) {
+    state.codeFence.push(rawLine);
+    return;
   }
 
-  for (const rawLine of lines) {
-    if (/^\s*```/.test(rawLine)) {
-      if (codeFence) {
-        output.push(renderCodeBlock(codeFence));
-        codeFence = null;
-      } else {
-        flushParagraph();
-        closeList();
-        codeFence = [];
-      }
-      continue;
-    }
+  consumeBlockLine(state, rawLine.trim());
+}
 
-    if (codeFence) {
-      codeFence.push(rawLine);
-      continue;
-    }
-
-    const line = rawLine.trim();
-    if (!line) {
-      flushParagraph();
-      closeList();
-      continue;
-    }
-
-    const unordered = line.match(/^[-*]\s+(.+)/);
-    if (unordered) {
-      flushParagraph();
-      openList('ul');
-      output.push(`<li>${renderInline(unordered[1] ?? '')}</li>`);
-      continue;
-    }
-
-    const ordered = line.match(/^\d+\.\s+(.+)/);
-    if (ordered) {
-      flushParagraph();
-      openList('ol');
-      output.push(`<li>${renderInline(ordered[1] ?? '')}</li>`);
-      continue;
-    }
-
-    const heading = line.match(/^(#{1,4})\s+(.+)/);
-    if (heading) {
-      flushParagraph();
-      closeList();
-      const level = Math.min((heading[1]?.length ?? 1) + 2, 6);
-      output.push(`<h${level}>${renderInline(heading[2] ?? '')}</h${level}>`);
-      continue;
-    }
-
-    closeList();
-    paragraph.push(renderInline(line));
+function toggleCodeFence(state: MarkdownState): void {
+  if (state.codeFence !== null) {
+    state.output.push(renderCodeBlock(state.codeFence));
+    state.codeFence = null;
+    return;
   }
 
-  if (codeFence) {
-    output.push(renderCodeBlock(codeFence));
+  flushParagraph(state);
+  closeList(state);
+  state.codeFence = [];
+}
+
+function consumeBlockLine(state: MarkdownState, line: string): void {
+  if (!line) {
+    flushParagraph(state);
+    closeList(state);
+    return;
   }
 
-  flushParagraph();
-  closeList();
+  const listItem = line.match(/^([-*]|\d+\.)\s+(.+)/);
+  if (listItem) {
+    flushParagraph(state);
+    openList(state, listItem[1]?.endsWith('.') ? 'ol' : 'ul');
+    state.output.push(`<li>${renderInline(listItem[2] ?? '')}</li>`);
+    return;
+  }
 
-  return output.join('');
+  const heading = line.match(/^(#{1,4})\s+(.+)/);
+  if (heading) {
+    flushParagraph(state);
+    closeList(state);
+    const level = Math.min((heading[1]?.length ?? 1) + 2, 6);
+    state.output.push(`<h${level}>${renderInline(heading[2] ?? '')}</h${level}>`);
+    return;
+  }
+
+  closeList(state);
+  state.paragraph.push(renderInline(line));
+}
+
+function flushParagraph(state: MarkdownState): void {
+  if (state.paragraph.length === 0) return;
+  state.output.push(`<p>${state.paragraph.join(' ')}</p>`);
+  state.paragraph = [];
+}
+
+function closeList(state: MarkdownState): void {
+  if (!state.list) return;
+  state.output.push(`</${state.list}>`);
+  state.list = null;
+}
+
+function openList(state: MarkdownState, kind: ListKind): void {
+  if (state.list === kind) return;
+  closeList(state);
+  state.output.push(`<${kind}>`);
+  state.list = kind;
 }
 
 function renderInline(value: string): string {

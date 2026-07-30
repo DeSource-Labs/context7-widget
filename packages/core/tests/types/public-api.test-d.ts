@@ -1,20 +1,19 @@
 import { getContext7Widget, type Context7WidgetInstance } from '../../src/index.js';
 
+declare function expectType<Type>(value: Type): void;
+
 const widget: Context7WidgetInstance | undefined = getContext7Widget('docs');
 widget?.cancel();
-void widget?.send('How do I configure the widget?');
+expectType<Promise<void> | undefined>(widget?.send('How do I configure the widget?'));
 
 document.addEventListener('c7:question', (event) => {
-  const question: string = event.detail.question;
-  const messageId: string = event.detail.message.id;
-  void question;
-  void messageId;
+  expectType<string>(event.detail.question);
+  expectType<string>(event.detail.message.id);
 });
 
 document.addEventListener('c7:ready', (event) => {
-  const library: string = event.detail.library;
-  void library;
+  expectType<string>(event.detail.library);
 
   // @ts-expect-error Lifecycle events intentionally have no question payload.
-  void event.detail.question;
+  expectType<string>(event.detail.question);
 });

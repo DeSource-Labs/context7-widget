@@ -1,29 +1,29 @@
 import { defineContext7Widget, type Context7WidgetElement } from './widget-element.js';
 
-const ATTRIBUTE_MAP: Array<[scriptAttribute: string, widgetAttribute: string]> = [
-  ['data-backdrop', 'backdrop'],
-  ['data-close-on-outside-click', 'close-on-outside-click'],
-  ['data-color', 'color'],
-  ['data-custom-trigger', 'custom-trigger'],
-  ['data-default-open', 'default-open'],
-  ['data-initial-message', 'initial-message'],
-  ['data-launcher-label', 'launcher-label'],
-  ['data-launcher-variant', 'launcher-variant'],
-  ['data-library', 'library'],
-  ['data-panel-height', 'panel-height'],
-  ['data-panel-width', 'panel-width'],
-  ['data-placeholder', 'placeholder'],
-  ['data-position', 'position'],
-  ['data-preset', 'preset'],
-  ['data-theme', 'theme'],
-  ['data-title', 'dialog-title'],
-  ['data-welcome-message', 'initial-message'],
-  ['data-widget-id', 'widget-id']
-];
+const DATASET_ATTRIBUTE_MAP = [
+  ['backdrop', 'backdrop'],
+  ['closeOnOutsideClick', 'close-on-outside-click'],
+  ['color', 'color'],
+  ['customTrigger', 'custom-trigger'],
+  ['defaultOpen', 'default-open'],
+  ['initialMessage', 'initial-message'],
+  ['launcherLabel', 'launcher-label'],
+  ['launcherVariant', 'launcher-variant'],
+  ['library', 'library'],
+  ['panelHeight', 'panel-height'],
+  ['panelWidth', 'panel-width'],
+  ['placeholder', 'placeholder'],
+  ['position', 'position'],
+  ['preset', 'preset'],
+  ['theme', 'theme'],
+  ['title', 'dialog-title'],
+  ['welcomeMessage', 'initial-message'],
+  ['widgetId', 'widget-id']
+] as const;
 
 export function mountContext7WidgetFromScript(script: HTMLScriptElement | null): Context7WidgetElement | null {
   if (!script || script.dataset.c7Mounted === 'true') return null;
-  const library = script.getAttribute('data-library');
+  const { library } = script.dataset;
 
   if (!library) {
     console.warn('[Context7 Widget] Missing data-library attribute.');
@@ -34,10 +34,10 @@ export function mountContext7WidgetFromScript(script: HTMLScriptElement | null):
 
   const widget = document.createElement('context7-widget');
 
-  for (const [scriptAttribute, widgetAttribute] of ATTRIBUTE_MAP) {
-    const value = script.getAttribute(scriptAttribute);
-    if (value === null) continue;
-    if (scriptAttribute === 'data-welcome-message' && widget.hasAttribute('initial-message')) continue;
+  for (const [datasetKey, widgetAttribute] of DATASET_ATTRIBUTE_MAP) {
+    const value = script.dataset[datasetKey];
+    if (value === undefined) continue;
+    if (datasetKey === 'welcomeMessage' && widget.hasAttribute('initial-message')) continue;
     widget.setAttribute(widgetAttribute, value);
   }
 
@@ -48,7 +48,7 @@ export function mountContext7WidgetFromScript(script: HTMLScriptElement | null):
 
 export function findCurrentWidgetScript(): HTMLScriptElement | null {
   const current = document.currentScript;
-  if (current instanceof HTMLScriptElement && current.hasAttribute('data-library')) {
+  if (current instanceof HTMLScriptElement && current.dataset.library !== undefined) {
     return current;
   }
 
