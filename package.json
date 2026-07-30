@@ -44,7 +44,7 @@
     "test:e2e": "pnpm -r --filter \"./packages/**\" --if-present --stream --workspace-concurrency=1 run test:e2e",
     "test:unit": "pnpm -r --filter \"./packages/**\" --if-present --stream run test:unit",
     "test:unit:coverage": "pnpm -r --filter \"./packages/**\" --if-present --stream run test:unit:coverage",
-    "typecheck": "pnpm -r --if-present --stream run typecheck",
+    "typecheck": "pnpm -r --filter \"./packages/**\" --if-present --stream run typecheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{svelte,vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",
