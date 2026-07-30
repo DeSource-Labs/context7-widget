@@ -6,16 +6,19 @@ import type { Context7WidgetProps } from './types';
 export interface Context7WidgetPluginOptions {
   componentName?: string;
   /** Default props inherited by every Context7Widget in this Vue app. */
-  defaults?: Partial<Context7WidgetProps>;
+  defaults?: Readonly<Partial<Context7WidgetProps>>;
 }
 
 export { context7WidgetDefaultsKey };
 
 export function createContext7WidgetPlugin(options: Context7WidgetPluginOptions = {}): Plugin {
+  const componentName = options.componentName?.trim() || 'Context7Widget';
+  const defaults = { ...options.defaults };
+
   return {
     install(app: App) {
-      app.component(options.componentName || 'Context7Widget', Context7Widget);
-      app.provide(context7WidgetDefaultsKey, options.defaults ?? {});
+      app.component(componentName, Context7Widget);
+      app.provide(context7WidgetDefaultsKey, defaults);
     }
   };
 }

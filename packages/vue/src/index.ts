@@ -40,5 +40,6 @@ export type {
   Context7WidgetEventName,
   Context7WidgetOptions,
   Context7WidgetController,
-  Context7WidgetPreset
+  Context7WidgetPreset,
+  Context7WidgetTarget
 } from '@desource/context7-widget/kit';

@@ -24,6 +24,7 @@ export function unregisterVueContext7Widget(widgetId: string, widget: Context7Wi
     registryStacks.delete(widgetId);
     registry.delete(widgetId);
   } else {
-    registry.set(widgetId, registrations[registrations.length - 1]);
+    const previous = registrations[registrations.length - 1];
+    if (previous) registry.set(widgetId, previous);
   }
 }

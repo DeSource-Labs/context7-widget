@@ -8,6 +8,8 @@ import {
 import {
   computed,
   createVNode,
+  getCurrentInstance,
+  inject,
   nextTick,
   onBeforeUnmount,
   onMounted,
@@ -23,6 +25,7 @@ import {
   type VNode
 } from 'vue';
 import Context7Widget from '../components/Context7Widget.vue';
+import { context7WidgetDefaultsKey } from '../internal/injection';
 import { getVueContext7Widget } from '../internal/registry';
 import type { Context7WidgetExpose, Context7WidgetProps } from '../types';
 
@@ -53,6 +56,13 @@ export interface UseContext7WidgetReturn {
 }
 
 export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOptions> = {}): UseContext7WidgetReturn {
+  const instance = getCurrentInstance();
+  if (!instance) {
+    throw new Error('useContext7Widget must be called during a Vue component setup.');
+  }
+
+  const appContext = instance.appContext;
+  const defaults = inject(context7WidgetDefaultsKey, {});
   const widget = shallowRef<HTMLElement | null>(null);
   const controller = shallowRef<Context7WidgetExpose | null>(null);
   const isBusy = ref(false);
@@ -66,6 +76,7 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
   let unsubscribe: (() => void) | null = null;
 
   const options = computed<UseContext7WidgetOptions>(() => ({
+    ...defaults,
     ...toValue(source),
     ...mountOverrides.value
   }));
@@ -98,11 +109,11 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
 
   function mount(overrides: Partial<Context7WidgetProps> = {}): HTMLElement {
     assertBrowser();
-    mountOverrides.value = { ...overrides };
     const nextOptions = { ...options.value, ...overrides };
     if (!nextOptions.library) {
       throw new Error('useContext7Widget mount requires a library option.');
     }
+    mountOverrides.value = { ...overrides };
 
     if (!container) {
       container = document.createElement('div');
@@ -112,7 +123,13 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
     }
     renderWidget(nextOptions);
     syncState();
-    return widget.value as HTMLElement;
+    const element = widget.value ?? container.querySelector<HTMLElement>('.context7-widget');
+    if (!element) {
+      unmount();
+      throw new Error('useContext7Widget could not mount the Vue widget.');
+    }
+    widget.value = element;
+    return element;
   }
 
   function renderWidget(nextOptions: UseContext7WidgetOptions): void {
@@ -126,6 +143,7 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
       onOpen: syncState,
       onReady: syncState
     });
+    vnode.appContext = appContext;
     render(vnode, container);
     controller.value = (vnode.component?.exposed as Context7WidgetExpose | null) ?? null;
     widget.value = controller.value?.element ?? container.querySelector<HTMLElement>('.context7-widget');
