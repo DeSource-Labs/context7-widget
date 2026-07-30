@@ -66,4 +66,13 @@ describe('script loader', () => {
 
     expect(findCurrentWidgetScript()).toBe(second);
   });
+
+  it('prefers the current script when it declares a library', () => {
+    const current = document.createElement('script');
+    current.dataset.library = '/current/repo';
+    document.body.append(current);
+    vi.spyOn(document, 'currentScript', 'get').mockReturnValue(current);
+
+    expect(findCurrentWidgetScript()).toBe(current);
+  });
 });
