@@ -29,6 +29,14 @@ Import the stylesheet once in your application entry:
 import '@desource/context7-widget-vue/styles.css';
 ```
 
+In Nuxt, the equivalent global setup is:
+
+```ts
+export default defineNuxtConfig({
+  css: ['@desource/context7-widget-vue/styles.css']
+});
+```
+
 ## Component
 
 ```vue
@@ -72,6 +80,9 @@ refs plus `mount`, `unmount`, `open`, `close`, `toggle`, `send`, `cancel`,
 widget, and those overrides remain in effect when reactive source options
 change. Owned widgets are removed with their owner by default; set
 `removeOnUnmount: false` only when another part of the app will own cleanup.
+Call the composable during component `setup`; imperative `mount()` is
+browser-only. Programmatically rendered widgets inherit the owner app context
+and defaults provided by `createContext7WidgetPlugin`.
 
 ## Plugin
 
@@ -94,8 +105,10 @@ createApp(App)
   .mount('#app');
 ```
 
-Defaults are inherited by rendered Vue components; the plugin does not create a
-second, imperative widget.
+Defaults are inherited by rendered Vue components and composable-owned widgets;
+the plugin does not create a second widget. Plugin options are captured when the
+plugin is created, so mutating the original options object later does not alter
+installed application behavior.
 
 ## Trigger Modes
 
@@ -195,3 +208,15 @@ focus, while non-modal corner and anchored panels do not.
 
 The component is SSR-safe. `useContext7Widget` can also be created during SSR,
 but its imperative `mount()` method requires a browser document.
+
+## Multiple Widgets And Packaging
+
+Use a unique `widgetId` for each independently controlled widget. When duplicate
+ids are mounted intentionally, the most recently mounted instance is resolved
+and the previous instance becomes active again if the newer one unmounts.
+
+The package publishes ESM plus a separate minified stylesheet. Vue and
+`@desource/context7-widget/kit` remain external module dependencies, allowing
+the consuming app to deduplicate Vue and tree-shake unused kit modules. The
+published entry and declarations are SSR-import safe and validated with modern
+Node ESM and TypeScript bundler resolution.
