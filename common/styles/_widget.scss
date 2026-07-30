@@ -728,8 +728,8 @@
   .c7-tool-call {
     align-self: flex-start;
     background: var(--c7-message-assistant-background);
-    border-bottom-left-radius: 4px;
     border-radius: var(--c7-message-radius);
+    border-bottom-left-radius: 4px;
     color: var(--c7-message-assistant-color);
     font-size: 13px;
     max-width: 92%;
@@ -801,8 +801,8 @@
     align-items: center;
     align-self: flex-start;
     background: var(--c7-message-assistant-background);
-    border-bottom-left-radius: 4px;
     border-radius: var(--c7-message-radius);
+    border-bottom-left-radius: 4px;
     display: flex;
     gap: 4px;
     padding: 12px 13px;
