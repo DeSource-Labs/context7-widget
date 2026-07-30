@@ -22,7 +22,7 @@ const SVELTE_FILES = [
 ];
 
 const BROWSER_FILES = [
-  'packages/core/src/**/*.{ts,mts,cts}',
+  'packages/core/**/*.{ts,mts,cts}',
   'packages/react/**/*.{ts,tsx,js,jsx}',
   'packages/vue/**/*.{ts,js,mts,cts,vue}',
   'packages/svelte/**/*.{ts,js,mts,cts,svelte}',
