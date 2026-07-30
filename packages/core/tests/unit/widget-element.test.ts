@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { defineContext7Widget } from '../../src';
+import { Context7WidgetElement, defineContext7Widget } from '../../src';
 import { createSseStream } from '../../../../common/tests/unit/stream';
 import { setElementRect, setElementSize, setViewportSize } from '../../../../common/tests/unit/dom';
 
@@ -142,5 +142,16 @@ describe('Context7WidgetElement', () => {
 
     expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('100px');
     expect(widget.style.getPropertyValue('--c7-anchor-origin')).toBe('top right');
+  });
+
+  it('supports an additional valid custom-element tag without reusing the registered constructor', () => {
+    defineContext7Widget();
+    defineContext7Widget('context7-docs-widget');
+
+    const widget = document.createElement('context7-docs-widget');
+    document.body.append(widget);
+
+    expect(widget).toBeInstanceOf(Context7WidgetElement);
+    expect(customElements.get('context7-docs-widget')).not.toBe(Context7WidgetElement);
   });
 });

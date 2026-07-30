@@ -72,6 +72,20 @@ describe('streamContext7Response', () => {
     expect(chunks.join('')).toBe('Compat content delta');
   });
 
+  it('does not duplicate compatibility objects that contain both content and delta', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(createSseStream(['0:{"content":"preferred","delta":"duplicate"}\n'])))
+    );
+    const chunks: string[] = [];
+
+    await streamContext7Response({ library: '/vercel/next.js' }, messages, {
+      onChunk: (chunk) => chunks.push(chunk)
+    });
+
+    expect(chunks).toEqual(['preferred']);
+  });
+
   it('ignores malformed and unknown stream frames', async () => {
     const chunks: string[] = [];
 

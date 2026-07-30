@@ -29,6 +29,22 @@ describe('auto entrypoint', () => {
 
     expect(document.querySelector('context7-widget')?.getAttribute('library')).toBe('/desource-labs/context7-widget');
   });
+
+  it('retains the matching script when multiple async installs wait for DOMContentLoaded', async () => {
+    setReadyState('loading');
+    document.body.append(createLoaderScript('/first/library'));
+    await import('../../src/auto');
+
+    vi.resetModules();
+    document.body.append(createLoaderScript('/second/library'));
+    await import('../../src/auto');
+
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+
+    expect(
+      Array.from(document.querySelectorAll('context7-widget'), (widget) => widget.getAttribute('library'))
+    ).toEqual(['/first/library', '/second/library']);
+  });
 });
 
 function createLoaderScript(library: string): HTMLScriptElement {
