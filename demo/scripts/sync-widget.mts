@@ -1,4 +1,4 @@
-import { copyFile, mkdir, stat } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -10,7 +10,9 @@ const target = resolve(siteDir, 'public/widget.js');
 
 await assertFile(source);
 await mkdir(dirname(target), { recursive: true });
-await copyFile(source, target);
+const widgetSource = await readFile(source, 'utf8');
+const hostedWidget = widgetSource.replace(/\n?\/\/# sourceMappingURL=widget\.js\.map\s*$/, '\n');
+await writeFile(target, hostedWidget, 'utf8');
 
 async function assertFile(path: string): Promise<void> {
   try {
