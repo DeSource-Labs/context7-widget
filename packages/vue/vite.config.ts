@@ -18,6 +18,7 @@ export default defineConfig({
   plugins: [
     vue(),
     dts({
+      bundleTypes: true,
       entryRoot: 'src',
       include: ['src'],
       outDir: 'dist',

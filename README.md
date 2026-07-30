@@ -139,6 +139,10 @@ mountContext7Widget({
 - Custom triggers by selector, including anchored popovers.
 - Typed DOM events for questions, streaming answers, tool calls, errors, and
   lifecycle state.
+- Race-safe cancellation with a visible Stop action and imperative
+  `cancel`/`reset` controls.
+- Frame-throttled streamed Markdown rendering and shared constructable styles
+  for efficient multi-instance use.
 - Public CSS variables and stable shadow parts for product-grade styling.
 - Vue component, composable, plugin helper, managed trigger button, and trigger
   slot.
@@ -248,6 +252,9 @@ pnpm dev:demo
 Core and Vue package builds use Vite 8. The demo site builds both packages,
 copies `packages/core/dist/widget.js` into `demo/public/widget.js`, then runs
 Nuxt.
+
+CI enforces coverage floors and gzip budgets for the hosted widget, core ESM
+entries, Vue runtime, and Vue stylesheet.
 
 ## Maintenance
 

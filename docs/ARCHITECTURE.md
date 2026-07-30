@@ -90,6 +90,7 @@ is what makes replacing only `https://context7.com/widget.js` with
 
 - Context7 API transport and stream compatibility;
 - markdown and HTML safety helpers;
+- pure anchored-panel layout calculation;
 - option, message, event, and tool-call contracts;
 - shared defaults and brand assets.
 
@@ -110,6 +111,27 @@ and never wrap the core custom element.
 Both implementations always show compact linked attribution for Context7 and
 DeSource Labs. Attribution is part of the product contract rather than a
 configurable display option.
+
+Core and Vue compile their widget selectors from
+`common/styles/_widget.scss`. Core scopes the mixin to `:host`; Vue scopes it to
+`.context7-widget` and adds only its managed-trigger styles. This keeps the
+visual contract in one source of truth without making Vue depend on the custom
+element runtime.
+
+## Runtime Invariants
+
+- The ESM package roots do not auto-register or auto-mount anything.
+- Only `@desource/context7-widget/widget.js` boots from its script element.
+- A cancelled request cannot append late frames or clear the busy state of a
+  newer request.
+- Stream callbacks still emit every chunk, while DOM Markdown work is limited
+  to one render per animation frame.
+- Changing libraries cancels the active request and starts a fresh
+  conversation, preventing cross-library history leakage.
+- Core shares a constructable stylesheet across widget instances where
+  supported and retains an inline fallback.
+- External trigger ARIA attributes are restored when a widget disconnects or
+  changes triggers.
 
 ## Styling Contract
 

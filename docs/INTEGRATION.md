@@ -165,6 +165,9 @@ const docs = useContext7Widget({
 
 docs.open();
 await docs.send('Show setup examples');
+console.log(docs.isBusy.value, docs.messages.value);
+docs.cancel();
+docs.reset();
 ```
 
 ## Next.js App Router
@@ -230,6 +233,9 @@ context7-widget::part(send-button) {
 Do not target internal `.c7-*` classes. They are implementation details. In
 Vue, apply the same CSS variables to `.context7-widget`; shadow parts apply only
 to the core custom element.
+
+Vue’s `part` attributes remain stable light-DOM selectors and can be targeted as
+`[part~='send-button']`; they are not shadow-DOM `::part()` exports.
 
 ## Analytics
 

@@ -1,25 +1,53 @@
-import { renderWidgetBranding } from './branding';
-import { escapeHtml, renderMarkdown } from './markdown';
-import { buildContext7ErrorHtml, DEFAULT_CONTEXT7_INITIAL_MESSAGE, isAbortError } from './runtime';
-import { widgetStyles } from './styles';
-import { Context7TransportError, streamContext7Response } from './transport';
+import { renderWidgetBranding } from './branding.js';
+import { resolveContext7WidgetConfig } from './config.js';
+import {
+  cancelRenderFrame,
+  captureTriggerAccessibility,
+  querySelectorSafely,
+  requestRenderFrame,
+  resolveContext7AnchorLayout,
+  restoreTriggerAccessibility,
+  trapFocus
+} from './dom.js';
+import { escapeHtml, renderMarkdown } from './markdown.js';
+import { buildContext7ErrorHtml, isAbortError } from './runtime.js';
+import { widgetStyles } from './styles.js';
+import { Context7TransportError, streamContext7Response } from './transport.js';
 import type {
-  Context7LauncherVariant,
+  Context7ActiveRequest,
   Context7Message,
-  Context7Position,
-  Context7Theme,
   Context7ToolCall,
   Context7ToolResult,
+  Context7TriggerA11yState,
   Context7WidgetApi,
   Context7WidgetConfig,
-  Context7WidgetEventDetail,
-  Context7WidgetPreset
-} from './types';
+  Context7WidgetEventDetailFor,
+  Context7WidgetEventName,
+  Context7WidgetEventPayload
+} from './types.js';
 
-const registry = new Map<string, HTMLElement>();
+const registry = new Map<string, Context7WidgetElement>();
+const registryStacks = new Map<string, Context7WidgetElement[]>();
 const BaseHTMLElement = typeof HTMLElement === 'undefined' ? (class {} as typeof HTMLElement) : HTMLElement;
+const INITIAL_MESSAGE_ATTRIBUTES = new Set(['data-initial-message', 'data-welcome-message', 'initial-message']);
+const LIBRARY_ATTRIBUTES = new Set(['data-library', 'library']);
 
 let globalApiInstalled = false;
+let instanceCounter = 0;
+let sharedWidgetStyleSheet: CSSStyleSheet | false | undefined;
+
+interface WidgetElements {
+  readonly backdrop: HTMLElement;
+  readonly closeButton: HTMLButtonElement;
+  readonly form: HTMLFormElement;
+  readonly input: HTMLInputElement;
+  readonly launcher: HTMLButtonElement;
+  readonly launcherLabel: HTMLElement;
+  readonly messages: HTMLElement;
+  readonly panel: HTMLElement;
+  readonly sendButton: HTMLButtonElement;
+  readonly title: HTMLElement;
+}
 
 export class Context7WidgetElement extends BaseHTMLElement {
   static observedAttributes = [
@@ -46,6 +74,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     'data-welcome-message',
     'data-widget-id',
     'default-open',
+    'dialog-title',
     'initial-message',
     'launcher-label',
     'launcher-variant',
@@ -56,20 +85,23 @@ export class Context7WidgetElement extends BaseHTMLElement {
     'position',
     'preset',
     'theme',
-    'title',
     'widget-id'
   ];
 
-  private abortController: AbortController | null = null;
+  private activeRequest: Context7ActiveRequest | null = null;
+  private activeAnchorElement: Element | null = null;
   private busy = false;
   private config: Context7WidgetConfig = readConfig(this);
+  private conversationInitialized = false;
+  private readonly elements: WidgetElements;
   private lastFocus: Element | null = null;
   private messageCounter = 0;
   private messages: Context7Message[] = [];
+  private readonly panelId = `context7-widget-panel-${++instanceCounter}`;
   private registeredId = '';
   private readonly root: ShadowRoot;
-  private activeAnchorElement: Element | null = null;
   private toolCalls = new Map<string, HTMLElement>();
+  private triggerAccessibilityState: Context7TriggerA11yState | null = null;
   private triggerElement: Element | null = null;
 
   private readonly onCustomTrigger = (event: Event) => {
@@ -110,42 +142,72 @@ export class Context7WidgetElement extends BaseHTMLElement {
       return;
     }
 
-    if (event.key !== 'Tab' || !this.isOpen()) return;
-    trapFocus(event, this.root);
+    if (event.key !== 'Tab' || !this.isOpen() || this.config.position !== 'center') return;
+    trapFocus(event, this.root, true);
+  };
+
+  private readonly onCloseClick = () => {
+    this.close();
+  };
+
+  private readonly onFormSubmit = (event: SubmitEvent) => {
+    event.preventDefault();
+    if (this.busy) {
+      this.cancel();
+    } else {
+      void this.send();
+    }
   };
 
   constructor() {
     super();
     this.root = this.attachShadow({ mode: 'open' });
     this.renderShell();
+    this.elements = collectWidgetElements(this.root);
+    this.bindEvents();
   }
 
   connectedCallback(): void {
     this.syncConfig();
-    this.bindEvents();
+    this.updateStaticText();
     this.bindCustomTrigger();
-    this.resetConversation();
+    if (!this.conversationInitialized) this.reset();
     this.register();
     this.emit('c7:ready');
-    if (this.config.defaultOpen) this.open();
+    if (this.isOpen()) {
+      this.syncExpandedState();
+      this.bindFloatingListeners();
+      this.updateAnchorPosition();
+    } else if (this.config.defaultOpen) {
+      this.open();
+    }
   }
 
   disconnectedCallback(): void {
-    this.abortController?.abort();
+    this.cancel();
     this.unbindFloatingListeners();
     this.unbindCustomTrigger();
     this.unregister();
   }
 
-  attributeChangedCallback(): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    if (oldValue === newValue) return;
     const previousLibrary = this.config.library;
-    this.syncConfig();
+    this.config = readConfig(this);
     this.updateStaticText();
+
+    if (!this.isConnected) return;
+
+    this.applyConfig();
     this.bindCustomTrigger();
     this.register();
 
-    if (this.messages.length <= 1 && previousLibrary !== this.config.library) {
-      this.resetConversation();
+    if (
+      (LIBRARY_ATTRIBUTES.has(name) && previousLibrary !== this.config.library) ||
+      INITIAL_MESSAGE_ATTRIBUTES.has(name)
+    ) {
+      this.cancel();
+      this.reset();
     }
 
     if (this.config.defaultOpen && !this.isOpen()) {
@@ -160,20 +222,24 @@ export class Context7WidgetElement extends BaseHTMLElement {
   open(): void {
     if (this.isOpen()) return;
     this.lastFocus = document.activeElement;
-    this.updateAnchorPosition();
     this.setAttribute('open', '');
+    this.syncExpandedState();
     this.bindFloatingListeners();
+    this.updateAnchorPosition();
     this.emit('c7:open');
-    window.setTimeout(() => this.input?.focus(), 20);
+    requestRenderFrame(() => {
+      if (this.isConnected && this.isOpen()) this.input.focus({ preventScroll: true });
+    });
   }
 
   close(): void {
     if (!this.isOpen()) return;
     this.removeAttribute('open');
+    this.syncExpandedState();
     this.unbindFloatingListeners();
     this.emit('c7:close');
 
-    if (this.lastFocus instanceof HTMLElement) {
+    if (this.lastFocus instanceof HTMLElement && this.lastFocus.isConnected) {
       this.lastFocus.focus();
     }
   }
@@ -190,10 +256,34 @@ export class Context7WidgetElement extends BaseHTMLElement {
     return this.hasAttribute('open');
   }
 
+  isBusy(): boolean {
+    return this.busy;
+  }
+
+  getMessages(): readonly Context7Message[] {
+    return [...this.messages];
+  }
+
+  reset(): void {
+    this.cancel();
+    this.messages = [];
+    this.toolCalls.clear();
+    this.messagesElement.innerHTML = '';
+    const intro = this.config.initialMessage.replace(/\{library\}/g, this.config.library || 'this library');
+    this.appendMessage('assistant', renderMarkdown(intro));
+    this.conversationInitialized = true;
+  }
+
   cancel(): void {
-    this.abortController?.abort();
-    this.abortController = null;
+    const request = this.activeRequest;
+    if (!request) return;
+
+    this.activeRequest = null;
+    request.controller.abort();
+    request.typing.remove();
+    cancelRenderFrame(request.renderFrame);
     this.setBusy(false);
+    this.input?.focus();
   }
 
   async send(rawQuestion?: string): Promise<void> {
@@ -201,7 +291,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
     if (!question || this.busy) return;
 
     if (!this.config.library) {
-      this.appendError('Missing data-library attribute.');
+      const message = 'Missing data-library attribute.';
+      this.appendError(message);
+      this.emit('c7:error', { error: message, question });
       return;
     }
 
@@ -216,7 +308,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     };
 
     this.messages.push(userMessage);
-    this.appendMessage('user', escapeHtml(question));
+    this.appendMessage('user', escapeHtml(question), userMessage.id);
     this.emit('c7:question', {
       message: userMessage,
       messages: [...this.messages],
@@ -226,8 +318,28 @@ export class Context7WidgetElement extends BaseHTMLElement {
     const typing = this.appendTyping();
     let answer = '';
     let answerElement: HTMLElement | null = null;
+    let answerMessageId = '';
     let sawFirstToken = false;
-    this.abortController = new AbortController();
+    const request: Context7ActiveRequest = {
+      controller: new AbortController(),
+      renderFrame: null,
+      typing
+    };
+    this.activeRequest = request;
+
+    const renderAnswer = () => {
+      request.renderFrame = null;
+      if (this.activeRequest !== request || !answerElement) return;
+      answerElement.innerHTML = renderMarkdown(answer);
+      this.scrollToBottom();
+    };
+
+    const flushAnswer = () => {
+      cancelRenderFrame(request.renderFrame);
+      request.renderFrame = null;
+      if (answerElement) answerElement.innerHTML = renderMarkdown(answer);
+      this.scrollToBottom();
+    };
 
     try {
       await streamContext7Response(
@@ -235,14 +347,16 @@ export class Context7WidgetElement extends BaseHTMLElement {
         this.messages,
         {
           onChunk: (delta) => {
+            if (this.activeRequest !== request) return;
             typing.remove();
             answer += delta;
 
             if (!answerElement) {
-              answerElement = this.appendMessage('assistant', '');
+              answerMessageId = this.nextMessageId();
+              answerElement = this.appendMessage('assistant', '', answerMessageId);
             }
 
-            answerElement.innerHTML = renderMarkdown(answer);
+            request.renderFrame ??= requestRenderFrame(renderAnswer);
 
             if (!sawFirstToken) {
               sawFirstToken = true;
@@ -250,26 +364,29 @@ export class Context7WidgetElement extends BaseHTMLElement {
             }
 
             this.emit('c7:answer', { answer, question });
-            this.scrollToBottom();
           },
           onToolCall: (toolCall) => {
+            if (this.activeRequest !== request) return;
             typing.remove();
             this.appendToolCall(toolCall);
             this.emit('c7:tool-call', { question, toolCall });
           },
           onToolResult: (toolResult) => {
+            if (this.activeRequest !== request) return;
             this.updateToolResult(toolResult);
             this.emit('c7:tool-result', { question, toolResult });
           }
         },
-        this.abortController.signal
+        request.controller.signal
       );
 
+      if (this.activeRequest !== request) return;
       typing.remove();
 
       if (answer) {
+        flushAnswer();
         const assistantMessage: Context7Message = {
-          id: this.nextMessageId(),
+          id: answerMessageId || this.nextMessageId(),
           role: 'assistant',
           content: answer
         };
@@ -283,27 +400,33 @@ export class Context7WidgetElement extends BaseHTMLElement {
       }
     } catch (error) {
       typing.remove();
-      if (!isAbortError(error)) {
+      if (this.activeRequest === request && !isAbortError(error)) {
         const message =
           error instanceof Context7TransportError || error instanceof Error ? error.message : 'Something went wrong.';
         this.appendError(message);
         this.emit('c7:error', { error: message, question });
       }
     } finally {
-      this.abortController = null;
-      this.setBusy(false);
-      this.input?.focus();
+      if (this.activeRequest === request) {
+        cancelRenderFrame(request.renderFrame);
+        this.activeRequest = null;
+        this.setBusy(false);
+        this.input?.focus();
+      }
     }
   }
 
   private renderShell(): void {
+    const styleElement = adoptSharedWidgetStyles(this.root) ? '' : `<style>${widgetStyles}</style>`;
     this.root.innerHTML = `
-      <style>${widgetStyles}</style>
+      ${styleElement}
       <div class="c7-backdrop" data-c7-backdrop part="backdrop"></div>
       <section
         aria-label="Context7 documentation chat"
+        aria-busy="false"
         aria-modal="false"
         class="c7-panel"
+        id="${this.panelId}"
         part="panel"
         role="dialog"
       >
@@ -316,10 +439,27 @@ export class Context7WidgetElement extends BaseHTMLElement {
             </svg>
           </button>
         </header>
-        <div class="c7-messages" data-c7-messages part="messages" aria-live="polite"></div>
+        <div
+          aria-label="Documentation chat conversation"
+          aria-live="polite"
+          aria-relevant="additions text"
+          class="c7-messages"
+          data-c7-messages
+          part="messages"
+          role="log"
+        ></div>
         <form class="c7-composer" data-c7-form part="composer">
-          <input class="c7-input" data-c7-input part="input" type="text" autocomplete="off" />
-          <button class="c7-send" data-c7-send part="send-button" type="submit">Send</button>
+          <input
+            aria-label="Ask a documentation question"
+            autocomplete="off"
+            class="c7-input"
+            data-c7-input
+            part="input"
+            type="text"
+          />
+          <button aria-label="Send question" class="c7-send" data-c7-send part="send-button" type="submit">
+            Send
+          </button>
         </form>
         <footer class="c7-footer" data-c7-footer part="footer">
           <span class="c7-branding" part="powered-by" aria-label="Powered by Context7, Enhanced by DeSource Labs">
@@ -327,7 +467,16 @@ export class Context7WidgetElement extends BaseHTMLElement {
           </span>
         </footer>
       </section>
-      <button class="c7-launcher" data-c7-launcher part="launcher" type="button" aria-label="Open documentation chat">
+      <button
+        aria-controls="${this.panelId}"
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        aria-label="Open documentation chat"
+        class="c7-launcher"
+        data-c7-launcher
+        part="launcher"
+        type="button"
+      >
         <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M8 9h8" />
           <path d="M8 13h6" />
@@ -341,16 +490,17 @@ export class Context7WidgetElement extends BaseHTMLElement {
   private bindEvents(): void {
     this.backdrop?.addEventListener('click', this.onBackdropClick);
     this.launcher?.addEventListener('click', this.onLauncherClick);
-    this.closeButton?.addEventListener('click', () => this.close());
-    this.form?.addEventListener('submit', (event) => {
-      event.preventDefault();
-      void this.send();
-    });
+    this.closeButton?.addEventListener('click', this.onCloseClick);
+    this.form?.addEventListener('submit', this.onFormSubmit);
     this.root.addEventListener('keydown', this.onKeyDown as (event: Event) => void);
   }
 
   private syncConfig(): void {
     this.config = readConfig(this);
+    this.applyConfig();
+  }
+
+  private applyConfig(): void {
     syncStyleProperty(this, '--c7-accent', this.config.color);
     syncStyleProperty(this, '--c7-panel-height', this.config.panelHeight);
     syncStyleProperty(this, '--c7-panel-width', this.config.panelWidth);
@@ -374,17 +524,10 @@ export class Context7WidgetElement extends BaseHTMLElement {
     }
   }
 
-  private resetConversation(): void {
-    this.messages = [];
-    this.toolCalls.clear();
-    this.messagesElement.innerHTML = '';
-    const intro = this.config.initialMessage.replace(/\{library\}/g, this.config.library || 'this library');
-    this.appendMessage('assistant', renderMarkdown(intro));
-  }
-
-  private appendMessage(role: 'assistant' | 'user', html: string): HTMLElement {
+  private appendMessage(role: 'assistant' | 'user', html: string, id = this.nextMessageId()): HTMLElement {
     const message = document.createElement('div');
     message.className = `c7-message c7-message--${role}`;
+    message.dataset.messageId = id;
     message.setAttribute('part', `message ${role}-message`);
     message.innerHTML = html;
     this.messagesElement.append(message);
@@ -396,6 +539,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     const error = document.createElement('div');
     error.className = 'c7-message c7-message--error';
     error.setAttribute('part', 'message error-message');
+    error.setAttribute('role', 'alert');
     error.innerHTML = buildContext7ErrorHtml(message, this.config.library);
     this.messagesElement.append(error);
     this.scrollToBottom();
@@ -405,7 +549,10 @@ export class Context7WidgetElement extends BaseHTMLElement {
     const typing = document.createElement('div');
     typing.className = 'c7-typing';
     typing.setAttribute('part', 'typing');
-    typing.innerHTML = '<span></span><span></span><span></span>';
+    typing.setAttribute('role', 'status');
+    typing.setAttribute('aria-label', 'Context7 is responding');
+    typing.innerHTML =
+      '<span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>';
     this.messagesElement.append(typing);
     this.scrollToBottom();
     return typing;
@@ -445,15 +592,22 @@ export class Context7WidgetElement extends BaseHTMLElement {
     if (!result) return;
 
     const wrapper = document.createElement('div');
+    const resultId = `${this.panelId}-${this.nextMessageId()}-tool-result`;
     wrapper.className = 'c7-tool-result';
     wrapper.innerHTML = `
-      <button class="c7-tool-toggle" part="tool-toggle" type="button" aria-expanded="false">
+      <button
+        aria-controls="${resultId}"
+        aria-expanded="false"
+        class="c7-tool-toggle"
+        part="tool-toggle"
+        type="button"
+      >
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
           <path d="m6 9 6 6 6-6"></path>
         </svg>
         <span>View results</span>
       </button>
-      <div class="c7-tool-content" hidden>
+      <div aria-label="Documentation search results" class="c7-tool-content" hidden id="${resultId}" role="region">
         <pre>${escapeHtml(result)}</pre>
       </div>
     `;
@@ -465,6 +619,8 @@ export class Context7WidgetElement extends BaseHTMLElement {
       const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', String(!isExpanded));
       content.hidden = isExpanded;
+      const label = toggle.querySelector('span');
+      if (label) label.textContent = isExpanded ? 'View results' : 'Hide results';
     });
 
     tool.append(wrapper);
@@ -474,7 +630,11 @@ export class Context7WidgetElement extends BaseHTMLElement {
   private setBusy(isBusy: boolean): void {
     this.busy = isBusy;
     if (this.input) this.input.disabled = isBusy;
-    if (this.sendButton) this.sendButton.disabled = isBusy;
+    if (this.panel) this.panel.setAttribute('aria-busy', String(isBusy));
+    if (this.sendButton) {
+      this.sendButton.textContent = isBusy ? 'Stop' : 'Send';
+      this.sendButton.setAttribute('aria-label', isBusy ? 'Stop response' : 'Send question');
+    }
   }
 
   private scrollToBottom(): void {
@@ -482,7 +642,10 @@ export class Context7WidgetElement extends BaseHTMLElement {
   }
 
   private bindFloatingListeners(): void {
-    document.addEventListener('pointerdown', this.onDocumentPointerDown, true);
+    this.unbindFloatingListeners();
+    if (this.config.closeOnOutsideClick) {
+      document.addEventListener('pointerdown', this.onDocumentPointerDown, true);
+    }
 
     if (this.config.position === 'anchor') {
       window.addEventListener('resize', this.onFloatingLayout);
@@ -508,27 +671,25 @@ export class Context7WidgetElement extends BaseHTMLElement {
     const panelHeight = panel.offsetHeight || 600;
     const viewportWidth = window.innerWidth || document.documentElement.clientWidth || panelWidth;
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight || panelHeight;
-    const gap = 12;
-    const margin = 12;
-    let left = rect.right - panelWidth;
-    let { top, origin } = resolveAnchorVerticalPosition(rect, panelHeight, viewportHeight, gap, margin, 'right');
-
-    const maxLeft = Math.max(margin, viewportWidth - panelWidth - margin);
-    const maxTop = Math.max(margin, viewportHeight - panelHeight - margin);
-    left = clamp(left, margin, maxLeft);
-    top = clamp(top, margin, maxTop);
+    const { left, origin, top } = resolveContext7AnchorLayout({
+      anchor: rect,
+      panelHeight,
+      panelWidth,
+      viewportHeight,
+      viewportWidth
+    });
 
     this.style.setProperty('--c7-anchor-left', `${left}px`);
     this.style.setProperty('--c7-anchor-top', `${top}px`);
     this.style.setProperty('--c7-anchor-origin', origin);
   }
 
-  private getAnchorElement(): HTMLElement | null {
-    if (this.activeAnchorElement instanceof HTMLElement && this.activeAnchorElement.isConnected) {
+  private getAnchorElement(): Element | null {
+    if (this.activeAnchorElement instanceof Element && this.activeAnchorElement.isConnected) {
       return this.activeAnchorElement;
     }
 
-    if (this.triggerElement instanceof HTMLElement) return this.triggerElement;
+    if (this.triggerElement instanceof Element && this.triggerElement.isConnected) return this.triggerElement;
     return this.launcher;
   }
 
@@ -537,8 +698,14 @@ export class Context7WidgetElement extends BaseHTMLElement {
 
     if (!this.config.customTrigger) return;
 
-    this.triggerElement = document.querySelector(this.config.customTrigger);
+    this.triggerElement = querySelectorSafely(this.config.customTrigger);
     this.triggerElement?.addEventListener('click', this.onCustomTrigger);
+    if (this.triggerElement) {
+      this.triggerAccessibilityState = captureTriggerAccessibility(this.triggerElement);
+      this.triggerElement.setAttribute('aria-controls', this.panelId);
+      this.triggerElement.setAttribute('aria-haspopup', 'dialog');
+      this.triggerElement.setAttribute('aria-expanded', String(this.isOpen()));
+    }
   }
 
   private unbindCustomTrigger(): void {
@@ -546,7 +713,15 @@ export class Context7WidgetElement extends BaseHTMLElement {
       this.activeAnchorElement = null;
     }
     this.triggerElement?.removeEventListener('click', this.onCustomTrigger);
+    if (this.triggerAccessibilityState) restoreTriggerAccessibility(this.triggerAccessibilityState);
+    this.triggerAccessibilityState = null;
     this.triggerElement = null;
+  }
+
+  private syncExpandedState(): void {
+    const expanded = String(this.isOpen());
+    this.launcher?.setAttribute('aria-expanded', expanded);
+    this.triggerElement?.setAttribute('aria-expanded', expanded);
   }
 
   private nextMessageId(): string {
@@ -557,73 +732,92 @@ export class Context7WidgetElement extends BaseHTMLElement {
   private register(): void {
     installGlobalApi();
 
-    if (this.registeredId && this.registeredId !== this.config.widgetId) {
-      registry.delete(this.registeredId);
-    }
+    if (this.registeredId === this.config.widgetId) return;
+    if (this.registeredId) this.unregister();
 
+    const registrations = registryStacks.get(this.config.widgetId) ?? [];
+    registrations.push(this);
+    registryStacks.set(this.config.widgetId, registrations);
     registry.set(this.config.widgetId, this);
     this.registeredId = this.config.widgetId;
   }
 
   private unregister(): void {
     if (!this.registeredId) return;
-    if (registry.get(this.registeredId) === this) registry.delete(this.registeredId);
+    const registrations = registryStacks.get(this.registeredId);
+    const index = registrations?.indexOf(this) ?? -1;
+    if (registrations && index >= 0) registrations.splice(index, 1);
+
+    if (!registrations?.length) {
+      registryStacks.delete(this.registeredId);
+      registry.delete(this.registeredId);
+    } else {
+      registry.set(this.registeredId, registrations[registrations.length - 1]);
+    }
     this.registeredId = '';
   }
 
-  private emit(name: string, detail: Partial<Context7WidgetEventDetail> = {}): void {
+  private emit<EventName extends Context7WidgetEventName>(
+    name: EventName,
+    ...args: keyof Context7WidgetEventPayload<EventName> extends never
+      ? [detail?: Context7WidgetEventPayload<EventName>]
+      : [detail: Context7WidgetEventPayload<EventName>]
+  ): void {
+    const payload = args[0] ?? {};
+    const detail = {
+      library: this.config.library,
+      widget: this,
+      widgetId: this.config.widgetId,
+      ...payload
+    } as unknown as Context7WidgetEventDetailFor<EventName>;
+
     this.dispatchEvent(
-      new CustomEvent<Context7WidgetEventDetail>(name, {
+      new CustomEvent<Context7WidgetEventDetailFor<EventName>>(name, {
         bubbles: true,
         composed: true,
-        detail: {
-          library: this.config.library,
-          widget: this,
-          widgetId: this.config.widgetId,
-          ...detail
-        }
+        detail
       })
     );
   }
 
-  private get closeButton(): HTMLButtonElement | null {
-    return this.root.querySelector('[data-c7-close]');
+  private get closeButton(): HTMLButtonElement {
+    return this.elements.closeButton;
   }
 
-  private get backdrop(): HTMLElement | null {
-    return this.root.querySelector('[data-c7-backdrop]');
+  private get backdrop(): HTMLElement {
+    return this.elements.backdrop;
   }
 
-  private get form(): HTMLFormElement | null {
-    return this.root.querySelector('[data-c7-form]');
+  private get form(): HTMLFormElement {
+    return this.elements.form;
   }
 
   private get input(): HTMLInputElement {
-    return this.root.querySelector('[data-c7-input]') as HTMLInputElement;
+    return this.elements.input;
   }
 
-  private get launcher(): HTMLButtonElement | null {
-    return this.root.querySelector('[data-c7-launcher]');
+  private get launcher(): HTMLButtonElement {
+    return this.elements.launcher;
   }
 
-  private get launcherLabelElement(): HTMLElement | null {
-    return this.root.querySelector('[data-c7-launcher-label]');
+  private get launcherLabelElement(): HTMLElement {
+    return this.elements.launcherLabel;
   }
 
   private get messagesElement(): HTMLElement {
-    return this.root.querySelector('[data-c7-messages]') as HTMLElement;
+    return this.elements.messages;
   }
 
-  private get panel(): HTMLElement | null {
-    return this.root.querySelector('.c7-panel');
+  private get panel(): HTMLElement {
+    return this.elements.panel;
   }
 
-  private get sendButton(): HTMLButtonElement | null {
-    return this.root.querySelector('[data-c7-send]');
+  private get sendButton(): HTMLButtonElement {
+    return this.elements.sendButton;
   }
 
-  private get titleElement(): HTMLElement | null {
-    return this.root.querySelector('[data-c7-title]');
+  private get titleElement(): HTMLElement {
+    return this.elements.title;
   }
 }
 
@@ -638,53 +832,54 @@ function installGlobalApi(): void {
 
   const api: Context7WidgetApi = {
     instances: registry,
-    close: (widgetId?: string) => asWidget(resolveWidget(widgetId))?.close(),
+    cancel: (widgetId?: string) => resolveWidget(widgetId)?.cancel(),
+    close: (widgetId?: string) => resolveWidget(widgetId)?.close(),
     get: (widgetId?: string) => resolveWidget(widgetId),
-    isOpen: (widgetId?: string) => asWidget(resolveWidget(widgetId))?.isOpen() ?? false,
-    open: (widgetId?: string) => asWidget(resolveWidget(widgetId))?.open(),
+    getMessages: (widgetId?: string) => resolveWidget(widgetId)?.getMessages() ?? [],
+    isBusy: (widgetId?: string) => resolveWidget(widgetId)?.isBusy() ?? false,
+    isOpen: (widgetId?: string) => resolveWidget(widgetId)?.isOpen() ?? false,
+    open: (widgetId?: string) => resolveWidget(widgetId)?.open(),
+    reset: (widgetId?: string) => resolveWidget(widgetId)?.reset(),
     send: async (message: string, widgetId?: string) => {
-      await asWidget(resolveWidget(widgetId))?.send(message);
+      await resolveWidget(widgetId)?.send(message);
     },
-    toggle: (widgetId?: string) => asWidget(resolveWidget(widgetId))?.toggle()
+    toggle: (widgetId?: string) => resolveWidget(widgetId)?.toggle()
   };
 
   window.Context7Widget = api;
   globalApiInstalled = true;
 }
 
-function resolveWidget(widgetId?: string): HTMLElement | undefined {
+function resolveWidget(widgetId?: string): Context7WidgetElement | undefined {
   if (widgetId) return registry.get(widgetId);
   return registry.get('default') ?? registry.values().next().value;
 }
 
-function asWidget(widget: HTMLElement | undefined): Context7WidgetElement | undefined {
-  return widget instanceof Context7WidgetElement ? widget : undefined;
-}
-
 function readConfig(element: HTMLElement): Context7WidgetConfig {
-  const library = readAttribute(element, 'library', 'data-library');
-  const position = normalizePosition(readAttribute(element, 'position', 'data-position'));
-  return {
-    backdrop: readBooleanAttribute(element, position === 'center', 'backdrop', 'data-backdrop'),
-    closeOnOutsideClick: readBooleanAttribute(element, true, 'close-on-outside-click', 'data-close-on-outside-click'),
+  return resolveContext7WidgetConfig({
+    backdrop: readBooleanAttribute(element, undefined, 'backdrop', 'data-backdrop'),
+    closeOnOutsideClick: readBooleanAttribute(
+      element,
+      undefined,
+      'close-on-outside-click',
+      'data-close-on-outside-click'
+    ),
     color: readAttribute(element, 'color', 'data-color'),
     customTrigger: readAttribute(element, 'custom-trigger', 'data-custom-trigger'),
-    defaultOpen: readBooleanAttribute(element, false, 'default-open', 'data-default-open'),
-    initialMessage:
-      readAttribute(element, 'initial-message', 'data-initial-message', 'welcome-message', 'data-welcome-message') ||
-      DEFAULT_CONTEXT7_INITIAL_MESSAGE,
-    launcherLabel: readAttribute(element, 'launcher-label', 'data-launcher-label') || 'Ask Docs AI',
-    launcherVariant: normalizeLauncherVariant(readAttribute(element, 'launcher-variant', 'data-launcher-variant')),
-    library,
+    defaultOpen: readBooleanAttribute(element, undefined, 'default-open', 'data-default-open'),
+    initialMessage: readAttribute(element, 'initial-message', 'data-initial-message', 'data-welcome-message'),
+    launcherLabel: readAttribute(element, 'launcher-label', 'data-launcher-label'),
+    launcherVariant: readAttribute(element, 'launcher-variant', 'data-launcher-variant'),
+    library: readAttribute(element, 'library', 'data-library'),
     panelHeight: readAttribute(element, 'panel-height', 'data-panel-height'),
     panelWidth: readAttribute(element, 'panel-width', 'data-panel-width'),
-    placeholder: readAttribute(element, 'placeholder', 'data-placeholder') || 'Ask about the docs...',
-    position,
-    preset: normalizePreset(readAttribute(element, 'preset', 'data-preset')),
-    theme: normalizeTheme(readAttribute(element, 'theme', 'data-theme')),
-    title: readAttribute(element, 'title', 'data-title') || 'Chat with Documentation',
-    widgetId: readAttribute(element, 'widget-id', 'data-widget-id') || element.id || 'default'
-  };
+    placeholder: readAttribute(element, 'placeholder', 'data-placeholder'),
+    position: readAttribute(element, 'position', 'data-position'),
+    preset: readAttribute(element, 'preset', 'data-preset'),
+    theme: readAttribute(element, 'theme', 'data-theme'),
+    title: readAttribute(element, 'dialog-title', 'data-title'),
+    widgetId: readAttribute(element, 'widget-id', 'data-widget-id') || element.id
+  });
 }
 
 function readAttribute(element: HTMLElement, ...names: string[]): string {
@@ -695,40 +890,11 @@ function readAttribute(element: HTMLElement, ...names: string[]): string {
   return '';
 }
 
-function normalizePosition(value: string): Context7Position {
-  if (
-    value === 'bottom-left' ||
-    value === 'top-right' ||
-    value === 'top-left' ||
-    value === 'bottom-right' ||
-    value === 'center' ||
-    value === 'anchor'
-  ) {
-    return value;
-  }
-
-  return 'bottom-right';
-}
-
-function normalizeLauncherVariant(value: string): Context7LauncherVariant {
-  if (value === 'pill' || value === 'badge') return value;
-  return 'icon';
-}
-
-function normalizePreset(value: string): Context7WidgetPreset {
-  if (value === 'minimal' || value === 'glass' || value === 'neo' || value === 'terminal' || value === 'brutalist') {
-    return value;
-  }
-
-  return 'default';
-}
-
-function normalizeTheme(value: string): Context7Theme {
-  if (value === 'light' || value === 'dark') return value;
-  return 'auto';
-}
-
-function readBooleanAttribute(element: HTMLElement, defaultValue: boolean, ...names: string[]): boolean {
+function readBooleanAttribute(
+  element: HTMLElement,
+  defaultValue: boolean | undefined,
+  ...names: string[]
+): boolean | undefined {
   for (const name of names) {
     if (!element.hasAttribute(name)) continue;
     const value = element.getAttribute(name);
@@ -770,59 +936,47 @@ function syncStyleProperty(element: HTMLElement, name: string, value: string): v
   }
 }
 
-function resolveAnchorVerticalPosition(
-  rect: DOMRect,
-  panelHeight: number,
-  viewportHeight: number,
-  gap: number,
-  margin: number,
-  horizontalOrigin: 'left' | 'right'
-): { origin: string; top: number } {
-  const above = rect.top - panelHeight - gap;
-  const below = rect.bottom + gap;
-  const spaceAbove = rect.top - margin - gap;
-  const spaceBelow = viewportHeight - rect.bottom - margin - gap;
-  const hasSpaceAbove = above >= margin;
-  const hasSpaceBelow = below + panelHeight <= viewportHeight - margin;
-
-  if (hasSpaceAbove || (!hasSpaceBelow && spaceAbove >= spaceBelow)) {
-    return {
-      origin: `bottom ${horizontalOrigin}`,
-      top: above
-    };
-  }
-
+function collectWidgetElements(root: ShadowRoot): WidgetElements {
   return {
-    origin: `top ${horizontalOrigin}`,
-    top: below
+    backdrop: requireElement(root, '[data-c7-backdrop]'),
+    closeButton: requireElement(root, '[data-c7-close]'),
+    form: requireElement(root, '[data-c7-form]'),
+    input: requireElement(root, '[data-c7-input]'),
+    launcher: requireElement(root, '[data-c7-launcher]'),
+    launcherLabel: requireElement(root, '[data-c7-launcher-label]'),
+    messages: requireElement(root, '[data-c7-messages]'),
+    panel: requireElement(root, '.c7-panel'),
+    sendButton: requireElement(root, '[data-c7-send]'),
+    title: requireElement(root, '[data-c7-title]')
   };
 }
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
+function requireElement<ElementType extends Element>(root: ShadowRoot, selector: string): ElementType {
+  const element = root.querySelector<ElementType>(selector);
+  if (!element) throw new Error(`Context7 widget template is missing ${selector}.`);
+  return element;
 }
 
-function trapFocus(event: KeyboardEvent, root: ShadowRoot): void {
-  const focusable = Array.from(
-    root.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    )
-  ).filter((element) => element.offsetParent !== null || element === root.activeElement);
+function adoptSharedWidgetStyles(root: ShadowRoot): boolean {
+  if (sharedWidgetStyleSheet === false) return false;
+  if (
+    typeof CSSStyleSheet === 'undefined' ||
+    !('adoptedStyleSheets' in root) ||
+    typeof CSSStyleSheet.prototype.replaceSync !== 'function'
+  ) {
+    return false;
+  }
 
-  if (focusable.length === 0) return;
-
-  const first = focusable[0];
-  const last = focusable[focusable.length - 1];
-  if (!first || !last) return;
-
-  const active = root.activeElement;
-
-  if (event.shiftKey && active === first) {
-    event.preventDefault();
-    last.focus();
-  } else if (!event.shiftKey && active === last) {
-    event.preventDefault();
-    first.focus();
+  try {
+    if (!sharedWidgetStyleSheet) {
+      sharedWidgetStyleSheet = new CSSStyleSheet();
+      sharedWidgetStyleSheet.replaceSync(widgetStyles);
+    }
+    root.adoptedStyleSheets = [...root.adoptedStyleSheets, sharedWidgetStyleSheet];
+    return true;
+  } catch {
+    sharedWidgetStyleSheet = false;
+    return false;
   }
 }
 

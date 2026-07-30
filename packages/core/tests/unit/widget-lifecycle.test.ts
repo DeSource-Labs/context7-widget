@@ -17,7 +17,7 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     widget.setAttribute('initial-message', 'Ask about **{library}**');
     widget.setAttribute('library', '/desource-labs/context7-widget');
     widget.setAttribute('placeholder', 'Search docs');
-    widget.setAttribute('title', 'Product docs');
+    widget.setAttribute('dialog-title', 'Product docs');
     document.body.append(widget);
 
     expect(widget.hasAttribute('open')).toBe(true);
@@ -70,6 +70,20 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     expect(window.Context7Widget?.get('second')).toBe(second);
   });
 
+  it('restores the previous connected instance when duplicate widget ids are removed', () => {
+    defineContext7Widget();
+
+    const first = document.createElement('context7-widget');
+    first.setAttribute('library', '/first/repo');
+    const second = document.createElement('context7-widget');
+    second.setAttribute('library', '/second/repo');
+    document.body.append(first, second);
+
+    expect(window.Context7Widget?.get()).toBe(second);
+    second.remove();
+    expect(window.Context7Widget?.get()).toBe(first);
+  });
+
   it('cancels an in-flight request without appending an error', async () => {
     defineContext7Widget();
 
@@ -100,6 +114,136 @@ describe('Context7WidgetElement lifecycle behavior', () => {
 
     expect(abortSignal?.aborted).toBe(true);
     expect(widget.shadowRoot?.textContent).not.toContain('Aborted');
+  });
+
+  it('isolates a replacement request from late frames and cleanup in a cancelled request', async () => {
+    defineContext7Widget();
+
+    let staleStream: ReadableStreamDefaultController<Uint8Array> | undefined;
+    const encoder = new TextEncoder();
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(
+        async () =>
+          new Response(
+            new ReadableStream<Uint8Array>({
+              start(controller) {
+                staleStream = controller;
+              }
+            })
+          )
+      )
+      .mockImplementationOnce(
+        async () => new Response(createSseStream(['data: {"type":"text-delta","delta":"Fresh answer"}\n']))
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const widget = document.createElement('context7-widget') as HTMLElement & {
+      cancel: () => void;
+      getMessages: () => readonly { content: string }[];
+      isBusy: () => boolean;
+      send: (question: string) => Promise<void>;
+    };
+    widget.setAttribute('library', '/desource-labs/context7-widget');
+    document.body.append(widget);
+
+    const staleRequest = widget.send('Old question');
+    widget.cancel();
+    const freshRequest = widget.send('New question');
+
+    expect(widget.isBusy()).toBe(true);
+    await freshRequest;
+    staleStream?.enqueue(encoder.encode('data: {"type":"text-delta","delta":"Stale answer"}\n'));
+    staleStream?.close();
+    await staleRequest;
+
+    expect(widget.isBusy()).toBe(false);
+    expect(widget.shadowRoot?.textContent).toContain('Fresh answer');
+    expect(widget.shadowRoot?.textContent).not.toContain('Stale answer');
+    expect(widget.getMessages().map((message) => message.content)).toEqual([
+      'Old question',
+      'New question',
+      'Fresh answer'
+    ]);
+  });
+
+  it('turns the send control into an accessible stop action while streaming', async () => {
+    defineContext7Widget();
+
+    let signal: AbortSignal | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async (_url, init?: RequestInit) =>
+          await new Promise<Response>((_resolve, reject) => {
+            signal = init?.signal ?? undefined;
+            signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+          })
+      )
+    );
+
+    const widget = document.createElement('context7-widget');
+    widget.setAttribute('library', '/desource-labs/context7-widget');
+    document.body.append(widget);
+    const input = widget.shadowRoot?.querySelector<HTMLInputElement>('[data-c7-input]');
+    const form = widget.shadowRoot?.querySelector<HTMLFormElement>('[data-c7-form]');
+    const submit = widget.shadowRoot?.querySelector<HTMLButtonElement>('[data-c7-send]');
+    input!.value = 'Stop this response';
+
+    form?.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }));
+    expect(submit?.textContent?.trim()).toBe('Stop');
+    expect(submit?.getAttribute('aria-label')).toBe('Stop response');
+
+    form?.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }));
+    expect(signal?.aborted).toBe(true);
+    expect(submit?.textContent?.trim()).toBe('Send');
+  });
+
+  it('binds static shadow DOM handlers once across reconnections', async () => {
+    defineContext7Widget();
+    const fetchMock = vi.fn(
+      async () => new Response(createSseStream(['data: {"type":"text-delta","delta":"Reconnected"}\n']))
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const widget = document.createElement('context7-widget');
+    widget.setAttribute('library', '/desource-labs/context7-widget');
+    document.body.append(widget);
+    widget.remove();
+    document.body.append(widget);
+
+    const input = widget.shadowRoot?.querySelector<HTMLInputElement>('[data-c7-input]');
+    input!.value = 'One request';
+    widget.shadowRoot
+      ?.querySelector<HTMLFormElement>('[data-c7-form]')
+      ?.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }));
+    await waitForShadowText(widget, 'Reconnected');
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it('registers only connected instances and restores external trigger accessibility', () => {
+    defineContext7Widget();
+
+    const trigger = document.createElement('button');
+    trigger.id = 'docs-trigger';
+    trigger.setAttribute('aria-expanded', 'mixed');
+    const widget = document.createElement('context7-widget') as HTMLElement & { open: () => void };
+    widget.setAttribute('custom-trigger', '#docs-trigger');
+    widget.setAttribute('library', '/desource-labs/context7-widget');
+    widget.setAttribute('widget-id', 'detached');
+
+    expect(window.Context7Widget?.get('detached')).toBeUndefined();
+    document.body.append(trigger, widget);
+    expect(trigger.getAttribute('aria-controls')).toMatch(/^context7-widget-panel-/);
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+
+    widget.open();
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    widget.remove();
+    expect(trigger.hasAttribute('aria-controls')).toBe(false);
+    expect(trigger.getAttribute('aria-expanded')).toBe('mixed');
+    expect(window.Context7Widget?.get('detached')).toBeUndefined();
   });
 
   it('submits the composer input and supports close controls', async () => {

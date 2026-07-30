@@ -1,4 +1,8 @@
 import type {
+  Context7ActiveRequest as _Context7ActiveRequest,
+  Context7Message,
+  Context7Role,
+  Context7WidgetController,
   Context7WidgetOptions,
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
@@ -14,6 +18,7 @@ export type {
   Context7WidgetAnswerEventDetail,
   Context7WidgetBaseEventDetail,
   Context7WidgetDomEvent,
+  Context7WidgetDomEventMap,
   Context7WidgetErrorEventDetail,
   Context7WidgetEventDetailFor,
   Context7WidgetEventMap,
@@ -29,7 +34,7 @@ export interface Context7WidgetProps extends Omit<Context7WidgetOptions, 'custom
   /**
    * Use a custom trigger instead of the built-in widget launcher.
    * - true renders the Vue package trigger button.
-   * - string binds the widget to an external trigger id, with or without "#".
+   * - a simple string binds an external trigger id; CSS selector syntax is also supported.
    * - undefined keeps the built-in widget launcher.
    */
   customTrigger?: Context7WidgetCustomTrigger;
@@ -85,13 +90,44 @@ export interface Context7WidgetSlots {
   default: {};
 }
 
-export interface Context7WidgetExpose {
+export interface Context7WidgetExpose extends Context7WidgetController {
   /** Root element rendered and owned by Vue. */
   readonly element: HTMLElement | null;
-  cancel: () => void;
-  close: () => void;
-  isOpen: () => boolean;
-  open: () => void;
-  send: (message: string) => Promise<void>;
-  toggle: () => void;
+  subscribe: (listener: Context7WidgetStateListener) => () => void;
 }
+
+export interface Context7WidgetState {
+  readonly busy: boolean;
+  readonly messages: readonly Context7Message[];
+  readonly open: boolean;
+}
+
+export type Context7WidgetStateListener = (state: Context7WidgetState) => void;
+
+type ErrorDisplayItem = {
+  html: string;
+  id: string;
+  kind: 'error';
+};
+
+export type MessageDisplayItem = {
+  content: string;
+  id: string;
+  kind: 'message';
+  role: Context7Role;
+};
+
+export type ToolDisplayItem = {
+  contentId: string;
+  expanded: boolean;
+  hasResult: boolean;
+  id: string;
+  kind: 'tool';
+  query: string;
+  result: string;
+  toolCallId: string;
+};
+
+export type DisplayItem = ErrorDisplayItem | MessageDisplayItem | ToolDisplayItem;
+
+export type Context7ActiveRequest = Omit<_Context7ActiveRequest, 'typing'>;

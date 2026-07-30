@@ -41,7 +41,6 @@
   "types": "./dist/index.d.ts",
   "unpkg": "./dist/widget.js",
   "jsdelivr": "./dist/widget.js",
-  "browser": "./dist/widget.js",
   "files": [
     "dist",
     "CHANGELOG.md",
@@ -52,13 +51,19 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./kit": {
       "types": "./dist/kit.d.ts",
-      "import": "./dist/kit.js"
+      "import": "./dist/kit.js",
+      "default": "./dist/kit.js"
     },
-    "./widget.js": "./dist/widget.js",
+    "./widget.js": {
+      "types": "./dist/auto.d.ts",
+      "import": "./dist/widget.js",
+      "default": "./dist/widget.js"
+    },
     "./package.json": "./package.json"
   },
   "sideEffects": [

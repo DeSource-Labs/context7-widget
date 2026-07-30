@@ -1,11 +1,14 @@
-import { createApp, defineComponent, h, nextTick, ref } from 'vue';
+import { createApp, defineComponent, h, nextTick, ref, type App } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Context7Widget, useContext7Widget, type Context7WidgetExpose } from '../../src';
 import { createSseStream } from '../../../../common/tests/unit/stream';
 import { expectAlwaysVisibleBranding } from '../../../../common/tests/unit/widget-contract';
 
+const mountedApps: App[] = [];
+
 describe('@desource/context7-widget-vue', () => {
   afterEach(() => {
+    for (const app of mountedApps.splice(0).reverse()) app.unmount();
     document.body.innerHTML = '';
     vi.restoreAllMocks();
   });
@@ -56,7 +59,7 @@ describe('@desource/context7-widget-vue', () => {
     external.id = 'docs-help';
     document.body.append(external, root);
 
-    createApp({
+    const app = createApp({
       render: () =>
         h(
           Context7Widget,
@@ -71,7 +74,9 @@ describe('@desource/context7-widget-vue', () => {
               h('span', { 'data-testid': 'slot-trigger', 'data-trigger-id': triggerId }, label)
           }
         )
-    }).mount(root);
+    });
+    mountedApps.push(app);
+    app.mount(root);
 
     await nextTick();
     expect(root.querySelector('.c7-launcher')).toBeTruthy();
@@ -172,6 +177,51 @@ describe('@desource/context7-widget-vue', () => {
     expect(widgetRef.value?.isOpen()).toBe(false);
   });
 
+  it('handles missing configuration, invalid triggers, outside clicks, and transport failures accessibly', async () => {
+    const error = vi.fn();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        customTrigger: '[',
+        defaultOpen: true,
+        library: '',
+        onError: error,
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Invalid custom trigger selector'));
+    expect(widgetRef.value?.isOpen()).toBe(true);
+
+    await widgetRef.value?.send('Where are the docs?');
+    expect(error).toHaveBeenCalledWith(expect.objectContaining({ error: 'Missing library prop.' }));
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain('Missing library prop.');
+
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }));
+    expect(widgetRef.value?.isOpen()).toBe(false);
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Response.json({ message: 'Widget is not enabled' }, { status: 403 }))
+    );
+    const configuredRef = ref<Context7WidgetExpose | null>(null);
+    const configuredRoot = mount(() =>
+      h(Context7Widget, {
+        library: '/desource-labs/context7-widget',
+        onError: error,
+        ref: configuredRef
+      })
+    );
+    await nextTick();
+    await configuredRef.value?.send('Will this fail?');
+
+    expect(configuredRoot.querySelector('[role="alert"]')?.textContent).toContain(
+      'The chat widget is not enabled for this library.'
+    );
+  });
+
   it('programmatically mounts and controls the native Vue component', async () => {
     vi.stubGlobal(
       'fetch',
@@ -195,7 +245,9 @@ describe('@desource/context7-widget-vue', () => {
     });
     const hostRoot = document.createElement('div');
     document.body.append(hostRoot);
-    const vm = createApp(Host).mount(hostRoot) as unknown as {
+    const hostApp = createApp(Host);
+    mountedApps.push(hostApp);
+    const vm = hostApp.mount(hostRoot) as unknown as {
       controller: ReturnType<typeof useContext7Widget>;
     };
 
@@ -227,7 +279,9 @@ describe('@desource/context7-widget-vue', () => {
       },
       render: () => h('div')
     });
-    createApp(Host).mount(hostRoot);
+    const hostApp = createApp(Host);
+    mountedApps.push(hostApp);
+    hostApp.mount(hostRoot);
 
     await nextTick();
     expect(root.querySelector('.context7-widget')?.getAttribute('preset')).toBe('glass');
@@ -252,11 +306,180 @@ describe('@desource/context7-widget-vue', () => {
     expect(root).toBeTruthy();
     expect(() => controller?.mount()).toThrow('useContext7Widget mount requires a library option.');
   });
+
+  it('isolates replacement requests from stale frames after cancellation', async () => {
+    let staleStream: ReadableStreamDefaultController<Uint8Array> | undefined;
+    const encoder = new TextEncoder();
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockImplementationOnce(
+          async () =>
+            new Response(
+              new ReadableStream<Uint8Array>({
+                start(controller) {
+                  staleStream = controller;
+                }
+              })
+            )
+        )
+        .mockImplementationOnce(
+          async () => new Response(createSseStream(['data: {"type":"text-delta","delta":"Fresh Vue answer"}\n']))
+        )
+    );
+
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    const staleRequest = widgetRef.value!.send('Old question');
+    widgetRef.value!.cancel();
+    const freshRequest = widgetRef.value!.send('New question');
+    await freshRequest;
+    staleStream?.enqueue(encoder.encode('data: {"type":"text-delta","delta":"Stale Vue answer"}\n'));
+    staleStream?.close();
+    await staleRequest;
+
+    expect(root.textContent).toContain('Fresh Vue answer');
+    expect(root.textContent).not.toContain('Stale Vue answer');
+    expect(widgetRef.value?.getMessages().map((message) => message.content)).toEqual([
+      'Old question',
+      'New question',
+      'Fresh Vue answer'
+    ]);
+  });
+
+  it('offers a visible stop action and reports reactive composable state', async () => {
+    let signal: AbortSignal | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async (_url, init?: RequestInit) =>
+          await new Promise<Response>((_resolve, reject) => {
+            signal = init?.signal ?? undefined;
+            signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+          })
+      )
+    );
+
+    const target = document.createElement('div');
+    const hostRoot = document.createElement('div');
+    document.body.append(target, hostRoot);
+    const Host = defineComponent({
+      setup() {
+        return {
+          controller: useContext7Widget({
+            autoMount: true,
+            library: '/desource-labs/context7-widget',
+            target
+          })
+        };
+      },
+      render: () => h('div')
+    });
+    const hostApp = createApp(Host);
+    mountedApps.push(hostApp);
+    const vm = hostApp.mount(hostRoot) as unknown as {
+      controller: ReturnType<typeof useContext7Widget>;
+    };
+    await nextTick();
+
+    const pending = vm.controller.send('Stop this');
+    expect(vm.controller.isBusy.value).toBe(true);
+    await nextTick();
+    const stop = target.querySelector<HTMLButtonElement>('.c7-send');
+    expect(stop?.textContent?.trim()).toBe('Stop');
+    stop?.click();
+    await pending;
+
+    expect(signal?.aborted).toBe(true);
+    expect(vm.controller.isBusy.value).toBe(false);
+    expect(stop?.textContent?.trim()).toBe('Send');
+  });
+
+  it('persists composable mount overrides, updates them, and exposes conversation controls', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(createSseStream(['data: {"type":"text-delta","delta":"Tracked answer"}\n'])))
+    );
+    const sourcePreset = ref<'glass' | 'minimal'>('glass');
+    const target = document.createElement('div');
+    const hostRoot = document.createElement('div');
+    document.body.append(target, hostRoot);
+    const Host = defineComponent({
+      setup() {
+        const controller = useContext7Widget(() => ({
+          library: '/desource-labs/context7-widget',
+          preset: sourcePreset.value,
+          target
+        }));
+        return { controller };
+      },
+      render: () => h('div')
+    });
+    const hostApp = createApp(Host);
+    mountedApps.push(hostApp);
+    const vm = hostApp.mount(hostRoot) as unknown as {
+      controller: ReturnType<typeof useContext7Widget>;
+    };
+    await nextTick();
+
+    const firstElement = vm.controller.mount({ preset: 'terminal' });
+    expect(firstElement.getAttribute('preset')).toBe('terminal');
+    sourcePreset.value = 'minimal';
+    await nextTick();
+    expect(firstElement.getAttribute('preset')).toBe('terminal');
+
+    expect(vm.controller.mount({ preset: 'neo' })).toBe(firstElement);
+    await nextTick();
+    expect(firstElement.getAttribute('preset')).toBe('neo');
+    await vm.controller.send('Track this');
+    expect(vm.controller.messages.value.map((message) => message.content)).toEqual(['Track this', 'Tracked answer']);
+
+    vm.controller.reset();
+    expect(vm.controller.messages.value).toEqual([]);
+    expect(vm.controller.getMessages()).toEqual([]);
+  });
+
+  it('supports CSS selectors for external triggers and restores their ARIA attributes', async () => {
+    const customTrigger = ref<string | undefined>('.docs-trigger');
+    const external = document.createElement('button');
+    external.className = 'docs-trigger';
+    external.setAttribute('aria-expanded', 'mixed');
+    document.body.append(external);
+    const root = mount(() =>
+      h(Context7Widget, {
+        customTrigger: customTrigger.value,
+        library: '/desource-labs/context7-widget'
+      })
+    );
+    await nextTick();
+
+    const panel = root.querySelector<HTMLElement>('[role="dialog"]');
+    expect(external.getAttribute('aria-controls')).toBe(panel?.id);
+    expect(external.getAttribute('aria-expanded')).toBe('false');
+    external.click();
+    await nextTick();
+    expect(external.getAttribute('aria-expanded')).toBe('true');
+
+    customTrigger.value = undefined;
+    await nextTick();
+    expect(external.hasAttribute('aria-controls')).toBe(false);
+    expect(external.getAttribute('aria-expanded')).toBe('mixed');
+  });
 });
 
 function mount(renderWidget: () => ReturnType<typeof h>): HTMLElement {
   const root = document.createElement('div');
   document.body.append(root);
-  createApp({ render: renderWidget }).mount(root);
+  const app = createApp({ render: renderWidget });
+  mountedApps.push(app);
+  app.mount(root);
   return root;
 }

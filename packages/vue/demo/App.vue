@@ -58,12 +58,12 @@
         <input v-model="color" data-testid="accent" type="text" />
       </label>
 
-      <label>
+      <label class="checkbox-control">
         <input v-model="backdrop" data-testid="backdrop" type="checkbox" />
         Backdrop
       </label>
 
-      <label>
+      <label class="checkbox-control">
         <input v-model="closeOnOutsideClick" data-testid="close-outside" type="checkbox" />
         Close outside
       </label>
@@ -184,6 +184,7 @@ async function sendPrompt() {
   background: #101513;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
+  min-width: 0;
   padding: 1rem;
 }
 
@@ -200,6 +201,11 @@ label {
   font-size: 0.85rem;
 }
 
+.checkbox-control {
+  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
 input,
 select,
 button {
@@ -214,6 +220,7 @@ select {
   color: #f8fafc;
   min-height: 2.4rem;
   padding: 0 0.7rem;
+  width: 100%;
 }
 
 button {
@@ -241,5 +248,13 @@ button {
   font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', monospace;
   line-height: 1.5;
   padding: 0.85rem;
+  word-break: break-word;
+}
+
+@media (max-width: 720px) {
+  .demo-shell {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.75rem;
+  }
 }
 </style>

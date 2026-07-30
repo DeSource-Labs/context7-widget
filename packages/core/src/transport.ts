@@ -4,7 +4,8 @@ import type {
   Context7ToolCall,
   Context7ToolResult,
   Context7WidgetConfig
-} from './types';
+} from './types.js';
+import { isAbortError } from './runtime.js';
 
 const CONTEXT7_CHAT_ENDPOINT = 'https://context7.com/api/v2/widget/chat';
 
@@ -17,7 +18,7 @@ export class Context7TransportError extends Error {
 
 export async function streamContext7Response(
   config: Pick<Context7WidgetConfig, 'library'>,
-  messages: Context7Message[],
+  messages: readonly Context7Message[],
   callbacks: Context7StreamCallbacks,
   signal?: AbortSignal
 ): Promise<void> {
@@ -31,27 +32,32 @@ export async function streamContext7Response(
   const decoder = new TextDecoder();
   let buffer = '';
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop() ?? '';
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
 
-    for (const line of lines) {
-      consumeStreamLine(line, callbacks);
+      for (const line of lines) {
+        consumeStreamLine(line, callbacks);
+      }
     }
-  }
 
-  if (buffer.trim()) {
-    consumeStreamLine(buffer, callbacks);
+    buffer += decoder.decode();
+    if (buffer.trim()) {
+      consumeStreamLine(buffer, callbacks);
+    }
+  } finally {
+    reader.releaseLock();
   }
 }
 
 async function postChatRequest(
   config: Pick<Context7WidgetConfig, 'library'>,
-  messages: Context7Message[],
+  messages: readonly Context7Message[],
   signal?: AbortSignal
 ): Promise<Response> {
   let response: Response;
@@ -102,10 +108,10 @@ function consumeStreamLine(line: string, callbacks: Context7StreamCallbacks): vo
 
   if (frameType === '0') {
     try {
-      const parsed = JSON.parse(payload);
+      const parsed: unknown = JSON.parse(payload);
       if (typeof parsed === 'string') callbacks.onChunk(parsed);
-      if (typeof parsed?.content === 'string') callbacks.onChunk(parsed.content);
-      if (typeof parsed?.delta === 'string') callbacks.onChunk(parsed.delta);
+      if (isRecord(parsed) && typeof parsed.content === 'string') callbacks.onChunk(parsed.content);
+      if (isRecord(parsed) && typeof parsed.delta === 'string') callbacks.onChunk(parsed.delta);
     } catch {
       // Ignore malformed compatibility frames.
     }
@@ -114,7 +120,8 @@ function consumeStreamLine(line: string, callbacks: Context7StreamCallbacks): vo
 
 function consumeJsonFrame(payload: string, callbacks: Context7StreamCallbacks): void {
   try {
-    const parsed = JSON.parse(payload);
+    const parsed: unknown = JSON.parse(payload);
+    if (!isRecord(parsed)) return;
     if (parsed.type === 'text-delta' && typeof parsed.delta === 'string') {
       callbacks.onChunk(parsed.delta);
       return;
@@ -167,8 +174,4 @@ async function resolveErrorMessage(response: Response): Promise<string> {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === 'AbortError';
 }

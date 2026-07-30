@@ -7,8 +7,9 @@ describe('renderMarkdown', () => {
   });
 
   it('renders simple markdown blocks', () => {
-    const html = renderMarkdown('**Setup**\n\n- Install\n- Configure `middleware`');
+    const html = renderMarkdown('## **Setup**\n\n- Install\n- Configure `middleware`');
 
+    expect(html).toContain('<h4>');
     expect(html).toContain('<strong>Setup</strong>');
     expect(html).toContain('<ul>');
     expect(html).toContain('<code>middleware</code>');
@@ -35,5 +36,22 @@ describe('renderMarkdown', () => {
 
     expect(html).toContain('<pre part="code-block">');
     expect(html).toContain('pnpm add @desource/context7-widget');
+  });
+
+  it('keeps markdown characters inside inline code literal', () => {
+    expect(renderMarkdown('Use `**literal**` and **bold**.')).toContain(
+      '<code>**literal**</code> and <strong>bold</strong>'
+    );
+  });
+
+  it('supports formatted link labels and URL parentheses without allowing unsafe protocols', () => {
+    const html = renderMarkdown(
+      '[**API**](https://example.com/reference_(v2)) [unsafe](data:text/html,<script>alert(1)</script>)'
+    );
+
+    expect(html).toContain('<strong>API</strong>');
+    expect(html).toContain('href="https://example.com/reference_(v2)"');
+    expect(html).not.toContain('data:text/html');
+    expect(html).not.toContain('<script>');
   });
 });

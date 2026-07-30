@@ -5,6 +5,7 @@ export type {
   Context7WidgetBaseEventDetail,
   Context7WidgetCustomTrigger,
   Context7WidgetDomEvent,
+  Context7WidgetDomEventMap,
   Context7WidgetEmits,
   Context7WidgetErrorEventDetail,
   Context7WidgetEventDetailFor,
@@ -14,6 +15,8 @@ export type {
   Context7WidgetProps,
   Context7WidgetQuestionEventDetail,
   Context7WidgetSlots,
+  Context7WidgetState,
+  Context7WidgetStateListener,
   Context7WidgetToolCallEventDetail,
   Context7WidgetToolResultEventDetail,
   Context7WidgetVueEventDetail,
@@ -36,5 +39,6 @@ export type {
   Context7WidgetEventDetail,
   Context7WidgetEventName,
   Context7WidgetOptions,
+  Context7WidgetController,
   Context7WidgetPreset
 } from '@desource/context7-widget/kit';

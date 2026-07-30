@@ -45,7 +45,8 @@ describe('core helpers', () => {
 
     expect(target.firstElementChild).toBe(widget);
     expect(widget.getAttribute('library')).toBe('/desource-labs/context7-widget');
-    expect(widget.getAttribute('title')).toBe('Docs assistant');
+    expect(widget.getAttribute('dialog-title')).toBe('Docs assistant');
+    expect(widget.hasAttribute('title')).toBe(false);
     expect(widget.getAttribute('widget-id')).toBe('docs');
   });
 

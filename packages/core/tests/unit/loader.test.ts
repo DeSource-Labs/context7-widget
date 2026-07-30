@@ -23,8 +23,20 @@ describe('script loader', () => {
     expect(widget?.getAttribute('color')).toBe('#111827');
     expect(widget?.getAttribute('position')).toBe('center');
     expect(widget?.getAttribute('initial-message')).toBe('Legacy welcome');
-    expect(widget?.getAttribute('data-welcome-message')).toBe('Legacy welcome');
+    expect(widget?.hasAttribute('data-welcome-message')).toBe(false);
     expect(script.dataset.c7Mounted).toBe('true');
+  });
+
+  it('prefers the current initial-message attribute over the legacy welcome alias', () => {
+    const script = document.createElement('script');
+    script.setAttribute('data-library', '/vercel/next.js');
+    script.setAttribute('data-initial-message', 'Current welcome');
+    script.setAttribute('data-welcome-message', 'Legacy welcome');
+    document.body.append(script);
+
+    const widget = mountContext7WidgetFromScript(script);
+
+    expect(widget?.getAttribute('initial-message')).toBe('Current welcome');
   });
 
   it('does not mount twice from the same script', () => {

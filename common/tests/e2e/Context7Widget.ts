@@ -35,10 +35,20 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       const trigger = container.locator('.context7-widget-trigger');
 
       await expect(trigger).toHaveText(/Ask docs/);
+      await expect(trigger).toHaveAttribute('aria-expanded', 'false');
       await trigger.click();
 
       await expect(panel(widget)).toBeVisible();
+      await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      const controlledPanelId = await panel(widget).getAttribute('id');
+      if (!controlledPanelId) throw new Error('The widget panel must have an id.');
+      await expect(trigger).toHaveAttribute('aria-controls', controlledPanelId);
+      await expect(widget.getByRole('textbox', { name: 'Ask a documentation question' })).toBeFocused();
       await expect(container.locator(selectors.eventLog)).toContainText('open:1');
+
+      await widget.getByRole('button', { name: 'Close chat' }).click();
+      await expect(trigger).toBeFocused();
+      await expect(trigger).toHaveAttribute('aria-expanded', 'false');
     });
 
     test('updates public attributes from demo controls', async () => {
@@ -77,6 +87,30 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await expect(container.locator(selectors.eventLog)).toContainText('answerComplete:1');
       await expect(container.locator(selectors.eventLog)).toContainText('toolCall:1');
       await expect(container.locator(selectors.eventLog)).toContainText('toolResult:1');
+    });
+
+    test('offers an enabled Stop action that aborts without an error event', async ({ page }) => {
+      await page.evaluate((endpoint) => {
+        const originalFetch = window.fetch;
+        window.fetch = (input, init) => {
+          if (String(input) !== endpoint) return originalFetch(input, init);
+
+          return new Promise<Response>((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), {
+              once: true
+            });
+          });
+        };
+      }, CONTEXT7_CHAT_ENDPOINT);
+
+      await container.locator(selectors.programmaticSend).click();
+      const stop = widget.getByRole('button', { name: 'Stop response' });
+      await expect(stop).toBeEnabled();
+      await expect(stop).toHaveText('Stop');
+      await stop.click();
+
+      await expect(widget.getByRole('button', { name: 'Send question' })).toHaveText('Send');
+      await expect(container.locator(selectors.eventLog)).toContainText('error:0');
     });
 
     test('closes when clicking outside if the option is enabled', async ({ page }) => {

@@ -18,7 +18,13 @@ export default defineConfig({
     include: ['tests/unit/**/*.{test,spec}.{ts,tsx}'],
     coverage: {
       exclude: ['src/**/*.d.ts'],
-      include: ['src/**/*.{ts,vue,js}']
+      include: ['src/**/*.{ts,vue,js}'],
+      thresholds: {
+        branches: 65,
+        functions: 80,
+        lines: 85,
+        statements: 80
+      }
     }
   }
 });

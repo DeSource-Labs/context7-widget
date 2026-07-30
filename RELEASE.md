@@ -26,7 +26,7 @@ From `main`:
 
 ```bash
 pnpm install
-pnpm ci
+pnpm run check:release
 pnpm changeset:version
 git add .
 git commit -m "chore: Release packages"
@@ -44,7 +44,7 @@ If needed, publish from a clean `main` checkout:
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm ci
+pnpm run check:release
 pnpm changeset:publish
 git push --follow-tags
 ```
@@ -71,5 +71,7 @@ pnpm changeset pre exit
 - `pnpm build:all`
 - `pnpm test:all`
 - `pnpm test:unit:coverage`
+- `pnpm size:check`
+- `pnpm validate:packages`
 - Package tarball smoke check with `pnpm --filter <package> pack --pack-destination /tmp`
 - Confirm `NPM_TOKEN` exists in GitHub repository secrets

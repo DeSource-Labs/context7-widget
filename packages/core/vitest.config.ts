@@ -8,7 +8,13 @@ export default defineConfig({
     restoreMocks: true,
     coverage: {
       exclude: ['src/**/*.d.ts'],
-      include: ['src/**/*.{ts,js,mjs,cjs}']
+      include: ['src/**/*.{ts,js,mjs,cjs}'],
+      thresholds: {
+        branches: 70,
+        functions: 88,
+        lines: 90,
+        statements: 85
+      }
     }
   }
 });

@@ -1,5 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// Playwright forces colored output in its worker processes. Forwarding NO_COLOR
+// alongside it makes Node emit a warning for every worker and web server.
+Reflect.deleteProperty(process.env, 'NO_COLOR');
+
 export default defineConfig({
   testDir: './tests/e2e',
   use: {

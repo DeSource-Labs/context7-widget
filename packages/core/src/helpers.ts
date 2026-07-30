@@ -1,51 +1,35 @@
-import { defineContext7Widget, Context7WidgetElement } from './widget-element';
+import { defineContext7Widget, Context7WidgetElement } from './widget-element.js';
 import type {
   Context7WidgetApi,
+  Context7WidgetInstance,
   Context7WidgetOptions,
   Context7WidgetScriptOptions,
   Context7WidgetTarget
-} from './types';
+} from './types.js';
+import { assertBrowser, resolveTarget } from './dom.js';
 
 const DEFAULT_SCRIPT_SRC = 'https://context7.desource-labs.org/widget.js';
 
-const OPTION_ATTRIBUTES: Array<[keyof Context7WidgetOptions, string]> = [
-  ['backdrop', 'backdrop'],
-  ['closeOnOutsideClick', 'close-on-outside-click'],
-  ['color', 'color'],
-  ['customTrigger', 'custom-trigger'],
-  ['defaultOpen', 'default-open'],
-  ['initialMessage', 'initial-message'],
-  ['launcherLabel', 'launcher-label'],
-  ['launcherVariant', 'launcher-variant'],
-  ['library', 'library'],
-  ['panelHeight', 'panel-height'],
-  ['panelWidth', 'panel-width'],
-  ['placeholder', 'placeholder'],
-  ['position', 'position'],
-  ['preset', 'preset'],
-  ['theme', 'theme'],
-  ['title', 'title'],
-  ['widgetId', 'widget-id']
-];
-
-const SCRIPT_OPTION_ATTRIBUTES: Array<[keyof Context7WidgetOptions, string]> = [
-  ['backdrop', 'data-backdrop'],
-  ['closeOnOutsideClick', 'data-close-on-outside-click'],
-  ['color', 'data-color'],
-  ['customTrigger', 'data-custom-trigger'],
-  ['defaultOpen', 'data-default-open'],
-  ['initialMessage', 'data-initial-message'],
-  ['launcherLabel', 'data-launcher-label'],
-  ['launcherVariant', 'data-launcher-variant'],
-  ['library', 'data-library'],
-  ['panelHeight', 'data-panel-height'],
-  ['panelWidth', 'data-panel-width'],
-  ['placeholder', 'data-placeholder'],
-  ['position', 'data-position'],
-  ['preset', 'data-preset'],
-  ['theme', 'data-theme'],
-  ['title', 'data-title'],
-  ['widgetId', 'data-widget-id']
+const OPTION_ATTRIBUTES: ReadonlyArray<
+  readonly [key: keyof Context7WidgetOptions, elementAttribute: string, scriptAttribute: string]
+> = [
+  ['backdrop', 'backdrop', 'data-backdrop'],
+  ['closeOnOutsideClick', 'close-on-outside-click', 'data-close-on-outside-click'],
+  ['color', 'color', 'data-color'],
+  ['customTrigger', 'custom-trigger', 'data-custom-trigger'],
+  ['defaultOpen', 'default-open', 'data-default-open'],
+  ['initialMessage', 'initial-message', 'data-initial-message'],
+  ['launcherLabel', 'launcher-label', 'data-launcher-label'],
+  ['launcherVariant', 'launcher-variant', 'data-launcher-variant'],
+  ['library', 'library', 'data-library'],
+  ['panelHeight', 'panel-height', 'data-panel-height'],
+  ['panelWidth', 'panel-width', 'data-panel-width'],
+  ['placeholder', 'placeholder', 'data-placeholder'],
+  ['position', 'position', 'data-position'],
+  ['preset', 'preset', 'data-preset'],
+  ['theme', 'theme', 'data-theme'],
+  ['title', 'dialog-title', 'data-title'],
+  ['widgetId', 'widget-id', 'data-widget-id']
 ];
 
 export function toContext7WidgetAttributes(options: Context7WidgetOptions): Record<string, string> {
@@ -112,7 +96,7 @@ export function getContext7WidgetApi(): Context7WidgetApi | undefined {
   return window.Context7Widget;
 }
 
-export function getContext7Widget(widgetId?: string): HTMLElement | undefined {
+export function getContext7Widget(widgetId?: string): Context7WidgetInstance | undefined {
   return getContext7WidgetApi()?.get(widgetId);
 }
 
@@ -137,7 +121,7 @@ export function buildContext7WidgetScriptTag(options: Context7WidgetScriptOption
     attributes.nonce = options.nonce;
   }
 
-  for (const [key, attribute] of SCRIPT_OPTION_ATTRIBUTES) {
+  for (const [key, , attribute] of OPTION_ATTRIBUTES) {
     const value = options[key];
     if (value === undefined || value === '') continue;
     if (typeof value === 'boolean') {
@@ -152,23 +136,6 @@ export function buildContext7WidgetScriptTag(options: Context7WidgetScriptOption
     .join(' ');
 
   return `<script ${serialized}></script>`;
-}
-
-function resolveTarget(target: Context7WidgetTarget): Element | DocumentFragment {
-  if (typeof target !== 'string') return target;
-
-  const element = document.querySelector(target);
-  if (!element) {
-    throw new Error(`Context7 widget target was not found: ${target}`);
-  }
-
-  return element;
-}
-
-function assertBrowser(): void {
-  if (typeof document === 'undefined') {
-    throw new Error('Context7 widget helpers require a browser document.');
-  }
 }
 
 function escapeAttribute(value: string): string {

@@ -7,9 +7,6 @@
     :close-on-outside-click="String(resolvedCloseOnOutsideClick)"
     :color="resolvedColor || undefined"
     :custom-trigger="customTriggerSelector"
-    :data-position="resolvedPosition"
-    :data-preset="resolvedPreset"
-    :data-theme="resolvedTheme"
     :default-open="String(resolvedDefaultOpen)"
     :launcher-variant="resolvedLauncherVariant"
     :library="resolvedLibrary"
@@ -20,7 +17,6 @@
     :preset="resolvedPreset"
     :style="widgetStyle"
     :theme="resolvedTheme"
-    :title="resolvedTitle"
     :widget-id="resolvedWidgetId"
     @keydown="onKeyDown"
   >
@@ -32,6 +28,7 @@
       ref="managedTrigger"
       class="context7-widget-trigger"
       type="button"
+      :aria-controls="panelId"
       :aria-expanded="isOpen"
       aria-haspopup="dialog"
       :data-preset="resolvedPreset"
@@ -44,8 +41,10 @@
     </button>
 
     <section
+      :id="panelId"
       ref="panel"
       :aria-label="resolvedTitle"
+      :aria-busy="busy"
       :aria-modal="resolvedPosition === 'center'"
       class="c7-panel"
       part="panel"
@@ -61,7 +60,15 @@
         </button>
       </header>
 
-      <div ref="messagesElement" class="c7-messages" part="messages" aria-live="polite">
+      <div
+        ref="messagesElement"
+        aria-label="Documentation chat conversation"
+        aria-live="polite"
+        aria-relevant="additions text"
+        class="c7-messages"
+        part="messages"
+        role="log"
+      >
         <template v-for="item in displayItems" :key="item.id">
           <div
             v-if="item.kind === 'message'"
@@ -75,6 +82,7 @@
             v-safe-html="item.html"
             class="c7-message c7-message--error"
             part="message error-message"
+            role="alert"
           />
 
           <div v-else class="c7-tool-call" part="tool-call">
@@ -102,32 +110,40 @@
                 class="c7-tool-toggle"
                 part="tool-toggle"
                 type="button"
+                :aria-controls="item.contentId"
                 :aria-expanded="item.expanded"
                 @click="item.expanded = !item.expanded"
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="m6 9 6 6 6-6" />
                 </svg>
-                <span>View results</span>
+                <span>{{ item.expanded ? 'Hide results' : 'View results' }}</span>
               </button>
-              <div v-show="item.expanded" class="c7-tool-content">
-                <pre>{{ formatToolResult(item.result) }}</pre>
+              <div
+                v-show="item.expanded"
+                :id="item.contentId"
+                aria-label="Documentation search results"
+                class="c7-tool-content"
+                role="region"
+              >
+                <pre>{{ item.result }}</pre>
               </div>
             </div>
           </div>
         </template>
 
-        <div v-if="showTyping" class="c7-typing" part="typing">
-          <span />
-          <span />
-          <span />
+        <div v-if="showTyping" aria-label="Context7 is responding" class="c7-typing" part="typing" role="status">
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
         </div>
       </div>
 
-      <form class="c7-composer" part="composer" @submit.prevent="send()">
+      <form class="c7-composer" part="composer" @submit.prevent="busy ? cancel() : send()">
         <input
           ref="input"
           v-model="draft"
+          aria-label="Ask a documentation question"
           class="c7-input"
           part="input"
           type="text"
@@ -135,7 +151,9 @@
           :disabled="busy"
           :placeholder="resolvedPlaceholder"
         />
-        <button class="c7-send" part="send-button" type="submit" :disabled="busy">Send</button>
+        <button :aria-label="busy ? 'Stop response' : 'Send question'" class="c7-send" part="send-button" type="submit">
+          {{ busy ? 'Stop' : 'Send' }}
+        </button>
       </form>
 
       <footer class="c7-footer" part="footer">
@@ -171,6 +189,7 @@
       class="c7-launcher"
       part="launcher"
       type="button"
+      :aria-controls="panelId"
       :aria-expanded="isOpen"
       :aria-label="resolvedLauncherLabel"
       aria-haspopup="dialog"
@@ -201,19 +220,28 @@
 import {
   CONTEXT7_URL,
   Context7TransportError,
-  DEFAULT_CONTEXT7_INITIAL_MESSAGE,
   DESOURCE_LABS_URL,
   buildContext7ErrorHtml,
+  cancelRenderFrame,
+  captureTriggerAccessibility,
   compactContext7WidgetOptions,
   context7LogoSvg,
   deSourceLabsLogoUrl,
   escapeHtml,
   isAbortError,
+  normalizeContext7WidgetTrigger,
+  querySelectorSafely,
   renderMarkdown,
+  requestRenderFrame,
+  resolveContext7AnchorLayout,
+  resolveContext7WidgetConfig,
+  restoreTriggerAccessibility,
   streamContext7Response,
+  trapFocus,
   type Context7Message,
   type Context7ToolCall,
   type Context7ToolResult,
+  type Context7TriggerA11yState,
   type Context7WidgetAnswerCompleteEventDetail,
   type Context7WidgetAnswerEventDetail,
   type Context7WidgetErrorEventDetail,
@@ -229,6 +257,7 @@ import {
   nextTick,
   onBeforeUnmount,
   onMounted,
+  reactive,
   ref,
   useAttrs,
   useId,
@@ -238,32 +267,17 @@ import {
 } from 'vue';
 import { context7WidgetDefaultsKey } from '../internal/injection';
 import { registerVueContext7Widget, unregisterVueContext7Widget } from '../internal/registry';
-import type { Context7WidgetEmits, Context7WidgetExpose, Context7WidgetProps, Context7WidgetSlots } from '../types';
-
-type MessageDisplayItem = {
-  content: string;
-  id: string;
-  kind: 'message';
-  role: 'assistant' | 'user';
-};
-
-type ErrorDisplayItem = {
-  html: string;
-  id: string;
-  kind: 'error';
-};
-
-type ToolDisplayItem = {
-  expanded: boolean;
-  hasResult: boolean;
-  id: string;
-  kind: 'tool';
-  query: string;
-  result?: unknown;
-  toolCallId: string;
-};
-
-type DisplayItem = ErrorDisplayItem | MessageDisplayItem | ToolDisplayItem;
+import type {
+  Context7ActiveRequest,
+  Context7WidgetEmits,
+  Context7WidgetExpose,
+  Context7WidgetProps,
+  Context7WidgetSlots,
+  Context7WidgetStateListener,
+  DisplayItem,
+  MessageDisplayItem,
+  ToolDisplayItem
+} from '../types';
 
 defineOptions({
   name: 'Context7Widget',
@@ -292,11 +306,15 @@ const draft = ref('');
 const displayItems = ref<DisplayItem[]>([]);
 const conversation = ref<Context7Message[]>([]);
 const showTyping = ref(false);
-const activeAnchor = ref<HTMLElement | null>(null);
-const abortController = ref<AbortController | null>(null);
+const activeAnchor = ref<Element | null>(null);
 const messageCounter = ref(0);
-const managedTriggerId = `context7-widget-trigger-${useId().replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '-');
+const managedTriggerId = `context7-widget-trigger-${instanceId}`;
+const panelId = `context7-widget-panel-${instanceId}`;
+const stateListeners = new Set<Context7WidgetStateListener>();
+let activeRequest: Context7ActiveRequest | null = null;
 let externalTrigger: Element | null = null;
+let externalTriggerAccessibility: Context7TriggerA11yState | null = null;
 let lastFocus: Element | null = null;
 let registeredWidgetId = '';
 
@@ -311,25 +329,27 @@ const vSafeHtml: Directive<HTMLElement, string> = {
 
 const options = computed<Partial<Context7WidgetOptions>>(() => {
   const { customTrigger: _customTrigger, ...widgetProps } = props;
+  const { customTrigger: _defaultCustomTrigger, ...defaultOptions } = defaults;
   const provided = compactContext7WidgetOptions(widgetProps);
-  return compactContext7WidgetOptions({ ...defaults, ...provided });
+  return compactContext7WidgetOptions({ ...defaultOptions, ...provided });
 });
-const resolvedLibrary = computed(() => options.value.library ?? '');
-const resolvedPosition = computed(() => options.value.position ?? 'bottom-right');
-const resolvedPreset = computed(() => options.value.preset ?? 'default');
-const resolvedTheme = computed(() => options.value.theme ?? 'auto');
-const resolvedBackdrop = computed(() => options.value.backdrop ?? resolvedPosition.value === 'center');
-const resolvedCloseOnOutsideClick = computed(() => options.value.closeOnOutsideClick ?? true);
-const resolvedColor = computed(() => options.value.color ?? '');
-const resolvedDefaultOpen = computed(() => options.value.defaultOpen ?? false);
-const resolvedInitialMessage = computed(() => options.value.initialMessage ?? DEFAULT_CONTEXT7_INITIAL_MESSAGE);
-const resolvedLauncherLabel = computed(() => options.value.launcherLabel ?? 'Ask Docs AI');
-const resolvedLauncherVariant = computed(() => options.value.launcherVariant ?? 'icon');
-const resolvedPanelHeight = computed(() => options.value.panelHeight ?? '');
-const resolvedPanelWidth = computed(() => options.value.panelWidth ?? '');
-const resolvedPlaceholder = computed(() => options.value.placeholder ?? 'Ask about the docs...');
-const resolvedTitle = computed(() => options.value.title ?? 'Chat with Documentation');
-const resolvedWidgetId = computed(() => options.value.widgetId ?? 'default');
+const resolvedConfig = computed(() => resolveContext7WidgetConfig(options.value));
+const resolvedLibrary = computed(() => resolvedConfig.value.library);
+const resolvedPosition = computed(() => resolvedConfig.value.position);
+const resolvedPreset = computed(() => resolvedConfig.value.preset);
+const resolvedTheme = computed(() => resolvedConfig.value.theme);
+const resolvedBackdrop = computed(() => resolvedConfig.value.backdrop);
+const resolvedCloseOnOutsideClick = computed(() => resolvedConfig.value.closeOnOutsideClick);
+const resolvedColor = computed(() => resolvedConfig.value.color);
+const resolvedDefaultOpen = computed(() => resolvedConfig.value.defaultOpen);
+const resolvedInitialMessage = computed(() => resolvedConfig.value.initialMessage);
+const resolvedLauncherLabel = computed(() => resolvedConfig.value.launcherLabel);
+const resolvedLauncherVariant = computed(() => resolvedConfig.value.launcherVariant);
+const resolvedPanelHeight = computed(() => resolvedConfig.value.panelHeight);
+const resolvedPanelWidth = computed(() => resolvedConfig.value.panelWidth);
+const resolvedPlaceholder = computed(() => resolvedConfig.value.placeholder);
+const resolvedTitle = computed(() => resolvedConfig.value.title);
+const resolvedWidgetId = computed(() => resolvedConfig.value.widgetId);
 const resolvedCustomTrigger = computed(() => props.customTrigger ?? defaults.customTrigger);
 const rendersManagedTrigger = computed(() => resolvedCustomTrigger.value === true);
 const hasCustomTrigger = computed(
@@ -337,7 +357,8 @@ const hasCustomTrigger = computed(
 );
 const customTriggerSelector = computed(() => {
   if (resolvedCustomTrigger.value === true) return `#${managedTriggerId}`;
-  if (typeof resolvedCustomTrigger.value === 'string') return normalizeCustomTriggerId(resolvedCustomTrigger.value);
+  if (typeof resolvedCustomTrigger.value === 'string')
+    return normalizeContext7WidgetTrigger(resolvedCustomTrigger.value);
   return undefined;
 });
 const widgetStyle = computed(() => ({
@@ -346,74 +367,84 @@ const widgetStyle = computed(() => ({
   '--c7-panel-width': resolvedPanelWidth.value || undefined
 }));
 
-function detail(): Context7WidgetLifecycleEventDetail {
-  return {
-    library: resolvedLibrary.value,
-    widget: root.value as HTMLElement,
-    widgetId: resolvedWidgetId.value
-  };
-}
+const detail = (): Context7WidgetLifecycleEventDetail => ({
+  library: resolvedLibrary.value,
+  widget: root.value as HTMLElement,
+  widgetId: resolvedWidgetId.value
+});
 
-function resetConversation(): void {
+const reset = () => {
+  cancel();
   const intro = resolvedInitialMessage.value.replace(/\{library\}/g, resolvedLibrary.value || 'this library');
   displayItems.value = [{ content: intro, id: nextMessageId(), kind: 'message', role: 'assistant' }];
   conversation.value = [];
-}
+  notifyState();
+};
 
-function renderMessage(item: MessageDisplayItem): string {
-  return item.role === 'assistant' ? renderMarkdown(item.content) : escapeHtml(item.content);
-}
+const renderMessage = (item: MessageDisplayItem): string =>
+  item.role === 'assistant' ? renderMarkdown(item.content) : escapeHtml(item.content);
 
-function nextMessageId(): string {
+const nextMessageId = (): string => {
   messageCounter.value += 1;
   return `c7m-${messageCounter.value}`;
-}
+};
 
-function openFrom(target: EventTarget | null): void {
-  if (target instanceof HTMLElement) activeAnchor.value = target;
+const openFrom = (target: EventTarget | null) => {
+  if (target instanceof Element) activeAnchor.value = target;
   toggle();
-}
+};
 
-function open(): void {
+const open = () => {
   if (isOpen.value) return;
   lastFocus = document.activeElement;
-  updateAnchorPosition();
   isOpen.value = true;
+  syncExternalTriggerExpandedState();
   bindFloatingListeners();
   emit('open', detail());
-  void nextTick(() => input.value?.focus());
-}
+  notifyState();
+  nextTick(() => {
+    updateAnchorPosition();
+    if (isOpen.value) focusInput();
+  });
+};
 
-function close(): void {
+const close = () => {
   if (!isOpen.value) return;
   isOpen.value = false;
+  syncExternalTriggerExpandedState();
   unbindFloatingListeners();
   emit('close', detail());
-  if (lastFocus instanceof HTMLElement) lastFocus.focus();
-}
+  notifyState();
+  if (lastFocus instanceof HTMLElement && lastFocus.isConnected) lastFocus.focus();
+};
 
-function toggle(): void {
-  if (isOpen.value) close();
-  else open();
-}
+const toggle = () => (isOpen.value ? close() : open());
 
-function cancel(): void {
-  abortController.value?.abort();
-  abortController.value = null;
+const cancel = () => {
+  const request = activeRequest;
+  if (!request) return;
+
+  activeRequest = null;
+  request.controller.abort();
+  cancelRenderFrame(request.renderFrame);
   busy.value = false;
   showTyping.value = false;
-}
+  notifyState();
+  void nextTick(() => input.value?.focus());
+};
 
-async function send(rawQuestion?: string): Promise<void> {
+const send = async (rawQuestion?: string) => {
   const question = (rawQuestion ?? draft.value).trim();
   if (!question || busy.value) return;
 
   if (!resolvedLibrary.value) {
+    const message = 'Missing library prop.';
     displayItems.value.push({
-      html: buildContext7ErrorHtml('Missing library prop.', resolvedLibrary.value),
+      html: buildContext7ErrorHtml(message, resolvedLibrary.value),
       id: nextMessageId(),
       kind: 'error'
     });
+    emit('error', { ...detail(), error: message, question } satisfies Context7WidgetErrorEventDetail);
     await scrollToBottom();
     return;
   }
@@ -440,7 +471,25 @@ async function send(rawQuestion?: string): Promise<void> {
   let answer = '';
   let answerItem: MessageDisplayItem | undefined;
   let sawFirstToken = false;
-  abortController.value = new AbortController();
+  const request: Context7ActiveRequest = {
+    controller: new AbortController(),
+    renderFrame: null
+  };
+  activeRequest = request;
+  notifyState();
+
+  const renderAnswer = () => {
+    request.renderFrame = null;
+    if (activeRequest !== request || !answerItem) return;
+    answerItem.content = answer;
+    void scrollToBottom();
+  };
+
+  const flushAnswer = () => {
+    cancelRenderFrame(request.renderFrame);
+    request.renderFrame = null;
+    if (answerItem) answerItem.content = answer;
+  };
 
   try {
     await streamContext7Response(
@@ -448,13 +497,19 @@ async function send(rawQuestion?: string): Promise<void> {
       conversation.value,
       {
         onChunk(delta) {
+          if (activeRequest !== request) return;
           showTyping.value = false;
           answer += delta;
           if (!answerItem) {
-            answerItem = { content: '', id: nextMessageId(), kind: 'message', role: 'assistant' };
+            answerItem = reactive<MessageDisplayItem>({
+              content: '',
+              id: nextMessageId(),
+              kind: 'message',
+              role: 'assistant'
+            });
             displayItems.value.push(answerItem);
           }
-          answerItem.content = answer;
+          request.renderFrame ??= requestRenderFrame(renderAnswer);
 
           const answerDetail = { ...detail(), answer, question } satisfies Context7WidgetAnswerEventDetail;
           if (!sawFirstToken) {
@@ -462,29 +517,33 @@ async function send(rawQuestion?: string): Promise<void> {
             emit('first-token', answerDetail);
           }
           emit('answer', answerDetail);
-          void scrollToBottom();
         },
         onToolCall(toolCall) {
+          if (activeRequest !== request) return;
           showTyping.value = false;
           appendToolCall(toolCall);
           emit('tool-call', { ...detail(), question, toolCall } satisfies Context7WidgetToolCallEventDetail);
         },
         onToolResult(toolResult) {
+          if (activeRequest !== request) return;
           updateToolResult(toolResult);
           emit('tool-result', { ...detail(), question, toolResult } satisfies Context7WidgetToolResultEventDetail);
         }
       },
-      abortController.value.signal
+      request.controller.signal
     );
 
+    if (activeRequest !== request) return;
     showTyping.value = false;
     if (answer) {
+      flushAnswer();
       const assistantMessage: Context7Message = {
         content: answer,
         id: answerItem?.id ?? nextMessageId(),
         role: 'assistant'
       };
       conversation.value.push(assistantMessage);
+      notifyState();
       emit('answer-complete', {
         ...detail(),
         answer,
@@ -494,8 +553,10 @@ async function send(rawQuestion?: string): Promise<void> {
       } satisfies Context7WidgetAnswerCompleteEventDetail);
     }
   } catch (error) {
-    showTyping.value = false;
-    if (!isAbortError(error)) {
+    if (activeRequest === request) {
+      showTyping.value = false;
+    }
+    if (activeRequest === request && !isAbortError(error)) {
       const message =
         error instanceof Context7TransportError || error instanceof Error ? error.message : 'Something went wrong.';
       displayItems.value.push({
@@ -506,102 +567,129 @@ async function send(rawQuestion?: string): Promise<void> {
       emit('error', { ...detail(), error: message, question } satisfies Context7WidgetErrorEventDetail);
     }
   } finally {
-    abortController.value = null;
-    busy.value = false;
-    await scrollToBottom();
-    input.value?.focus();
+    if (activeRequest === request) {
+      cancelRenderFrame(request.renderFrame);
+      activeRequest = null;
+      busy.value = false;
+      notifyState();
+      await scrollToBottom();
+      input.value?.focus();
+    }
   }
-}
+};
 
-function appendToolCall(toolCall: Context7ToolCall): void {
+const appendToolCall = (toolCall: Context7ToolCall) => {
+  const id = nextMessageId();
   displayItems.value.push({
+    contentId: `${panelId}-${id}-tool-result`,
     expanded: false,
     hasResult: false,
-    id: nextMessageId(),
+    id,
     kind: 'tool',
     query: typeof toolCall.args.query === 'string' ? toolCall.args.query : 'documentation',
+    result: '',
     toolCallId: toolCall.toolCallId
   });
   void scrollToBottom();
-}
+};
 
-function updateToolResult(toolResult: Context7ToolResult): void {
+const updateToolResult = (toolResult: Context7ToolResult) => {
   const item = displayItems.value.find(
     (candidate): candidate is ToolDisplayItem =>
       candidate.kind === 'tool' && candidate.toolCallId === toolResult.toolCallId
   );
   if (item) {
     item.hasResult = true;
-    item.result = toolResult.result;
+    item.result = formatToolResult(toolResult.result);
   }
   void scrollToBottom();
-}
+};
 
-function formatToolResult(result: unknown): string {
-  return typeof result === 'string' ? result : JSON.stringify(result, null, 2);
-}
+const formatToolResult = (result: unknown) =>
+  typeof result === 'string' ? result : (JSON.stringify(result, null, 2) ?? String(result ?? ''));
 
-async function scrollToBottom(): Promise<void> {
+const scrollToBottom = async () => {
   await nextTick();
   if (messagesElement.value) messagesElement.value.scrollTop = messagesElement.value.scrollHeight;
-}
+};
 
-function onBackdropClick(): void {
+const onBackdropClick = () => {
   if (resolvedCloseOnOutsideClick.value) close();
-}
+};
 
-function onDocumentPointerDown(event: Event): void {
+const onDocumentPointerDown = (event: Event) => {
   if (!isOpen.value || !resolvedCloseOnOutsideClick.value) return;
   const path = event.composedPath();
   if (root.value && path.includes(root.value)) return;
   if (externalTrigger && path.includes(externalTrigger)) return;
   close();
-}
+};
 
-function onKeyDown(event: KeyboardEvent): void {
+const onKeyDown = (event: KeyboardEvent) => {
   if (event.key === 'Escape' && isOpen.value) {
     event.preventDefault();
     close();
     return;
   }
-  if (event.key === 'Tab' && isOpen.value && root.value) trapFocus(event, root.value);
-}
+  if (event.key === 'Tab' && isOpen.value && resolvedPosition.value === 'center' && root.value) {
+    trapFocus(event, root.value);
+  }
+};
 
-function bindExternalTrigger(): void {
+const bindExternalTrigger = () => {
   unbindExternalTrigger();
   if (typeof resolvedCustomTrigger.value !== 'string') return;
-  const selector = normalizeCustomTriggerId(resolvedCustomTrigger.value);
+  const selector = normalizeContext7WidgetTrigger(resolvedCustomTrigger.value);
   if (!selector) return;
-  externalTrigger = document.querySelector(selector);
+  externalTrigger = querySelectorSafely(selector);
   externalTrigger?.addEventListener('click', onExternalTriggerClick);
-}
+  if (externalTrigger) {
+    externalTriggerAccessibility = captureTriggerAccessibility(externalTrigger);
+    externalTrigger.setAttribute('aria-controls', panelId);
+    externalTrigger.setAttribute('aria-haspopup', 'dialog');
+    externalTrigger.setAttribute('aria-expanded', String(isOpen.value));
+  }
+};
 
-function unbindExternalTrigger(): void {
+const unbindExternalTrigger = () => {
   externalTrigger?.removeEventListener('click', onExternalTriggerClick);
+  if (externalTriggerAccessibility) restoreTriggerAccessibility(externalTriggerAccessibility);
+  externalTriggerAccessibility = null;
   externalTrigger = null;
-}
+};
 
-function onExternalTriggerClick(event: Event): void {
+const syncExternalTriggerExpandedState = () => externalTrigger?.setAttribute('aria-expanded', String(isOpen.value));
+
+const onExternalTriggerClick = (event: Event) => {
   event.preventDefault();
-  if (event.currentTarget instanceof HTMLElement) activeAnchor.value = event.currentTarget;
+  if (event.currentTarget instanceof Element) activeAnchor.value = event.currentTarget;
   toggle();
-}
+};
 
-function bindFloatingListeners(): void {
-  if (resolvedPosition.value !== 'anchor') return;
-  window.addEventListener('resize', updateAnchorPosition);
-  window.addEventListener('scroll', updateAnchorPosition, true);
-}
+const bindFloatingListeners = () => {
+  unbindFloatingListeners();
+  if (resolvedCloseOnOutsideClick.value) {
+    document.addEventListener('pointerdown', onDocumentPointerDown, true);
+  }
+  if (resolvedPosition.value === 'anchor') {
+    window.addEventListener('resize', updateAnchorPosition);
+    window.addEventListener('scroll', updateAnchorPosition, true);
+  }
+};
 
-function unbindFloatingListeners(): void {
+const unbindFloatingListeners = () => {
+  document.removeEventListener('pointerdown', onDocumentPointerDown, true);
   window.removeEventListener('resize', updateAnchorPosition);
   window.removeEventListener('scroll', updateAnchorPosition, true);
-}
+};
 
-function updateAnchorPosition(): void {
+const updateAnchorPosition = () => {
   if (resolvedPosition.value !== 'anchor' || !root.value || !panel.value) return;
   const anchor =
-    activeAnchor.value ?? managedTrigger.value ?? (externalTrigger as HTMLElement | null) ?? launcher.value;
+    (activeAnchor.value?.isConnected ? activeAnchor.value : null) ??
+    managedTrigger.value ??
+    (externalTrigger?.isConnected ? externalTrigger : null) ??
+    launcher.value;
   if (!anchor) return;
 
   const rect = anchor.getBoundingClientRect();
@@ -609,29 +697,46 @@ function updateAnchorPosition(): void {
   const panelHeight = panel.value.offsetHeight || 600;
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth || panelWidth;
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight || panelHeight;
-  const gap = 12;
-  const margin = 12;
-  let left = rect.right - panelWidth;
-  const vertical = resolveAnchorVerticalPosition(rect, panelHeight, viewportHeight, gap, margin);
-
-  left = clamp(left, margin, Math.max(margin, viewportWidth - panelWidth - margin));
-  const top = clamp(vertical.top, margin, Math.max(margin, viewportHeight - panelHeight - margin));
+  const { left, origin, top } = resolveContext7AnchorLayout({
+    anchor: rect,
+    panelHeight,
+    panelWidth,
+    viewportHeight,
+    viewportWidth
+  });
   root.value.style.setProperty('--c7-anchor-left', `${left}px`);
   root.value.style.setProperty('--c7-anchor-top', `${top}px`);
-  root.value.style.setProperty('--c7-anchor-origin', vertical.origin);
-}
+  root.value.style.setProperty('--c7-anchor-origin', origin);
+};
 
-function register(): void {
+const register = () => {
   if (registeredWidgetId && registeredWidgetId !== resolvedWidgetId.value) {
     unregisterVueContext7Widget(registeredWidgetId, exposed);
   }
   registerVueContext7Widget(resolvedWidgetId.value, exposed);
   registeredWidgetId = resolvedWidgetId.value;
-}
+};
 
-function normalizeCustomTriggerId(value: string): string | undefined {
-  const id = value.trim().replace(/^#/, '');
-  return id ? `#${id}` : undefined;
+const getMessages = (): readonly Context7Message[] => [...conversation.value];
+
+const notifyState = () => {
+  if (stateListeners.size === 0) return;
+  const state = {
+    busy: busy.value,
+    messages: getMessages(),
+    open: isOpen.value
+  } as const;
+  for (const listener of stateListeners) listener(state);
+};
+
+function subscribe(listener: Context7WidgetStateListener): () => void {
+  stateListeners.add(listener);
+  listener({
+    busy: busy.value,
+    messages: getMessages(),
+    open: isOpen.value
+  });
+  return () => stateListeners.delete(listener);
 }
 
 const exposed: Context7WidgetExpose = {
@@ -640,16 +745,17 @@ const exposed: Context7WidgetExpose = {
   },
   cancel,
   close,
+  getMessages,
+  isBusy: () => busy.value,
   isOpen: () => isOpen.value,
   open,
+  reset,
   send,
+  subscribe,
   toggle
 };
 
-watch(resolvedLibrary, (nextLibrary, previousLibrary) => {
-  if (nextLibrary !== previousLibrary && conversation.value.length <= 1) resetConversation();
-});
-watch(resolvedInitialMessage, resetConversation);
+watch([resolvedLibrary, resolvedInitialMessage], reset);
 watch(
   resolvedCustomTrigger,
   () => {
@@ -668,12 +774,14 @@ watch(resolvedPosition, () => {
     updateAnchorPosition();
   }
 });
+watch(resolvedCloseOnOutsideClick, () => {
+  if (isOpen.value) bindFloatingListeners();
+});
 watch(resolvedWidgetId, register);
 
 onMounted(() => {
-  resetConversation();
+  reset();
   bindExternalTrigger();
-  document.addEventListener('pointerdown', onDocumentPointerDown, true);
   register();
   emit('ready', detail());
   if (resolvedDefaultOpen.value) open();
@@ -683,49 +791,14 @@ onBeforeUnmount(() => {
   cancel();
   unbindFloatingListeners();
   unbindExternalTrigger();
-  document.removeEventListener('pointerdown', onDocumentPointerDown, true);
+  stateListeners.clear();
   if (registeredWidgetId) unregisterVueContext7Widget(registeredWidgetId, exposed);
 });
 
 defineExpose(exposed);
 
-function trapFocus(event: KeyboardEvent, container: HTMLElement): void {
-  const focusable = Array.from(
-    container.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    )
-  ).filter((element) => element.offsetParent !== null || element === document.activeElement);
-  const first = focusable[0];
-  const last = focusable[focusable.length - 1];
-  if (!first || !last) return;
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault();
-    last.focus();
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault();
-    first.focus();
-  }
-}
-
-function resolveAnchorVerticalPosition(
-  rect: DOMRect,
-  panelHeight: number,
-  viewportHeight: number,
-  gap: number,
-  margin: number
-): { origin: string; top: number } {
-  const above = rect.top - panelHeight - gap;
-  const below = rect.bottom + gap;
-  const spaceAbove = rect.top - margin - gap;
-  const spaceBelow = viewportHeight - rect.bottom - margin - gap;
-  const hasSpaceAbove = above >= margin;
-  const hasSpaceBelow = below + panelHeight <= viewportHeight - margin;
-  return hasSpaceAbove || (!hasSpaceBelow && spaceAbove >= spaceBelow)
-    ? { origin: 'bottom right', top: above }
-    : { origin: 'top right', top: below };
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
+const focusInput = () => {
+  const inputElement = input.value ?? root.value?.querySelector<HTMLInputElement>('.c7-input');
+  inputElement?.focus({ preventScroll: true });
+};
 </script>

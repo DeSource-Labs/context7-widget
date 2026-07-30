@@ -1,4 +1,4 @@
-import { findCurrentWidgetScript, mountContext7WidgetFromScript } from './loader';
+import { findCurrentWidgetScript, mountContext7WidgetFromScript } from './loader.js';
 
 function boot() {
   mountContext7WidgetFromScript(findCurrentWidgetScript());

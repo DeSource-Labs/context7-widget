@@ -1,9 +1,12 @@
-import { createApp, defineComponent, h, inject, nextTick, resolveComponent } from 'vue';
+import { createApp, defineComponent, h, inject, nextTick, resolveComponent, type App } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { context7WidgetDefaultsKey, createContext7WidgetPlugin } from '../../src/plugin';
 
+const mountedApps: App[] = [];
+
 describe('createContext7WidgetPlugin', () => {
   afterEach(() => {
+    for (const app of mountedApps.splice(0).reverse()) app.unmount();
     document.body.innerHTML = '';
     vi.restoreAllMocks();
   });
@@ -36,6 +39,7 @@ describe('createContext7WidgetPlugin', () => {
     });
 
     const app = createApp(Root);
+    mountedApps.push(app);
 
     app.use(
       createContext7WidgetPlugin({
@@ -51,5 +55,22 @@ describe('createContext7WidgetPlugin', () => {
     expect(widget).toBeTruthy();
     expect(widget?.getAttribute('library')).toBe('/desource-labs/context7-widget');
     expect(document.body.querySelector('.context7-widget[widget-id="default-docs"]')).toBeNull();
+  });
+
+  it('supports the default component name without auto-mounting another widget', async () => {
+    const root = document.createElement('div');
+    document.body.append(root);
+    const Root = defineComponent({
+      render: () => h(resolveComponent('Context7Widget'), { library: '/explicit/repo' })
+    });
+    const app = createApp(Root);
+    mountedApps.push(app);
+    app.use(createContext7WidgetPlugin());
+    app.mount(root);
+    await nextTick();
+
+    expect(root.querySelector('.context7-widget')?.getAttribute('library')).toBe('/explicit/repo');
+    expect(root.querySelector('.context7-widget')?.getAttribute('preset')).toBe('default');
+    expect(document.querySelectorAll('.context7-widget')).toHaveLength(1);
   });
 });

@@ -1,4 +1,4 @@
-import { escapeHtml } from './markdown';
+import { escapeHtml } from './markdown.js';
 
 export const DEFAULT_CONTEXT7_INITIAL_MESSAGE =
   "Hello! I'm here to help you with documentation for **{library}**.\n\nAsk me about features, code examples, setup, configuration, API details, or best practices.";
@@ -12,5 +12,14 @@ export function buildContext7ErrorHtml(message: string, library: string): string
 }
 
 export function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === 'AbortError';
+  if (typeof DOMException !== 'undefined' && error instanceof DOMException) {
+    return error.name === 'AbortError';
+  }
+
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'name' in error &&
+    (error as { readonly name?: unknown }).name === 'AbortError'
+  );
 }

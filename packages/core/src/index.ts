@@ -1,3 +1,6 @@
+export { context7WidgetDefaults, normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from './config.js';
+export type { Context7WidgetConfigInput } from './config.js';
+export type { Context7WidgetGlobalEventMap } from './globals.js';
 export {
   buildContext7WidgetScriptTag,
   createContext7Widget,
@@ -6,11 +9,19 @@ export {
   mountContext7Widget,
   setContext7WidgetAttributes,
   toContext7WidgetAttributes
-} from './helpers';
-export { mountContext7WidgetFromScript } from './loader';
-export { renderMarkdown } from './markdown';
-export { streamContext7Response, Context7TransportError } from './transport';
-export { Context7WidgetElement, defineContext7Widget } from './widget-element';
+} from './helpers.js';
+export {
+  compactContext7WidgetOptions,
+  context7WidgetEvents,
+  context7WidgetOptionKeys,
+  isContext7WidgetEventName
+} from './kit.js';
+export { mountContext7WidgetFromScript } from './loader.js';
+export { resolveContext7AnchorLayout } from './dom.js';
+export { renderMarkdown } from './markdown.js';
+export { streamContext7Response, Context7TransportError } from './transport.js';
+export { Context7WidgetElement, defineContext7Widget } from './widget-element.js';
+export type { Context7AnchorLayout, Context7AnchorLayoutOptions, Context7AnchorRect } from './dom.js';
 export type {
   Context7LauncherVariant,
   Context7Message,
@@ -20,12 +31,27 @@ export type {
   Context7Theme,
   Context7ToolCall,
   Context7ToolResult,
+  Context7WidgetAnswerCompleteEventDetail,
+  Context7WidgetAnswerEventDetail,
   Context7WidgetApi,
+  Context7WidgetBaseEventDetail,
   Context7WidgetConfig,
+  Context7WidgetController,
+  Context7WidgetDomEvent,
+  Context7WidgetDomEventMap,
+  Context7WidgetErrorEventDetail,
   Context7WidgetEventDetail,
+  Context7WidgetEventDetailFor,
+  Context7WidgetEventMap,
   Context7WidgetEventName,
+  Context7WidgetEventPayload,
+  Context7WidgetLifecycleEventDetail,
+  Context7WidgetInstance,
   Context7WidgetOptions,
   Context7WidgetPreset,
+  Context7WidgetQuestionEventDetail,
   Context7WidgetScriptOptions,
-  Context7WidgetTarget
-} from './types';
+  Context7WidgetTarget,
+  Context7WidgetToolCallEventDetail,
+  Context7WidgetToolResultEventDetail
+} from './types.js';

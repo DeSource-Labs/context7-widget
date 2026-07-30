@@ -42,7 +42,7 @@ describe('Context7WidgetElement', () => {
 
     const widget = document.createElement('context7-widget');
     widget.setAttribute('library', '/vercel/next.js');
-    widget.setAttribute('custom-trigger', '#ask');
+    widget.setAttribute('custom-trigger', 'ask');
     document.body.append(widget);
 
     trigger.click();

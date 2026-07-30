@@ -7,6 +7,10 @@ a framework binding. It exports the custom element, script loader helpers,
 typed options, event detail types, the markdown renderer, transport helpers, and
 the `./widget.js` browser build used by the hosted script.
 
+The package root is side-effect free and tree-shakeable. Importing a transport,
+Markdown, layout, or helper API does not register an element or boot the
+drop-in script. The only self-starting entry is `./widget.js`.
+
 ## Why It Exists
 
 Context7 gives teams an AI assistant grounded in their documentation. The
@@ -33,7 +37,7 @@ pnpm add @desource/context7-widget
 ```ts
 import { mountContext7Widget } from '@desource/context7-widget';
 
-mountContext7Widget({
+const widget = mountContext7Widget({
   library: '/owner/repo',
   position: 'center',
   preset: 'glass',
@@ -41,7 +45,54 @@ mountContext7Widget({
   backdrop: true,
   closeOnOutsideClick: true
 });
+
+widget.open();
+await widget.send('Show me the recommended setup.');
+widget.cancel();
+widget.reset();
 ```
+
+`Context7WidgetElement` exposes `open`, `close`, `toggle`, `send`, `cancel`,
+`reset`, `isOpen`, `isBusy`, and `getMessages`. The same operations are
+available by `widgetId` through `window.Context7Widget`.
+
+Imports are SSR-safe. Element creation, mounting, and imperative DOM operations
+still require a browser document and fail with a focused error when called on
+the server.
+
+## Options
+
+JavaScript uses camel-case option names. Direct custom-element attributes use
+kebab case; script installs prefix those attributes with `data-`.
+
+| JavaScript option     | Custom-element attribute | Type / default                                                     |
+| --------------------- | ------------------------ | ------------------------------------------------------------------ |
+| `library`             | `library`                | Required Context7 library id                                       |
+| `position`            | `position`               | `bottom-right`; also corners, `center`, or `anchor`                |
+| `preset`              | `preset`                 | `default`; also `minimal`, `glass`, `neo`, `terminal`, `brutalist` |
+| `theme`               | `theme`                  | `auto`; also `light` or `dark`                                     |
+| `color`               | `color`                  | No override; presets own the accent                                |
+| `customTrigger`       | `custom-trigger`         | CSS selector or simple element id                                  |
+| `backdrop`            | `backdrop`               | `true` for `center`, otherwise `false`                             |
+| `closeOnOutsideClick` | `close-on-outside-click` | `true`                                                             |
+| `defaultOpen`         | `default-open`           | `false`                                                            |
+| `initialMessage`      | `initial-message`        | Built-in greeting; `{library}` is interpolated                     |
+| `launcherLabel`       | `launcher-label`         | `Ask Docs AI`                                                      |
+| `launcherVariant`     | `launcher-variant`       | `icon`; also `pill` or `badge`                                     |
+| `panelHeight`         | `panel-height`           | Responsive stylesheet default                                      |
+| `panelWidth`          | `panel-width`            | Responsive stylesheet default                                      |
+| `placeholder`         | `placeholder`            | `Ask about the docs...`                                            |
+| `title`               | `dialog-title`           | `Chat with Documentation`                                          |
+| `widgetId`            | `widget-id`              | `default`                                                          |
+
+For script tags, `library` becomes `data-library`, `dialog-title` becomes
+`data-title`, and the remaining attributes follow the same `data-*` pattern.
+The custom element intentionally uses `dialog-title` rather than the native
+HTML `title` attribute, avoiding an accidental browser tooltip.
+
+Boolean attributes accept explicit values such as `backdrop="false"` and
+`close-on-outside-click="false"`; their mere presence does not force them to
+`true`.
 
 ## Generate A Script Tag
 
@@ -123,10 +174,17 @@ Stable shadow parts:
 
 Listen on the element or at `document` level:
 
-```js
+```ts
+import type { Context7WidgetQuestionEventDetail } from '@desource/context7-widget';
+
 document.addEventListener('c7:answer-complete', (event) => {
+  // `event.detail` is inferred from the event name.
   console.log(event.detail.library, event.detail.answer);
 });
+
+function trackQuestion(detail: Context7WidgetQuestionEventDetail) {
+  console.log(detail.question);
+}
 ```
 
 Events: `c7:ready`, `c7:open`, `c7:close`, `c7:question`, `c7:first-token`,
@@ -137,5 +195,14 @@ Events: `c7:ready`, `c7:open`, `c7:close`, `c7:question`, `c7:first-token`,
 
 - `@desource/context7-widget`
 - `@desource/context7-widget/kit` — rendering-independent transport, markdown,
-  contracts, defaults, and brand assets for framework packages
+  floating-layout calculation, contracts, defaults, and brand assets for
+  framework packages
 - `@desource/context7-widget/widget.js`
+
+The custom element shares one constructable stylesheet across instances when
+the browser supports it and falls back to an inline shadow stylesheet
+otherwise. Streamed Markdown rendering is frame-throttled, while answer events
+remain available for every received chunk.
+
+The package publishes ESM only. Its root and `/kit` declarations are validated
+for modern Node ESM and TypeScript bundler resolution.

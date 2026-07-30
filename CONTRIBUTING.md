@@ -46,6 +46,9 @@ pnpm test:e2e
 pnpm test:unit:coverage
 pnpm build
 pnpm build:all
+pnpm size:check
+pnpm validate:packages
+pnpm run check:release
 ```
 
 Playwright e2e tests start a local Vite demo for framework packages. If browsers are not installed locally, run:
@@ -96,6 +99,8 @@ Before opening a PR:
 - Run `pnpm format:check`
 - Run `pnpm lint`
 - Run `pnpm build:all`
+- Run `pnpm size:check`
+- Run `pnpm validate:packages`
 - Run `pnpm test:all`
 - Update docs for public API changes
 - Add a changeset for publishable package changes

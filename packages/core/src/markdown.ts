@@ -1,5 +1,3 @@
-const URL_PATTERN = /^https?:\/\//i;
-
 export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -36,10 +34,9 @@ export function renderMarkdown(markdown: string): string {
   }
 
   for (const rawLine of lines) {
-    const fenceMatch = rawLine.match(/^```/);
-    if (fenceMatch) {
+    if (/^\s*```/.test(rawLine)) {
       if (codeFence) {
-        output.push(`<pre part="code-block"><code>${escapeHtml(codeFence.join('\n').trim())}</code></pre>`);
+        output.push(renderCodeBlock(codeFence));
         codeFence = null;
       } else {
         flushParagraph();
@@ -77,11 +74,12 @@ export function renderMarkdown(markdown: string): string {
       continue;
     }
 
-    const heading = line.match(/^#{1,4}\s+(.+)/);
+    const heading = line.match(/^(#{1,4})\s+(.+)/);
     if (heading) {
       flushParagraph();
       closeList();
-      output.push(`<p><strong>${renderInline(heading[1] ?? '')}</strong></p>`);
+      const level = Math.min((heading[1]?.length ?? 1) + 2, 6);
+      output.push(`<h${level}>${renderInline(heading[2] ?? '')}</h${level}>`);
       continue;
     }
 
@@ -90,7 +88,7 @@ export function renderMarkdown(markdown: string): string {
   }
 
   if (codeFence) {
-    output.push(`<pre part="code-block"><code>${escapeHtml(codeFence.join('\n').trim())}</code></pre>`);
+    output.push(renderCodeBlock(codeFence));
   }
 
   flushParagraph();
@@ -100,12 +98,39 @@ export function renderMarkdown(markdown: string): string {
 }
 
 function renderInline(value: string): string {
-  return escapeHtml(value)
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/\[([^\]]+)]\(([^)]+)\)/g, (_match, label: string, href: string) => {
-      if (!URL_PATTERN.test(href)) return label;
-      return `<a href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+  const tokens: string[] = [];
+  const stash = (html: string): string => {
+    const token = `\uE000C7-${tokens.length}\uE001`;
+    tokens.push(html);
+    return token;
+  };
+
+  let output = value
+    .replace(/`([^`\n]+)`/g, (_match, code: string) => stash(`<code>${escapeHtml(code)}</code>`))
+    .replace(/\[([^\]]+)]\(((?:[^()\s]|\([^)]*\))+)\)/g, (_match, label: string, href: string) => {
+      const safeHref = toSafeHttpUrl(href);
+      if (!safeHref) return stash(renderInline(label));
+      return stash(
+        `<a href="${escapeHtml(safeHref)}" target="_blank" rel="noopener noreferrer">${renderInline(label)}</a>`
+      );
     });
+
+  output = escapeHtml(output)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+
+  return output.replace(/\uE000C7-(\d+)\uE001/g, (_match, index: string) => tokens[Number(index)] ?? '');
+}
+
+function renderCodeBlock(lines: string[]): string {
+  return `<pre part="code-block"><code>${escapeHtml(lines.join('\n'))}</code></pre>`;
+}
+
+function toSafeHttpUrl(value: string): string | null {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? value : null;
+  } catch {
+    return null;
+  }
 }

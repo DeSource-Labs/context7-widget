@@ -2,7 +2,7 @@ name: Scan upstream Context7 widget
 
 on:
   schedule:
-    - cron: "17 3 * * *"
+    - cron: '17 3 * * *'
   workflow_dispatch:
 
 permissions:

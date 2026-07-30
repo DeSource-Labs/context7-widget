@@ -60,7 +60,18 @@ const docs = useContext7Widget({
 });
 
 await docs.send('How do I customize the widget?');
+console.log(docs.isOpen.value, docs.isBusy.value, docs.messages.value);
+
+docs.cancel();
+docs.reset();
 ```
+
+The composable exposes reactive `widget`, `isOpen`, `isBusy`, and `messages`
+refs plus `mount`, `unmount`, `open`, `close`, `toggle`, `send`, `cancel`,
+`reset`, and `getMessages`. `mount(overrides)` also updates an existing owned
+widget, and those overrides remain in effect when reactive source options
+change. Owned widgets are removed with their owner by default; set
+`removeOnUnmount: false` only when another part of the app will own cleanup.
 
 ## Plugin
 
@@ -106,6 +117,10 @@ second, imperative widget.
 <!-- Bind to a button anywhere by id, with or without # -->
 <button id="docs-help">Ask docs</button>
 <Context7Widget library="/owner/repo" custom-trigger="docs-help" />
+
+<!-- Full CSS selectors are supported too -->
+<button class="docs-help">Ask docs</button>
+<Context7Widget library="/owner/repo" custom-trigger=".docs-help" />
 ```
 
 When `customTrigger` is set, the Vue floating launcher is not rendered. Your app
@@ -150,7 +165,33 @@ The component accepts the same public widget options as the core package:
 `launcherVariant`, `panelHeight`, `panelWidth`, `placeholder`,
 `title`, and `widgetId`.
 
+Defaults are shared with core: `position="bottom-right"`, `preset="default"`,
+`theme="auto"`, `launcher-variant="icon"`, and `widget-id="default"`. A centered
+widget enables its backdrop unless `:backdrop="false"` is explicit.
+
+Vue’s only prop-level difference is `customTrigger`:
+
+| Value        | Behavior                                                   |
+| ------------ | ---------------------------------------------------------- |
+| omitted      | Render the built-in floating launcher                      |
+| `true`       | Render the Vue-managed trigger and expose the trigger slot |
+| id string    | Bind an external trigger by id, with or without `#`        |
+| CSS selector | Bind the first matching external trigger                   |
+
 Vue events: `ready`, `open`, `close`, `question`, `first-token`, `answer`,
 `answer-complete`, `tool-call`, `tool-result`, and `error`.
 
 Each handler receives the typed event detail as its only argument.
+
+Component refs expose the same control surface as the composable:
+`open`, `close`, `toggle`, `send`, `cancel`, `reset`, `isOpen`, `isBusy`, and
+`getMessages`.
+
+While a response streams, the send action becomes an enabled **Stop** action.
+Both built-in and external triggers receive `aria-controls`,
+`aria-haspopup="dialog"`, and synchronized `aria-expanded`; attributes owned by
+an external trigger are restored when it is unbound. Centered dialogs trap
+focus, while non-modal corner and anchored panels do not.
+
+The component is SSR-safe. `useContext7Widget` can also be created during SSR,
+but its imperative `mount()` method requires a browser document.

@@ -1,4 +1,4 @@
-import { defineContext7Widget } from './widget-element';
+import { defineContext7Widget, type Context7WidgetElement } from './widget-element.js';
 
 const ATTRIBUTE_MAP: Array<[scriptAttribute: string, widgetAttribute: string]> = [
   ['data-backdrop', 'backdrop'],
@@ -16,12 +16,12 @@ const ATTRIBUTE_MAP: Array<[scriptAttribute: string, widgetAttribute: string]> =
   ['data-position', 'position'],
   ['data-preset', 'preset'],
   ['data-theme', 'theme'],
-  ['data-title', 'title'],
+  ['data-title', 'dialog-title'],
   ['data-welcome-message', 'initial-message'],
   ['data-widget-id', 'widget-id']
 ];
 
-export function mountContext7WidgetFromScript(script: HTMLScriptElement | null): HTMLElement | null {
+export function mountContext7WidgetFromScript(script: HTMLScriptElement | null): Context7WidgetElement | null {
   if (!script || script.dataset.c7Mounted === 'true') return null;
   const library = script.getAttribute('data-library');
 
@@ -37,7 +37,7 @@ export function mountContext7WidgetFromScript(script: HTMLScriptElement | null):
   for (const [scriptAttribute, widgetAttribute] of ATTRIBUTE_MAP) {
     const value = script.getAttribute(scriptAttribute);
     if (value === null) continue;
-    widget.setAttribute(scriptAttribute, value);
+    if (scriptAttribute === 'data-welcome-message' && widget.hasAttribute('initial-message')) continue;
     widget.setAttribute(widgetAttribute, value);
   }
 
