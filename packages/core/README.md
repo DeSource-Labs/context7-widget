@@ -32,6 +32,24 @@ needed for real product sites:
 pnpm add @desource/context7-widget
 ```
 
+## Drop-In Browser Script
+
+No package manager or build step is required:
+
+```html
+<script
+  async
+  src="https://context7.desource-labs.org/widget.js"
+  data-library="/owner/repo"
+  data-position="anchor"
+  data-preset="glass"
+></script>
+```
+
+The hosted file is a classic, self-starting IIFE. Multiple script tags are
+supported when a page needs multiple independently configured widgets; give
+each one a unique `data-widget-id`.
+
 ## Mount A Widget
 
 ```ts
@@ -59,6 +77,26 @@ available by `widgetId` through `window.Context7Widget`.
 Imports are SSR-safe. Element creation, mounting, and imperative DOM operations
 still require a browser document and fail with a focused error when called on
 the server.
+
+## Direct Custom Element
+
+Register the element once when declarative markup fits your application better:
+
+```ts
+import { defineContext7Widget } from '@desource/context7-widget';
+
+defineContext7Widget();
+```
+
+```html
+<context7-widget library="/owner/repo" position="center" preset="minimal" backdrop="true"></context7-widget>
+```
+
+Custom tag names are supported without reusing the same registered constructor:
+
+```ts
+defineContext7Widget('context7-docs-widget');
+```
 
 ## Options
 
@@ -199,6 +237,12 @@ Events: `c7:ready`, `c7:open`, `c7:close`, `c7:question`, `c7:first-token`,
   framework packages
 - `@desource/context7-widget/widget.js`
 
+The root and `/kit` are ESM-only and preserve internal module boundaries.
+Downstream bundlers can therefore remove the custom-element runtime when an
+application imports only a helper such as `renderMarkdown` or
+`resolveContext7AnchorLayout`. The `widget.js` subpath is the classic browser
+script and intentionally has side effects.
+
 The custom element shares one constructable stylesheet across instances when
 the browser supports it and falls back to an inline shadow stylesheet
 otherwise. Streamed Markdown rendering is frame-throttled, while answer events
@@ -206,3 +250,22 @@ remain available for every received chunk.
 
 The package publishes ESM only. Its root and `/kit` declarations are validated
 for modern Node ESM and TypeScript bundler resolution.
+
+## Browser, Accessibility, And Security Notes
+
+The runtime targets ES2020-era modern browsers with Custom Elements, open
+Shadow DOM, `fetch`, `ReadableStream`, and `AbortController`. Constructable
+stylesheets are shared when available; older browsers receive an inline
+`<style>` fallback. Centered panels use modal dialog semantics, keep keyboard
+focus inside the panel, close with Escape, and restore focus to the opener.
+Corner and anchored panels remain non-modal.
+
+For a restrictive Content Security Policy, allow:
+
+- the widget origin in `script-src`;
+- `https://context7.com` in `connect-src`;
+- `data:` in `img-src` for the embedded DeSource Labs mark.
+
+Browsers using the inline stylesheet fallback also need a compatible
+`style-src` policy. Test the final policy in every browser your application
+supports.
