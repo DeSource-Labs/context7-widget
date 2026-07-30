@@ -48,10 +48,11 @@ pnpm build
 pnpm build:all
 pnpm size:check
 pnpm validate:packages
-pnpm run check:release
+pnpm check:release
 ```
 
-Playwright e2e tests start a local Vite demo for framework packages. If browsers are not installed locally, run:
+Playwright e2e tests start local Vite demos for the core custom element and
+framework packages. If browsers are not installed locally, run:
 
 ```bash
 pnpm exec playwright install chromium

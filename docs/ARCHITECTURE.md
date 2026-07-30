@@ -17,8 +17,8 @@ compatibility monitoring.
 ## Workspace Deliverables
 
 - `packages/core/dist/widget.js`: zero-build browser loader for script-tag replacement.
-- `packages/core/dist/index.js`: core TypeScript module build for frameworks and custom
-  integrations.
+- `packages/core/dist/index.js` plus preserved internal ESM modules: tree-shakeable
+  core TypeScript build for custom integrations.
 - `context7-widget` custom element: the framework-agnostic core runtime surface.
 - `packages/vue`: Vue 3 component, composable, plugin helper, and SCSS output.
 - planned framework packages: Nuxt, React, Svelte, and Angular implementations
@@ -116,12 +116,16 @@ Core and Vue compile their widget selectors from
 `common/styles/_widget.scss`. Core scopes the mixin to `:host`; Vue scopes it to
 `.context7-widget` and adds only its managed-trigger styles. This keeps the
 visual contract in one source of truth without making Vue depend on the custom
-element runtime.
+element runtime. Core normalizes Sass's nested host-attribute output to
+functional selectors such as `:host([open])`, which are exercised in Chromium
+against the real Shadow DOM.
 
 ## Runtime Invariants
 
 - The ESM package roots do not auto-register or auto-mount anything.
 - Only `@desource/context7-widget/widget.js` boots from its script element.
+- Core ESM preserves source module boundaries so helper-only consumers do not
+  retain the custom-element runtime.
 - A cancelled request cannot append late frames or clear the busy state of a
   newer request.
 - Stream callbacks still emit every chunk, while DOM Markdown work is limited
@@ -132,6 +136,8 @@ element runtime.
   supported and retains an inline fallback.
 - External trigger ARIA attributes are restored when a widget disconnects or
   changes triggers.
+- Centered modal focus is contained inside the panel, not the launcher or host
+  page.
 
 ## Styling Contract
 

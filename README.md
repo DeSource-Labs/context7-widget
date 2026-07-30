@@ -249,12 +249,14 @@ pnpm dev:prepare
 pnpm dev:demo
 ```
 
-Core and Vue package builds use Vite 8. The demo site builds both packages,
+Core and framework package builds use Vite 8. The demo site builds packages,
 copies `packages/core/dist/widget.js` into `demo/public/widget.js`, then runs
 Nuxt.
 
-CI enforces coverage floors and gzip budgets for the hosted widget, core ESM
-entries, Vue runtime, and Vue stylesheet.
+CI enforces coverage floors, production dependency and peer checks, package
+metadata/type validation, SSR imports, and gzip budgets for the hosted widget
+and real tree-shaken consumers of core, `/kit`, all framework related packages, and their stylesheets.
+Core and framework related packages also run the same real-Chromium behavior suite.
 
 ## Maintenance
 

@@ -265,8 +265,15 @@ For the hosted script and default Context7 backend:
 Content-Security-Policy:
   script-src 'self' https://context7.desource-labs.org;
   connect-src 'self' https://context7.com;
+  img-src 'self' data:;
 ```
 
 If you host `widget.js` elsewhere, add that script origin. Keep
 `https://context7.com` in `connect-src` because chat requests use the Context7
-backend.
+backend. The embedded DeSource Labs mark uses a data URL, hence `img-src data:`.
+
+Modern browsers use a shared constructable stylesheet. Browsers that need the
+inline `<style>` fallback also require a `style-src` policy that permits that
+fallback. Do not copy this abbreviated example blindly into an existing policy:
+merge these sources into your application’s nonce/hash-based policy and verify
+the resulting page in every supported browser.
