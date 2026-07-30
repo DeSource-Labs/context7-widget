@@ -9,12 +9,21 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noEmit": true,
     "paths": {
       "@desource/context7-widget": ["../core/src/index.ts"],
       "@desource/context7-widget/kit": ["../core/src/kit.ts"]
     },
     "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
     "types": ["node", "vitest/globals"]
   },
   "include": [
