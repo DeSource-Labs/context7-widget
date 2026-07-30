@@ -19,6 +19,7 @@
     "noUnusedParameters": true,
     "noEmit": true,
     "paths": {
+      "@common/*": ["../../common/*"],
       "@desource/context7-widget": ["../core/src/index.ts"],
       "@desource/context7-widget/kit": ["../core/src/kit.ts"]
     },

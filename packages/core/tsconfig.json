@@ -4,6 +4,9 @@
     "lib": ["DOM", "DOM.Iterable", "ES2020"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "paths": {
+      "@common/*": ["../../common/*"]
+    },
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,

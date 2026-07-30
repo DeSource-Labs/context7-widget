@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Context7TransportError, streamContext7Response } from '../../src/transport';
 import type { Context7Message } from '../../src/types';
-import { createSseStream } from '../../../../common/tests/unit/stream';
+import { createSseStream } from '@common/tests/unit/stream';
 
 const messages: Context7Message[] = [{ id: '1', role: 'user', content: 'How do I install it?' }];
 
@@ -41,6 +41,36 @@ describe('streamContext7Response', () => {
       'https://context7.com/api/v2/widget/chat',
       expect.objectContaining({ method: 'POST' })
     );
+  });
+
+  it('sends the documented request payload and forwards cancellation signals', async () => {
+    const controller = new AbortController();
+    const fetchMock = vi.fn(async () => new Response(createSseStream(['data: [DONE]\n'])));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await streamContext7Response(
+      { library: '/vercel/next.js' },
+      messages,
+      { onChunk: () => undefined },
+      controller.signal
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith('https://context7.com/api/v2/widget/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        libraryName: '/vercel/next.js',
+        messages: [
+          {
+            id: '1',
+            role: 'user',
+            content: 'How do I install it?',
+            parts: [{ type: 'text', text: 'How do I install it?' }]
+          }
+        ]
+      }),
+      signal: controller.signal
+    });
   });
 
   it('maps known widget errors', async () => {
@@ -95,6 +125,10 @@ describe('streamContext7Response', () => {
         async () =>
           new Response(
             createSseStream([
+              '\n',
+              'ping\n',
+              'data: [DONE]\n',
+              'data: []\n',
               'data: {"type":"unknown"}\n',
               'data: not-json\n',
               'event: ping\n',
@@ -110,6 +144,32 @@ describe('streamContext7Response', () => {
     });
 
     expect(chunks).toEqual(['ok']);
+  });
+
+  it('normalizes incomplete tool frames without exposing malformed inputs', async () => {
+    const toolCalls: unknown[] = [];
+    const toolResults: unknown[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            createSseStream([
+              'data: {"type":"tool-input-available","input":[]}\n',
+              'data: {"type":"tool-output-available","output":"No matches"}\n'
+            ])
+          )
+      )
+    );
+
+    await streamContext7Response({ library: '/vercel/next.js' }, messages, {
+      onChunk: () => undefined,
+      onToolCall: (toolCall) => toolCalls.push(toolCall),
+      onToolResult: (toolResult) => toolResults.push(toolResult)
+    });
+
+    expect(toolCalls).toEqual([{ args: {}, toolCallId: '', toolName: 'tool' }]);
+    expect(toolResults).toEqual([{ result: 'No matches', toolCallId: '' }]);
   });
 
   it('reports disabled widgets and generic HTTP failures', async () => {
@@ -130,6 +190,17 @@ describe('streamContext7Response', () => {
     await expect(
       streamContext7Response({ library: '/vercel/next.js' }, messages, { onChunk: () => undefined })
     ).rejects.toThrow('Context7 chat request failed with HTTP 500.');
+  });
+
+  it('preserves an actionable error message returned by the service', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ message: 'Library was not found' }), { status: 404 }))
+    );
+
+    await expect(
+      streamContext7Response({ library: '/missing/repo' }, messages, { onChunk: () => undefined })
+    ).rejects.toThrow('Library was not found');
   });
 
   it('throws a transport error for network failures and missing streams', async () => {
@@ -165,5 +236,24 @@ describe('streamContext7Response', () => {
     await expect(
       streamContext7Response({ library: '/vercel/next.js' }, messages, { onChunk: () => undefined })
     ).rejects.toMatchObject({ name: 'AbortError' });
+  });
+
+  it('releases the stream reader when reading the response fails', async () => {
+    const releaseLock = vi.fn();
+    const reader = {
+      read: vi.fn(async () => {
+        throw new Error('Stream failed');
+      }),
+      releaseLock
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ body: { getReader: () => reader }, ok: true }) as unknown as Response)
+    );
+
+    await expect(
+      streamContext7Response({ library: '/vercel/next.js' }, messages, { onChunk: () => undefined })
+    ).rejects.toThrow('Stream failed');
+    expect(releaseLock).toHaveBeenCalledOnce();
   });
 });

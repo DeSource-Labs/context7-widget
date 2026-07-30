@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Context7WidgetElement, defineContext7Widget } from '../../src';
-import { createSseStream } from '../../../../common/tests/unit/stream';
-import { setElementRect, setElementSize, setViewportSize } from '../../../../common/tests/unit/dom';
+import { setElementRect, setElementSize, setViewportSize } from '@common/tests/unit/dom';
+import { createSseStream } from '@common/tests/unit/stream';
 
 describe('Context7WidgetElement', () => {
   afterEach(() => {
@@ -118,6 +118,32 @@ describe('Context7WidgetElement', () => {
 
     expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('472px');
     expect(widget.style.getPropertyValue('--c7-anchor-origin')).toBe('bottom right');
+
+    setElementRect(launcher, { bottom: 156, height: 56, left: 700, right: 840, top: 100, width: 140 });
+    window.dispatchEvent(new Event('resize'));
+
+    expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('168px');
+    expect(widget.style.getPropertyValue('--c7-anchor-origin')).toBe('top right');
+  });
+
+  it('uses the launcher as the anchor when opened programmatically', () => {
+    defineContext7Widget();
+    setViewportSize(1200, 900);
+
+    const widget = document.createElement('context7-widget');
+    widget.setAttribute('library', '/vercel/next.js');
+    widget.setAttribute('position', 'anchor');
+    document.body.append(widget);
+
+    const panel = widget.shadowRoot?.querySelector<HTMLElement>('.c7-panel');
+    const launcher = widget.shadowRoot?.querySelector<HTMLElement>('[data-c7-launcher]');
+    setElementSize(panel, 400, 300);
+    setElementRect(launcher, { bottom: 88, height: 48, left: 80, right: 220, top: 40, width: 140 });
+
+    widget.open();
+
+    expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('100px');
+    expect(widget.style.getPropertyValue('--c7-anchor-origin')).toBe('top right');
   });
 
   it('positions anchor widgets below the opener when there is not enough room above', () => {
@@ -142,6 +168,57 @@ describe('Context7WidgetElement', () => {
 
     expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('100px');
     expect(widget.style.getPropertyValue('--c7-anchor-origin')).toBe('top right');
+  });
+
+  it('anchors programmatic opens to the configured external trigger', () => {
+    defineContext7Widget();
+    setViewportSize(1200, 900);
+
+    const trigger = document.createElement('button');
+    trigger.id = 'ask-programmatically';
+    document.body.append(trigger);
+
+    const widget = document.createElement('context7-widget') as Context7WidgetElement;
+    widget.setAttribute('custom-trigger', '#ask-programmatically');
+    widget.setAttribute('library', '/vercel/next.js');
+    widget.setAttribute('position', 'anchor');
+    document.body.append(widget);
+
+    const panel = widget.shadowRoot?.querySelector<HTMLElement>('.c7-panel');
+    setElementSize(panel, 400, 300);
+    setElementRect(trigger, { bottom: 88, height: 48, left: 80, right: 220, top: 40, width: 140 });
+
+    widget.open();
+
+    expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('100px');
+    expect(widget.style.getPropertyValue('--c7-anchor-origin')).toBe('top right');
+  });
+
+  it('traps tab navigation within a centered dialog', () => {
+    defineContext7Widget();
+
+    const widget = document.createElement('context7-widget') as Context7WidgetElement;
+    widget.setAttribute('library', '/vercel/next.js');
+    widget.setAttribute('position', 'center');
+    document.body.append(widget);
+    widget.open();
+
+    const input = widget.shadowRoot?.querySelector<HTMLInputElement>('[data-c7-input]');
+    const send = widget.shadowRoot?.querySelector<HTMLButtonElement>('[data-c7-send]');
+    if (!input || !send) throw new Error('Expected the widget composer to exist.');
+    for (const element of [input, send]) {
+      Object.defineProperty(element, 'offsetParent', {
+        configurable: true,
+        value: element.parentElement
+      });
+    }
+    send.focus();
+
+    const tab = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Tab' });
+    widget.shadowRoot?.dispatchEvent(tab);
+
+    expect(tab.defaultPrevented).toBe(true);
+    expect(widget.shadowRoot?.activeElement).toBe(input);
   });
 
   it('supports an additional valid custom-element tag without reusing the registered constructor', () => {

@@ -22,6 +22,13 @@ describe('renderMarkdown', () => {
     expect(html).toContain('href="https://example.com"');
   });
 
+  it('renders non-absolute link targets as plain, safely formatted labels', () => {
+    const html = renderMarkdown('[**Guide**](./guide)');
+
+    expect(html).toBe('<p><strong>Guide</strong></p>');
+    expect(html).not.toContain('<a ');
+  });
+
   it('renders ordered lists and fenced code blocks', () => {
     const html = renderMarkdown('1. Install\n2. Configure\n\n```ts\nconst token = "<secret>";\n```');
 

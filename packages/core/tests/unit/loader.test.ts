@@ -67,6 +67,10 @@ describe('script loader', () => {
     expect(findCurrentWidgetScript()).toBe(second);
   });
 
+  it('returns null when the document has no widget script candidate', () => {
+    expect(findCurrentWidgetScript()).toBeNull();
+  });
+
   it('prefers the current script when it declares a library', () => {
     const current = document.createElement('script');
     current.dataset.library = '/current/repo';

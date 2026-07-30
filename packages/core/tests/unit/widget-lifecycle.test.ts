@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { defineContext7Widget } from '../../src';
-import { createSseStream } from '../../../../common/tests/unit/stream';
-import { expectAlwaysVisibleBranding } from '../../../../common/tests/unit/widget-contract';
+import { createSseStream } from '@common/tests/unit/stream';
+import { expectAlwaysVisibleBranding } from '@common/tests/unit/widget-contract';
 
 describe('Context7WidgetElement lifecycle behavior', () => {
   afterEach(() => {
@@ -27,6 +27,17 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     expectAlwaysVisibleBranding(widget.shadowRoot as ShadowRoot);
   });
 
+  it('treats unknown present boolean attribute values as enabled', () => {
+    defineContext7Widget();
+
+    const widget = document.createElement('context7-widget');
+    widget.setAttribute('default-open', 'enabled');
+    widget.setAttribute('library', '/desource-labs/context7-widget');
+    document.body.append(widget);
+
+    expect(widget.hasAttribute('open')).toBe(true);
+  });
+
   it('keeps the panel open when outside click closing is disabled', () => {
     defineContext7Widget();
 
@@ -38,6 +49,26 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     (widget as HTMLElement & { open: () => void }).open();
     document.body.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, composed: true }));
 
+    expect(widget.hasAttribute('open')).toBe(true);
+  });
+
+  it('does not treat its panel or external trigger as an outside click', () => {
+    defineContext7Widget();
+
+    const trigger = document.createElement('button');
+    trigger.id = 'outside-click-trigger';
+    const widget = document.createElement('context7-widget');
+    widget.setAttribute('custom-trigger', '#outside-click-trigger');
+    widget.setAttribute('library', '/desource-labs/context7-widget');
+    document.body.append(trigger, widget);
+
+    trigger.click();
+    trigger.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, composed: true }));
+    expect(widget.hasAttribute('open')).toBe(true);
+
+    widget.shadowRoot
+      ?.querySelector<HTMLElement>('.c7-panel')
+      ?.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, composed: true }));
     expect(widget.hasAttribute('open')).toBe(true);
   });
 
@@ -333,6 +364,42 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     toggle?.click();
     expect(toggle?.getAttribute('aria-expanded')).toBe('false');
     expect(content?.hidden).toBe(true);
+  });
+
+  it('safely renders string tool results and ignores unmatched or empty results', async () => {
+    defineContext7Widget();
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            createSseStream([
+              'data: {"type":"tool-output-available","toolCallId":"missing","output":"orphan"}\n',
+              'data: {"type":"tool-input-available","toolCallId":"empty","toolName":"search","input":{"query":"empty"}}\n',
+              'data: {"type":"tool-output-available","toolCallId":"empty","output":""}\n',
+              'data: {"type":"tool-input-available","toolCallId":"string","toolName":"search","input":{"query":"<img src=x onerror=alert(1)>"}}\n',
+              'data: {"type":"tool-output-available","toolCallId":"string","output":"Plain <result>"}\n'
+            ])
+          )
+      )
+    );
+
+    const widget = document.createElement('context7-widget') as HTMLElement & {
+      send: (question: string) => Promise<void>;
+    };
+    widget.setAttribute('library', '/desource-labs/context7-widget');
+    document.body.append(widget);
+
+    await widget.send('Find safe results');
+
+    const tools = widget.shadowRoot?.querySelectorAll('.c7-tool-call');
+    expect(tools).toHaveLength(2);
+    expect(widget.shadowRoot?.querySelector('.c7-tool-call img')).toBeNull();
+    expect(widget.shadowRoot?.textContent).toContain('<img src=x onerror=alert(1)>');
+    expect(widget.shadowRoot?.querySelectorAll('.c7-tool-result')).toHaveLength(1);
+    expect(widget.shadowRoot?.querySelector('.c7-tool-content')?.textContent).toContain('Plain <result>');
+    expect(widget.shadowRoot?.textContent).not.toContain('orphan');
   });
 });
 

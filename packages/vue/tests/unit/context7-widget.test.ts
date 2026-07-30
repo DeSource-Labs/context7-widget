@@ -1,8 +1,8 @@
 import { createApp, defineComponent, h, nextTick, ref, type App } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Context7Widget, createContext7WidgetPlugin, useContext7Widget, type Context7WidgetExpose } from '../../src';
-import { createSseStream } from '../../../../common/tests/unit/stream';
-import { expectAlwaysVisibleBranding } from '../../../../common/tests/unit/widget-contract';
+import { createSseStream } from '@common/tests/unit/stream';
+import { expectAlwaysVisibleBranding } from '@common/tests/unit/widget-contract';
 
 const mountedApps: App[] = [];
 
@@ -79,7 +79,13 @@ describe('@desource/context7-widget-vue', () => {
     app.mount(root);
 
     await nextTick();
-    expect(root.querySelector('.c7-launcher')).toBeTruthy();
+    const launcher = root.querySelector<HTMLButtonElement>('.c7-launcher')!;
+    launcher.click();
+    await nextTick();
+    expect(root.querySelector('.context7-widget')?.hasAttribute('open')).toBe(true);
+    launcher.click();
+    await nextTick();
+    expect(root.querySelector('.context7-widget')?.hasAttribute('open')).toBe(false);
 
     mode.value = 'managed';
     await nextTick();
@@ -99,6 +105,116 @@ describe('@desource/context7-widget-vue', () => {
     external.click();
     await nextTick();
     expect(root.querySelector('.context7-widget')?.hasAttribute('open')).toBe(true);
+  });
+
+  it('supports the managed trigger fallback and accessible keyboard and backdrop dismissal', async () => {
+    const close = vi.fn();
+    const root = mount(() =>
+      h(Context7Widget, {
+        closeOnOutsideClick: true,
+        customTrigger: true,
+        launcherLabel: 'Ask the docs',
+        library: '/desource-labs/context7-widget',
+        onClose: close,
+        position: 'center'
+      })
+    );
+    await nextTick();
+
+    const widget = root.querySelector<HTMLElement>('.context7-widget')!;
+    const trigger = root.querySelector<HTMLButtonElement>('.context7-widget-trigger')!;
+    expect(trigger.textContent?.trim()).toBe('Ask the docs');
+
+    trigger.focus();
+    trigger.click();
+    await nextTick();
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(true);
+    expect(document.activeElement).toBe(root.querySelector('.c7-input'));
+
+    const tab = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Tab' });
+    widget.dispatchEvent(tab);
+    expect(tab.defaultPrevented).toBe(true);
+
+    const escape = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Escape' });
+    widget.dispatchEvent(escape);
+    expect(escape.defaultPrevented).toBe(true);
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(false);
+    expect(document.activeElement).toBe(trigger);
+
+    trigger.click();
+    await nextTick();
+    root.querySelector<HTMLDivElement>('.c7-backdrop')!.click();
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(false);
+
+    trigger.click();
+    await nextTick();
+    root.querySelector<HTMLButtonElement>('.c7-close')!.click();
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(false);
+    expect(close).toHaveBeenCalledTimes(3);
+  });
+
+  it('submits a v-model draft through the Vue form', async () => {
+    const question = vi.fn();
+    const fetch = vi.fn(
+      async () => new Response(createSseStream(['data: {"type":"text-delta","delta":"Form response"}\n']))
+    );
+    vi.stubGlobal('fetch', fetch);
+    const root = mount(() =>
+      h(Context7Widget, {
+        library: '/desource-labs/context7-widget',
+        onQuestion: question
+      })
+    );
+    await nextTick();
+
+    const input = root.querySelector<HTMLInputElement>('.c7-input')!;
+    input.value = '  How do Vue forms work?  ';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    root
+      .querySelector<HTMLFormElement>('.c7-composer')!
+      .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+
+    await vi.waitFor(() => expect(root.textContent).toContain('Form response'));
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(question).toHaveBeenCalledWith(expect.objectContaining({ question: 'How do Vue forms work?' }));
+    expect(input.value).toBe('');
+  });
+
+  it('reacts to live modal behavior changes while open', async () => {
+    const defaultOpen = ref(false);
+    const closeOnOutsideClick = ref(false);
+    const position = ref<'anchor' | 'center'>('center');
+    const root = mount(() =>
+      h(Context7Widget, {
+        closeOnOutsideClick: closeOnOutsideClick.value,
+        defaultOpen: defaultOpen.value,
+        library: '/desource-labs/context7-widget',
+        position: position.value
+      })
+    );
+    await nextTick();
+
+    const widget = root.querySelector<HTMLElement>('.context7-widget')!;
+    expect(widget.hasAttribute('open')).toBe(false);
+
+    defaultOpen.value = true;
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(true);
+
+    position.value = 'anchor';
+    await nextTick();
+    expect(widget.style.getPropertyValue('--c7-anchor-left')).toMatch(/px$/);
+    expect(widget.style.getPropertyValue('--c7-anchor-top')).toMatch(/px$/);
+
+    closeOnOutsideClick.value = true;
+    await nextTick();
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }));
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(false);
   });
 
   it('streams through the shared kit and emits typed Vue events', async () => {
@@ -261,9 +377,11 @@ describe('@desource/context7-widget-vue', () => {
 
   it('updates a composable-owned Vue widget from reactive options', async () => {
     const preset = ref<'glass' | 'terminal'>('glass');
-    const root = document.createElement('div');
+    const firstTarget = document.createElement('div');
+    const secondTarget = document.createElement('div');
+    const target = ref<HTMLElement>(firstTarget);
     const hostRoot = document.createElement('div');
-    document.body.append(root, hostRoot);
+    document.body.append(firstTarget, secondTarget, hostRoot);
 
     const Host = defineComponent({
       setup() {
@@ -272,7 +390,7 @@ describe('@desource/context7-widget-vue', () => {
             autoMount: true,
             library: '/desource-labs/context7-widget',
             preset: preset.value,
-            target: root,
+            target: target.value,
             widgetId: 'reactive-docs'
           }))
         };
@@ -284,10 +402,110 @@ describe('@desource/context7-widget-vue', () => {
     hostApp.mount(hostRoot);
 
     await nextTick();
-    expect(root.querySelector('.context7-widget')?.getAttribute('preset')).toBe('glass');
+    expect(firstTarget.querySelector('.context7-widget')?.getAttribute('preset')).toBe('glass');
     preset.value = 'terminal';
     await nextTick();
-    expect(root.querySelector('.context7-widget')?.getAttribute('preset')).toBe('terminal');
+    expect(firstTarget.querySelector('.context7-widget')?.getAttribute('preset')).toBe('terminal');
+
+    target.value = secondTarget;
+    await nextTick();
+    expect(firstTarget.querySelector('.context7-widget')).toBeNull();
+    expect(secondTarget.querySelector('.context7-widget')?.getAttribute('preset')).toBe('terminal');
+  });
+
+  it('controls a declaratively rendered widget through the composable registry', async () => {
+    let signal: AbortSignal | undefined;
+    const widgetId = ref('declarative-docs');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async (_url, init?: RequestInit) =>
+          await new Promise<Response>((_resolve, reject) => {
+            signal = init?.signal ?? undefined;
+            signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+          })
+      )
+    );
+    const hostRoot = document.createElement('div');
+    document.body.append(hostRoot);
+    const Host = defineComponent({
+      setup() {
+        return {
+          controller: useContext7Widget(() => ({ widgetId: widgetId.value }))
+        };
+      },
+      render() {
+        return h(Context7Widget, {
+          library: '/desource-labs/context7-widget',
+          widgetId: widgetId.value
+        });
+      }
+    });
+    const hostApp = createApp(Host);
+    mountedApps.push(hostApp);
+    const vm = hostApp.mount(hostRoot) as unknown as {
+      controller: ReturnType<typeof useContext7Widget>;
+    };
+    await nextTick();
+
+    expect(vm.controller.widget.value).toBe(hostRoot.querySelector('.context7-widget'));
+    vm.controller.open();
+    expect(vm.controller.isOpen.value).toBe(true);
+    vm.controller.close();
+    expect(vm.controller.isOpen.value).toBe(false);
+    vm.controller.toggle();
+    expect(vm.controller.isOpen.value).toBe(true);
+
+    widgetId.value = 'renamed-docs';
+    await nextTick();
+    vm.controller.close();
+    expect(vm.controller.widget.value).toBe(hostRoot.querySelector('.context7-widget'));
+    expect(vm.controller.isOpen.value).toBe(false);
+
+    const pending = vm.controller.send('Cancel this request');
+    expect(vm.controller.isBusy.value).toBe(true);
+    vm.controller.cancel();
+    await pending;
+    expect(signal?.aborted).toBe(true);
+    expect(vm.controller.isBusy.value).toBe(false);
+    expect(vm.controller.getMessages()).toHaveLength(1);
+
+    vm.controller.reset();
+    expect(vm.controller.messages.value).toEqual([]);
+  });
+
+  it('keeps an owned widget mounted when removeOnUnmount is false until explicitly removed', async () => {
+    const target = document.createElement('div');
+    const hostRoot = document.createElement('div');
+    document.body.append(target, hostRoot);
+    const Host = defineComponent({
+      setup() {
+        return {
+          controller: useContext7Widget({
+            autoMount: true,
+            library: '/desource-labs/context7-widget',
+            removeOnUnmount: false,
+            target
+          })
+        };
+      },
+      render: () => h('div')
+    });
+    const hostApp = createApp(Host);
+    mountedApps.push(hostApp);
+    const vm = hostApp.mount(hostRoot) as unknown as {
+      controller: ReturnType<typeof useContext7Widget>;
+    };
+    await nextTick();
+
+    expect(target.querySelector('.context7-widget')).toBeTruthy();
+    hostApp.unmount();
+    mountedApps.splice(mountedApps.indexOf(hostApp), 1);
+    expect(target.querySelector('.context7-widget')).toBeTruthy();
+
+    vm.controller.unmount();
+    expect(target.querySelector('.context7-widget')).toBeNull();
+    expect(vm.controller.widget.value).toBeNull();
   });
 
   it('inherits plugin defaults in composable-owned widgets', async () => {

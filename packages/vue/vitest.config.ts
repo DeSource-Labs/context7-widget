@@ -7,6 +7,10 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: '@common',
+        replacement: fileURLToPath(new URL('../../common', import.meta.url))
+      },
+      {
         find: '@desource/context7-widget/kit',
         replacement: fileURLToPath(new URL('../core/src/kit.ts', import.meta.url))
       }
@@ -16,14 +20,16 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     include: ['tests/unit/**/*.{test,spec}.{ts,tsx}'],
+    restoreMocks: true,
+    unstubGlobals: true,
     coverage: {
       exclude: ['src/**/*.d.ts'],
       include: ['src/**/*.{ts,vue,js}'],
       thresholds: {
-        branches: 71,
-        functions: 85,
-        lines: 91,
-        statements: 89
+        branches: 84,
+        functions: 99,
+        lines: 99,
+        statements: 97
       }
     }
   }
