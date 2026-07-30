@@ -39,14 +39,11 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck
-        run: pnpm typecheck
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
 
-      - name: Build packages
-        run: pnpm build
-
-      - name: Unit tests
-        run: pnpm test:unit
+      - name: Run release-quality gate
+        run: pnpm run check:release
 
       - name: Publish to npm
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
