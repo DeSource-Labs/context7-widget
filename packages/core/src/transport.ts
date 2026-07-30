@@ -110,8 +110,8 @@ function consumeStreamLine(line: string, callbacks: Context7StreamCallbacks): vo
     try {
       const parsed: unknown = JSON.parse(payload);
       if (typeof parsed === 'string') callbacks.onChunk(parsed);
-      if (isRecord(parsed) && typeof parsed.content === 'string') callbacks.onChunk(parsed.content);
-      if (isRecord(parsed) && typeof parsed.delta === 'string') callbacks.onChunk(parsed.delta);
+      else if (isRecord(parsed) && typeof parsed.content === 'string') callbacks.onChunk(parsed.content);
+      else if (isRecord(parsed) && typeof parsed.delta === 'string') callbacks.onChunk(parsed.delta);
     } catch {
       // Ignore malformed compatibility frames.
     }
