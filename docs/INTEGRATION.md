@@ -71,8 +71,11 @@ menu, help item, or navigation action.
 ></script>
 ```
 
-With `position="anchor"`, the panel opens above the trigger when there is enough
-space and below it otherwise.
+With `position="anchor"`, the panel opens above the trigger by default and flips
+below when the upper side cannot fit it. When neither side can fit the requested
+height, it uses the roomier side. The panel's height and width are constrained
+to the visible viewport, including mobile browser and on-screen-keyboard
+viewport changes.
 
 ## Centered Help Dialog
 
