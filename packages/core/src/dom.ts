@@ -14,16 +14,21 @@ export interface Context7AnchorLayoutOptions {
   readonly panelHeight: number;
   readonly panelWidth: number;
   readonly viewportHeight: number;
+  readonly viewportLeft?: number;
+  readonly viewportTop?: number;
   readonly viewportWidth: number;
 }
 
 export interface Context7AnchorLayout {
   readonly left: number;
+  readonly maxHeight: number;
+  readonly maxWidth: number;
   readonly origin: string;
+  readonly placement: 'bottom' | 'top';
   readonly top: number;
 }
 
-/** Resolve an end-aligned floating panel within the visible viewport. */
+/** Resolve an end-aligned floating panel within the visible visual viewport. */
 export function resolveContext7AnchorLayout({
   anchor,
   gap = 12,
@@ -31,21 +36,40 @@ export function resolveContext7AnchorLayout({
   panelHeight,
   panelWidth,
   viewportHeight,
+  viewportLeft = 0,
+  viewportTop = 0,
   viewportWidth
 }: Context7AnchorLayoutOptions): Context7AnchorLayout {
-  const above = anchor.top - panelHeight - gap;
-  const below = anchor.bottom + gap;
-  const spaceAbove = anchor.top - margin - gap;
-  const spaceBelow = viewportHeight - anchor.bottom - margin - gap;
-  const hasSpaceAbove = above >= margin;
-  const hasSpaceBelow = below + panelHeight <= viewportHeight - margin;
-  const opensAbove = hasSpaceAbove || (!hasSpaceBelow && spaceAbove >= spaceBelow);
-  const left = clamp(anchor.right - panelWidth, margin, Math.max(margin, viewportWidth - panelWidth - margin));
-  const top = clamp(opensAbove ? above : below, margin, Math.max(margin, viewportHeight - panelHeight - margin));
+  const viewportBottom = viewportTop + Math.max(0, viewportHeight);
+  const viewportRight = viewportLeft + Math.max(0, viewportWidth);
+  const topBoundary = viewportTop + margin;
+  const leftBoundary = viewportLeft + margin;
+  const maxHeight = Math.max(0, viewportHeight - margin * 2);
+  const maxWidth = Math.max(0, viewportWidth - margin * 2);
+  const renderedWidth = Math.min(Math.max(0, panelWidth), maxWidth);
+  const spaceAbove = Math.max(0, anchor.top - gap - topBoundary);
+  const spaceBelow = Math.max(0, viewportBottom - margin - anchor.bottom - gap);
+
+  // Prefer the top placement. Flip when it cannot fit there, or choose the
+  // roomier side when neither side can fit the requested height.
+  const opensAbove = spaceAbove >= panelHeight || (spaceBelow < panelHeight && spaceAbove >= spaceBelow);
+  const placement = opensAbove ? 'top' : 'bottom';
+  const availableHeight = Math.min(opensAbove ? spaceAbove : spaceBelow, maxHeight);
+  const renderedHeight = Math.min(Math.max(0, panelHeight), availableHeight);
+  const left = clamp(
+    anchor.right - renderedWidth,
+    leftBoundary,
+    Math.max(leftBoundary, viewportRight - margin - renderedWidth)
+  );
+  const naturalTop = opensAbove ? anchor.top - gap - renderedHeight : anchor.bottom + gap;
+  const top = clamp(naturalTop, topBoundary, Math.max(topBoundary, viewportBottom - margin - renderedHeight));
 
   return {
     left,
+    maxHeight: availableHeight,
+    maxWidth,
     origin: `${opensAbove ? 'bottom' : 'top'} right`,
+    placement,
     top
   };
 }

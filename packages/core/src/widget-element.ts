@@ -94,6 +94,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
   private config: Context7WidgetConfig = readConfig(this);
   private conversationInitialized = false;
   private readonly elements: WidgetElements;
+  private floatingLayoutFrame: number | null = null;
+  private floatingResizeObserver: ResizeObserver | null = null;
+  private floatingViewport: VisualViewport | null = null;
   private lastFocus: Element | null = null;
   private messageCounter = 0;
   private messages: Context7Message[] = [];
@@ -131,8 +134,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.close();
   };
 
-  private readonly onFloatingLayout = () => {
-    if (this.isOpen()) this.updateAnchorPosition();
+  private readonly onFloatingLayout = (event: Event) => {
+    if (event.type === 'scroll' && event.composedPath().includes(this)) return;
+    this.scheduleAnchorPositionUpdate();
   };
 
   private readonly onKeyDown = (event: KeyboardEvent) => {
@@ -650,6 +654,16 @@ export class Context7WidgetElement extends BaseHTMLElement {
     if (this.config.position === 'anchor') {
       window.addEventListener('resize', this.onFloatingLayout);
       window.addEventListener('scroll', this.onFloatingLayout, true);
+      this.floatingViewport = window.visualViewport;
+      this.floatingViewport?.addEventListener('resize', this.onFloatingLayout);
+      this.floatingViewport?.addEventListener('scroll', this.onFloatingLayout);
+
+      if (typeof ResizeObserver === 'function') {
+        this.floatingResizeObserver = new ResizeObserver(() => this.scheduleAnchorPositionUpdate());
+        const anchor = this.getAnchorElement();
+        if (anchor) this.floatingResizeObserver.observe(anchor);
+        this.floatingResizeObserver.observe(this.panel);
+      }
     }
   }
 
@@ -657,6 +671,22 @@ export class Context7WidgetElement extends BaseHTMLElement {
     document.removeEventListener('pointerdown', this.onDocumentPointerDown, true);
     window.removeEventListener('resize', this.onFloatingLayout);
     window.removeEventListener('scroll', this.onFloatingLayout, true);
+    this.floatingViewport?.removeEventListener('resize', this.onFloatingLayout);
+    this.floatingViewport?.removeEventListener('scroll', this.onFloatingLayout);
+    this.floatingViewport = null;
+    this.floatingResizeObserver?.disconnect();
+    this.floatingResizeObserver = null;
+    cancelRenderFrame(this.floatingLayoutFrame);
+    this.floatingLayoutFrame = null;
+  }
+
+  private scheduleAnchorPositionUpdate(): void {
+    if (!this.isOpen() || this.floatingLayoutFrame !== null) return;
+
+    this.floatingLayoutFrame = requestRenderFrame(() => {
+      this.floatingLayoutFrame = null;
+      if (this.isOpen()) this.updateAnchorPosition();
+    });
   }
 
   private updateAnchorPosition(): void {
@@ -667,21 +697,30 @@ export class Context7WidgetElement extends BaseHTMLElement {
     if (!anchor || !panel) return;
 
     const rect = anchor.getBoundingClientRect();
+    this.style.removeProperty('--c7-anchor-max-height');
+    this.style.removeProperty('--c7-anchor-max-width');
     const panelWidth = panel.offsetWidth || 400;
     const panelHeight = panel.offsetHeight || 600;
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || panelWidth;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || panelHeight;
-    const { left, origin, top } = resolveContext7AnchorLayout({
+    const viewport = window.visualViewport;
+    const viewportWidth = viewport?.width ?? window.innerWidth ?? document.documentElement.clientWidth ?? panelWidth;
+    const viewportHeight =
+      viewport?.height ?? window.innerHeight ?? document.documentElement.clientHeight ?? panelHeight;
+    const { left, maxHeight, maxWidth, origin, placement, top } = resolveContext7AnchorLayout({
       anchor: rect,
       panelHeight,
       panelWidth,
       viewportHeight,
+      viewportLeft: viewport?.offsetLeft,
+      viewportTop: viewport?.offsetTop,
       viewportWidth
     });
 
     this.style.setProperty('--c7-anchor-left', `${left}px`);
+    this.style.setProperty('--c7-anchor-max-height', `${maxHeight}px`);
+    this.style.setProperty('--c7-anchor-max-width', `${maxWidth}px`);
     this.style.setProperty('--c7-anchor-top', `${top}px`);
     this.style.setProperty('--c7-anchor-origin', origin);
+    this.style.setProperty('--c7-anchor-translate-y', placement === 'top' ? '8px' : '-8px');
   }
 
   private getAnchorElement(): Element | null {
