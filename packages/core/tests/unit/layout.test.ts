@@ -13,7 +13,10 @@ describe('resolveContext7AnchorLayout', () => {
       })
     ).toEqual({
       left: 440,
+      maxHeight: 760,
+      maxWidth: 1176,
       origin: 'bottom right',
+      placement: 'top',
       top: 472
     });
   });
@@ -29,7 +32,10 @@ describe('resolveContext7AnchorLayout', () => {
       })
     ).toEqual({
       left: 12,
+      maxHeight: 788,
+      maxWidth: 356,
       origin: 'top right',
+      placement: 'bottom',
       top: 100
     });
   });
@@ -44,8 +50,63 @@ describe('resolveContext7AnchorLayout', () => {
         viewportWidth: 800
       })
     ).toMatchObject({
+      maxHeight: 466,
       origin: 'bottom right',
+      placement: 'top',
       top: 12
+    });
+  });
+
+  it('prefers opening above when the requested height fits on both sides', () => {
+    expect(
+      resolveContext7AnchorLayout({
+        anchor: { bottom: 460, left: 500, right: 600, top: 420 },
+        panelHeight: 300,
+        panelWidth: 400,
+        viewportHeight: 900,
+        viewportWidth: 1200
+      })
+    ).toMatchObject({
+      maxHeight: 396,
+      placement: 'top',
+      top: 108
+    });
+  });
+
+  it('sizes a panel to the chosen side instead of overlapping its trigger', () => {
+    expect(
+      resolveContext7AnchorLayout({
+        anchor: { bottom: 320, left: 350, right: 450, top: 280 },
+        panelHeight: 500,
+        panelWidth: 400,
+        viewportHeight: 600,
+        viewportWidth: 800
+      })
+    ).toMatchObject({
+      maxHeight: 256,
+      placement: 'top',
+      top: 12
+    });
+  });
+
+  it('uses visual viewport offsets when the visible viewport is shifted', () => {
+    expect(
+      resolveContext7AnchorLayout({
+        anchor: { bottom: 640, left: 300, right: 380, top: 600 },
+        panelHeight: 300,
+        panelWidth: 400,
+        viewportHeight: 500,
+        viewportLeft: 30,
+        viewportTop: 200,
+        viewportWidth: 320
+      })
+    ).toEqual({
+      left: 42,
+      maxHeight: 376,
+      maxWidth: 296,
+      origin: 'bottom right',
+      placement: 'top',
+      top: 288
     });
   });
 });

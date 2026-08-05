@@ -100,7 +100,7 @@ describe('Context7WidgetElement', () => {
     expect(widget.style.getPropertyValue('--c7-accent')).toBe('');
   });
 
-  it('positions anchor widgets above the opener when there is enough room', () => {
+  it('positions anchor widgets above the opener when there is enough room', async () => {
     defineContext7Widget();
     setViewportSize(1200, 900);
 
@@ -117,13 +117,18 @@ describe('Context7WidgetElement', () => {
     launcher?.click();
 
     expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('472px');
+    expect(widget.style.getPropertyValue('--c7-anchor-max-height')).toBe('760px');
     expect(widget.style.getPropertyValue('--c7-anchor-origin')).toBe('bottom right');
+    expect(widget.style.getPropertyValue('--c7-anchor-translate-y')).toBe('8px');
 
     setElementRect(launcher, { bottom: 156, height: 56, left: 700, right: 840, top: 100, width: 140 });
     window.dispatchEvent(new Event('resize'));
 
-    expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('168px');
+    await vi.waitFor(() => {
+      expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('168px');
+    });
     expect(widget.style.getPropertyValue('--c7-anchor-origin')).toBe('top right');
+    expect(widget.style.getPropertyValue('--c7-anchor-translate-y')).toBe('-8px');
   });
 
   it('uses the launcher as the anchor when opened programmatically', () => {
@@ -192,6 +197,59 @@ describe('Context7WidgetElement', () => {
 
     expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('100px');
     expect(widget.style.getPropertyValue('--c7-anchor-origin')).toBe('top right');
+  });
+
+  it('tracks visual viewport and observed element changes while open', async () => {
+    defineContext7Widget();
+    const observe = vi.fn();
+    const disconnect = vi.fn();
+    let resizeCallback: ResizeObserverCallback | undefined;
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: ResizeObserverCallback) {
+          resizeCallback = callback;
+        }
+
+        observe = observe;
+        disconnect = disconnect;
+      }
+    );
+    const visualViewport = Object.assign(new EventTarget(), {
+      height: 400,
+      offsetLeft: 50,
+      offsetTop: 100,
+      width: 600
+    });
+    vi.stubGlobal('visualViewport', visualViewport);
+
+    const widget = document.createElement('context7-widget') as Context7WidgetElement;
+    widget.setAttribute('library', '/vercel/next.js');
+    widget.setAttribute('position', 'anchor');
+    document.body.append(widget);
+
+    const panel = widget.shadowRoot?.querySelector<HTMLElement>('.c7-panel');
+    const launcher = widget.shadowRoot?.querySelector<HTMLElement>('[data-c7-launcher]');
+    setElementSize(panel, 400, 300);
+    setElementRect(launcher, { bottom: 460, height: 40, left: 450, right: 550, top: 420, width: 100 });
+
+    widget.open();
+
+    expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('112px');
+    expect(widget.style.getPropertyValue('--c7-anchor-max-height')).toBe('296px');
+    expect(observe).toHaveBeenCalledWith(launcher);
+    expect(observe).toHaveBeenCalledWith(panel);
+
+    setElementRect(launcher, { bottom: 160, height: 40, left: 450, right: 550, top: 120, width: 100 });
+    visualViewport.dispatchEvent(new Event('resize'));
+    await vi.waitFor(() => expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('172px'));
+
+    setElementRect(launcher, { bottom: 460, height: 40, left: 450, right: 550, top: 420, width: 100 });
+    resizeCallback?.([], {} as ResizeObserver);
+    await vi.waitFor(() => expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('112px'));
+
+    widget.close();
+    expect(disconnect).toHaveBeenCalledOnce();
   });
 
   it('traps tab navigation within a centered dialog', () => {

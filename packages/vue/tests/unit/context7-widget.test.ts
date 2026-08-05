@@ -1,6 +1,7 @@
 import { createApp, defineComponent, h, nextTick, ref, type App } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Context7Widget, createContext7WidgetPlugin, useContext7Widget, type Context7WidgetExpose } from '../../src';
+import { setElementRect, setElementSize } from '@common/tests/unit/dom';
 import { createSseStream } from '@common/tests/unit/stream';
 import { expectAlwaysVisibleBranding } from '@common/tests/unit/widget-contract';
 
@@ -215,6 +216,63 @@ describe('@desource/context7-widget-vue', () => {
     document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }));
     await nextTick();
     expect(widget.hasAttribute('open')).toBe(false);
+  });
+
+  it('tracks visual viewport and observed element changes while anchored', async () => {
+    const observe = vi.fn();
+    const disconnect = vi.fn();
+    let resizeCallback: ResizeObserverCallback | undefined;
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: ResizeObserverCallback) {
+          resizeCallback = callback;
+        }
+
+        observe = observe;
+        disconnect = disconnect;
+      }
+    );
+    const visualViewport = Object.assign(new EventTarget(), {
+      height: 400,
+      offsetLeft: 50,
+      offsetTop: 100,
+      width: 600
+    });
+    vi.stubGlobal('visualViewport', visualViewport);
+    const root = mount(() =>
+      h(Context7Widget, {
+        customTrigger: true,
+        library: '/desource-labs/context7-widget',
+        position: 'anchor'
+      })
+    );
+    await nextTick();
+
+    const widget = root.querySelector<HTMLElement>('.context7-widget')!;
+    const panel = root.querySelector<HTMLElement>('.c7-panel');
+    const trigger = root.querySelector<HTMLElement>('.context7-widget-trigger');
+    setElementSize(panel, 400, 300);
+    setElementRect(trigger, { bottom: 460, height: 40, left: 450, right: 550, top: 420, width: 100 });
+
+    trigger?.click();
+    await nextTick();
+    expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('112px');
+    expect(widget.style.getPropertyValue('--c7-anchor-max-height')).toBe('296px');
+    expect(observe).toHaveBeenCalledWith(trigger);
+    expect(observe).toHaveBeenCalledWith(panel);
+
+    setElementRect(trigger, { bottom: 160, height: 40, left: 450, right: 550, top: 120, width: 100 });
+    visualViewport.dispatchEvent(new Event('scroll'));
+    await vi.waitFor(() => expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('172px'));
+
+    setElementRect(trigger, { bottom: 460, height: 40, left: 450, right: 550, top: 420, width: 100 });
+    resizeCallback?.([], {} as ResizeObserver);
+    await vi.waitFor(() => expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('112px'));
+
+    root.querySelector<HTMLButtonElement>('.c7-close')?.click();
+    await nextTick();
+    expect(disconnect).toHaveBeenCalledOnce();
   });
 
   it('streams through the shared kit and emits typed Vue events', async () => {

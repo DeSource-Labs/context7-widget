@@ -52,7 +52,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
   },
   {
     contents: "export { mountContext7Widget } from '@desource/context7-widget';",
-    maxGzipBytes: 16_000,
+    maxGzipBytes: 17_000,
     name: 'core custom-element runtime consumer',
     resolveDir: corePackageRoot
   },
