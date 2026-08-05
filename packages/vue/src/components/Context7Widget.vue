@@ -315,6 +315,9 @@ const stateListeners = new Set<Context7WidgetStateListener>();
 let activeRequest: Context7ActiveRequest | null = null;
 let externalTrigger: Element | null = null;
 let externalTriggerAccessibility: Context7TriggerA11yState | null = null;
+let floatingLayoutFrame: number | null = null;
+let floatingResizeObserver: ResizeObserver | null = null;
+let floatingViewport: VisualViewport | null = null;
 let lastFocus: Element | null = null;
 let registeredWidgetId = '';
 
@@ -666,47 +669,87 @@ const onExternalTriggerClick = (event: Event) => {
   toggle();
 };
 
+const scheduleAnchorPositionUpdate = () => {
+  if (!isOpen.value || floatingLayoutFrame !== null) return;
+  floatingLayoutFrame = requestRenderFrame(() => {
+    floatingLayoutFrame = null;
+    if (isOpen.value) updateAnchorPosition();
+  });
+};
+
+const onFloatingLayout = (event: Event) => {
+  if (event.type === 'scroll' && root.value && event.composedPath().includes(root.value)) return;
+  scheduleAnchorPositionUpdate();
+};
+
 const bindFloatingListeners = () => {
   unbindFloatingListeners();
   if (resolvedCloseOnOutsideClick.value) {
     document.addEventListener('pointerdown', onDocumentPointerDown, true);
   }
   if (resolvedPosition.value === 'anchor') {
-    window.addEventListener('resize', updateAnchorPosition);
-    window.addEventListener('scroll', updateAnchorPosition, true);
+    window.addEventListener('resize', onFloatingLayout);
+    window.addEventListener('scroll', onFloatingLayout, true);
+    floatingViewport = window.visualViewport;
+    floatingViewport?.addEventListener('resize', onFloatingLayout);
+    floatingViewport?.addEventListener('scroll', onFloatingLayout);
+
+    if (typeof ResizeObserver === 'function') {
+      floatingResizeObserver = new ResizeObserver(scheduleAnchorPositionUpdate);
+      const anchor = getAnchorElement();
+      if (anchor) floatingResizeObserver.observe(anchor);
+      if (panel.value) floatingResizeObserver.observe(panel.value);
+    }
   }
 };
 
 const unbindFloatingListeners = () => {
   document.removeEventListener('pointerdown', onDocumentPointerDown, true);
-  window.removeEventListener('resize', updateAnchorPosition);
-  window.removeEventListener('scroll', updateAnchorPosition, true);
+  window.removeEventListener('resize', onFloatingLayout);
+  window.removeEventListener('scroll', onFloatingLayout, true);
+  floatingViewport?.removeEventListener('resize', onFloatingLayout);
+  floatingViewport?.removeEventListener('scroll', onFloatingLayout);
+  floatingViewport = null;
+  floatingResizeObserver?.disconnect();
+  floatingResizeObserver = null;
+  cancelRenderFrame(floatingLayoutFrame);
+  floatingLayoutFrame = null;
 };
+
+const getAnchorElement = (): Element | null =>
+  (activeAnchor.value?.isConnected ? activeAnchor.value : null) ??
+  managedTrigger.value ??
+  (externalTrigger?.isConnected ? externalTrigger : null) ??
+  launcher.value;
 
 const updateAnchorPosition = () => {
   if (resolvedPosition.value !== 'anchor' || !root.value || !panel.value) return;
-  const anchor =
-    (activeAnchor.value?.isConnected ? activeAnchor.value : null) ??
-    managedTrigger.value ??
-    (externalTrigger?.isConnected ? externalTrigger : null) ??
-    launcher.value;
+  const anchor = getAnchorElement();
   if (!anchor) return;
 
   const rect = anchor.getBoundingClientRect();
+  root.value.style.removeProperty('--c7-anchor-max-height');
+  root.value.style.removeProperty('--c7-anchor-max-width');
   const panelWidth = panel.value.offsetWidth || 400;
   const panelHeight = panel.value.offsetHeight || 600;
-  const viewportWidth = window.innerWidth || document.documentElement.clientWidth || panelWidth;
-  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || panelHeight;
-  const { left, origin, top } = resolveContext7AnchorLayout({
+  const viewport = window.visualViewport;
+  const viewportWidth = viewport?.width ?? window.innerWidth ?? document.documentElement.clientWidth ?? panelWidth;
+  const viewportHeight = viewport?.height ?? window.innerHeight ?? document.documentElement.clientHeight ?? panelHeight;
+  const { left, maxHeight, maxWidth, origin, placement, top } = resolveContext7AnchorLayout({
     anchor: rect,
     panelHeight,
     panelWidth,
     viewportHeight,
+    viewportLeft: viewport?.offsetLeft,
+    viewportTop: viewport?.offsetTop,
     viewportWidth
   });
   root.value.style.setProperty('--c7-anchor-left', `${left}px`);
+  root.value.style.setProperty('--c7-anchor-max-height', `${maxHeight}px`);
+  root.value.style.setProperty('--c7-anchor-max-width', `${maxWidth}px`);
   root.value.style.setProperty('--c7-anchor-top', `${top}px`);
   root.value.style.setProperty('--c7-anchor-origin', origin);
+  root.value.style.setProperty('--c7-anchor-translate-y', placement === 'top' ? '8px' : '-8px');
 };
 
 const register = () => {
