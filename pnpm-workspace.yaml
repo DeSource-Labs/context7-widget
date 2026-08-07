@@ -4,7 +4,8 @@ packages:
 
 overrides:
   '@napi-rs/wasm-runtime': ^1.2.1
-  brace-expansion: ^5.0.8
+  '@bomb.sh/tab': ^0.0.22
+  brace-expansion: ^5.0.9
   glob: ^13.0.6
 
 allowBuilds:
