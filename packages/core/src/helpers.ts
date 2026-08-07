@@ -6,7 +6,7 @@ import type {
   Context7WidgetScriptOptions,
   Context7WidgetTarget
 } from './types.js';
-import { assertBrowser, resolveTarget } from './dom.js';
+import { assertBrowser, isContext7WidgetTriggerElement, resolveTarget } from './dom.js';
 
 const DEFAULT_SCRIPT_SRC = 'https://context7.desource-labs.org/widget.js';
 
@@ -38,6 +38,7 @@ export function toContext7WidgetAttributes(options: Context7WidgetOptions): Reco
   for (const [key, attribute] of OPTION_ATTRIBUTES) {
     const value = options[key];
     if (value === undefined || value === '') continue;
+    if (key === 'customTrigger' && isContext7WidgetTriggerElement(value)) continue;
     if (typeof value === 'boolean') {
       attributes[attribute] = String(value);
       continue;
@@ -73,6 +74,11 @@ export function setContext7WidgetAttributes(
 ): void {
   for (const [key, attribute] of OPTION_ATTRIBUTES) {
     const value = options[key];
+    if (key === 'customTrigger') {
+      syncContext7WidgetTrigger(widget, value, clearMissing);
+      continue;
+    }
+
     if (value === undefined) {
       if (clearMissing) {
         widget.removeAttribute(attribute);
@@ -124,6 +130,7 @@ export function buildContext7WidgetScriptTag(options: Context7WidgetScriptOption
   for (const [key, , attribute] of OPTION_ATTRIBUTES) {
     const value = options[key];
     if (value === undefined || value === '') continue;
+    if (key === 'customTrigger' && isContext7WidgetTriggerElement(value)) continue;
     if (typeof value === 'boolean') {
       attributes[attribute] = String(value);
       continue;
@@ -140,4 +147,38 @@ export function buildContext7WidgetScriptTag(options: Context7WidgetScriptOption
 
 function escapeAttribute(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function syncContext7WidgetTrigger(widget: HTMLElement, value: unknown, clearMissing: boolean): void {
+  if (value === undefined) {
+    if (!clearMissing) return;
+    setContext7WidgetTriggerProperty(widget, undefined);
+    widget.removeAttribute('custom-trigger');
+    return;
+  }
+
+  if (value === '') {
+    setContext7WidgetTriggerProperty(widget, undefined);
+    widget.removeAttribute('custom-trigger');
+    return;
+  }
+
+  if (typeof value === 'string' || isContext7WidgetTriggerElement(value))
+    setContext7WidgetTriggerProperty(widget, value);
+}
+
+function setContext7WidgetTriggerProperty(
+  widget: HTMLElement,
+  value: Context7WidgetOptions['customTrigger'] | undefined
+): void {
+  if ('customTrigger' in widget) {
+    (widget as Context7WidgetElement).customTrigger = value;
+    return;
+  }
+
+  if (typeof value === 'string') {
+    widget.setAttribute('custom-trigger', value);
+  } else {
+    widget.removeAttribute('custom-trigger');
+  }
 }

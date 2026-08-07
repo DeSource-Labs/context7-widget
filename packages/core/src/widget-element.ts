@@ -3,8 +3,9 @@ import { resolveContext7WidgetConfig } from './config.js';
 import {
   cancelRenderFrame,
   captureTriggerAccessibility,
-  querySelectorSafely,
+  isContext7WidgetTriggerElement,
   requestRenderFrame,
+  resolveContext7CustomTrigger,
   restoreTriggerAccessibility,
   trapFocus,
   updateAnchorPosition
@@ -23,7 +24,8 @@ import type {
   Context7WidgetConfig,
   Context7WidgetEventDetailFor,
   Context7WidgetEventName,
-  Context7WidgetEventPayload
+  Context7WidgetEventPayload,
+  Context7WidgetTrigger
 } from './types.js';
 
 const registry = new Map<string, Context7WidgetElement>();
@@ -93,6 +95,10 @@ export class Context7WidgetElement extends BaseHTMLElement {
   private busy = false;
   private config: Context7WidgetConfig = readConfig(this);
   private conversationInitialized = false;
+  private customTriggerElement: Element | null = null;
+  private customTriggerObserver: MutationObserver | null = null;
+  private customTriggerSelectorInvalid = false;
+  private customTriggerWarningKey = '';
   private readonly elements: WidgetElements;
   private floatingLayoutFrame: number | null = null;
   private floatingResizeObserver: ResizeObserver | null = null;
@@ -169,6 +175,31 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.renderShell();
     this.elements = collectWidgetElements(this.root);
     this.bindEvents();
+  }
+
+  get customTrigger(): Context7WidgetTrigger | '' {
+    return this.customTriggerElement ?? this.config.customTrigger;
+  }
+
+  set customTrigger(value: Context7WidgetTrigger | null | undefined) {
+    this.customTriggerElement = isContext7WidgetTriggerElement(value) ? value : null;
+    if (typeof value === 'string' && value) {
+      this.setAttribute('custom-trigger', value);
+    } else {
+      this.removeAttribute('custom-trigger');
+      this.removeAttribute('data-custom-trigger');
+    }
+
+    this.config = readConfig(this);
+    if (!this.isConnected) return;
+
+    this.applyConfig();
+    this.bindCustomTrigger();
+    if (this.isOpen()) {
+      this.unbindFloatingListeners();
+      this.bindFloatingListeners();
+      this.updateAnchorPosition();
+    }
   }
 
   connectedCallback(): void {
@@ -514,7 +545,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     syncHostAttribute(this, 'preset', this.config.preset);
     syncHostAttribute(this, 'theme', this.config.theme);
     syncStateAttribute(this, 'backdrop-active', this.config.backdrop);
-    syncStateAttribute(this, 'custom-trigger-active', Boolean(this.config.customTrigger));
+    this.syncCustomTriggerState();
   }
 
   private updateStaticText(): void {
@@ -705,19 +736,33 @@ export class Context7WidgetElement extends BaseHTMLElement {
   private bindCustomTrigger(): void {
     this.unbindCustomTrigger();
 
-    if (!this.config.customTrigger) return;
+    const trigger = this.getCustomTrigger();
+    this.customTriggerSelectorInvalid = false;
+    if (!trigger) return;
 
-    this.triggerElement = querySelectorSafely(this.config.customTrigger);
-    this.triggerElement?.addEventListener('click', this.onCustomTrigger);
-    if (this.triggerElement) {
+    const resolution = resolveContext7CustomTrigger(trigger, false);
+    this.customTriggerSelectorInvalid = resolution.invalidSelector;
+    const element = resolution.element;
+
+    if (element?.isConnected) {
+      this.triggerElement = element;
+      this.triggerElement.addEventListener('click', this.onCustomTrigger);
       this.triggerAccessibilityState = captureTriggerAccessibility(this.triggerElement);
       this.triggerElement.setAttribute('aria-controls', this.panelId);
       this.triggerElement.setAttribute('aria-haspopup', 'dialog');
       this.triggerElement.setAttribute('aria-expanded', String(this.isOpen()));
+      this.customTriggerWarningKey = '';
+    } else {
+      this.warnCustomTriggerBindingFailure(trigger, resolution.invalidSelector);
     }
+
+    this.syncCustomTriggerState();
+    this.observeCustomTrigger();
   }
 
   private unbindCustomTrigger(): void {
+    this.customTriggerObserver?.disconnect();
+    this.customTriggerObserver = null;
     if (this.activeAnchorElement === this.triggerElement) {
       this.activeAnchorElement = null;
     }
@@ -725,6 +770,54 @@ export class Context7WidgetElement extends BaseHTMLElement {
     if (this.triggerAccessibilityState) restoreTriggerAccessibility(this.triggerAccessibilityState);
     this.triggerAccessibilityState = null;
     this.triggerElement = null;
+    this.syncCustomTriggerState();
+  }
+
+  private getCustomTrigger(): Context7WidgetTrigger | null {
+    return this.customTriggerElement ?? (this.config.customTrigger || null);
+  }
+
+  private observeCustomTrigger(): void {
+    const trigger = this.getCustomTrigger();
+    if (!trigger || this.customTriggerSelectorInvalid || typeof MutationObserver !== 'function') return;
+
+    const observerTarget = document.documentElement ?? document.body;
+    if (!observerTarget) return;
+
+    this.customTriggerObserver = new MutationObserver(() => {
+      if (!this.isConnected || this.triggerElement?.isConnected) return;
+      this.bindCustomTrigger();
+      if (this.isOpen()) {
+        this.unbindFloatingListeners();
+        this.bindFloatingListeners();
+        this.updateAnchorPosition();
+      }
+    });
+    this.customTriggerObserver.observe(observerTarget, { childList: true, subtree: true });
+  }
+
+  private warnCustomTriggerBindingFailure(trigger: Context7WidgetTrigger, invalidSelector: boolean): void {
+    const warningKey = isContext7WidgetTriggerElement(trigger) ? 'element' : `selector:${trigger}`;
+    if (this.customTriggerWarningKey === warningKey) return;
+    this.customTriggerWarningKey = warningKey;
+
+    if (isContext7WidgetTriggerElement(trigger)) {
+      console.warn('[Context7 Widget] Custom trigger element is not connected. Keeping the built-in launcher visible.');
+      return;
+    }
+
+    if (invalidSelector) {
+      console.warn(`[Context7 Widget] Invalid custom trigger selector: ${trigger}`);
+      return;
+    }
+
+    console.warn(
+      `[Context7 Widget] Custom trigger selector was not found: ${trigger}. Keeping the built-in launcher visible.`
+    );
+  }
+
+  private syncCustomTriggerState(): void {
+    syncStateAttribute(this, 'custom-trigger-active', Boolean(this.triggerElement?.isConnected));
   }
 
   private syncExpandedState(): void {

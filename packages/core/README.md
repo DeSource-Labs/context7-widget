@@ -110,7 +110,7 @@ kebab case; script installs prefix those attributes with `data-`.
 | `preset`              | `preset`                 | `default`; also `minimal`, `glass`, `neo`, `terminal`, `brutalist` |
 | `theme`               | `theme`                  | `auto`; also `light` or `dark`                                     |
 | `color`               | `color`                  | No override; presets own the accent                                |
-| `customTrigger`       | `custom-trigger`         | CSS selector or simple element id                                  |
+| `customTrigger`       | `custom-trigger`         | CSS selector, simple element id, or Element in JavaScript          |
 | `backdrop`            | `backdrop`               | `true` for `center`, otherwise `false`                             |
 | `closeOnOutsideClick` | `close-on-outside-click` | `true`                                                             |
 | `defaultOpen`         | `default-open`           | `false`                                                            |
@@ -144,6 +144,10 @@ const script = buildContext7WidgetScriptTag({
   preset: 'minimal'
 });
 ```
+
+Selector custom triggers hide the built-in launcher only after a matching
+element binds. Missing or late-rendered selectors keep the launcher available
+and bind automatically when the target appears.
 
 The script still sends chat requests to `https://context7.com`. This package
 does not run a Context7 proxy; it supplies the customizable client layer.

@@ -134,10 +134,15 @@ installed application behavior.
 <!-- Full CSS selectors are supported too -->
 <button class="docs-help">Ask docs</button>
 <Context7Widget library="/owner/repo" custom-trigger=".docs-help" />
+
+<!-- Vue refs and direct Elements are supported for external triggers -->
+<button ref="docsHelp">Ask docs</button>
+<Context7Widget library="/owner/repo" :custom-trigger="docsHelp" />
 ```
 
-When `customTrigger` is set, the Vue floating launcher is not rendered. Your app
-owns the button while the Vue component owns the panel.
+External custom triggers hide the Vue floating launcher only after they bind.
+Missing or late-rendered selectors keep the launcher available and bind
+automatically when the target appears.
 
 ## Styling
 
@@ -190,6 +195,7 @@ Vue’s only prop-level difference is `customTrigger`:
 | `true`       | Render the Vue-managed trigger and expose the trigger slot |
 | id string    | Bind an external trigger by id, with or without `#`        |
 | CSS selector | Bind the first matching external trigger                   |
+| Element/ref  | Bind the provided external trigger element                 |
 
 Vue events: `ready`, `open`, `close`, `question`, `first-token`, `answer`,
 `answer-complete`, `tool-call`, `tool-result`, and `error`.

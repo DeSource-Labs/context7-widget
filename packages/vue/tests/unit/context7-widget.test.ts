@@ -825,6 +825,74 @@ describe('@desource/context7-widget-vue', () => {
     expect(external.hasAttribute('aria-controls')).toBe(false);
     expect(external.getAttribute('aria-expanded')).toBe('mixed');
   });
+
+  it('keeps the launcher rendered until an external selector trigger binds', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const root = mount(() =>
+      h(Context7Widget, {
+        customTrigger: '.late-docs-trigger',
+        library: '/desource-labs/context7-widget'
+      })
+    );
+    await nextTick();
+
+    const widget = root.querySelector<HTMLElement>('.context7-widget')!;
+    expect(widget.hasAttribute('custom-trigger-active')).toBe(false);
+    expect(root.querySelector('.c7-launcher')).not.toBeNull();
+    expect(warn).toHaveBeenCalledWith(
+      '[Context7 Widget] Custom trigger selector was not found: .late-docs-trigger. Keeping the built-in launcher visible.'
+    );
+
+    root.querySelector<HTMLButtonElement>('.c7-launcher')?.click();
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(true);
+    root.querySelector<HTMLButtonElement>('.c7-launcher')?.click();
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(false);
+
+    const external = document.createElement('button');
+    external.className = 'late-docs-trigger';
+    document.body.append(external);
+
+    await vi.waitFor(() => expect(widget.hasAttribute('custom-trigger-active')).toBe(true));
+    await vi.waitFor(() => expect(root.querySelector('.c7-launcher')).toBeNull());
+
+    external.click();
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(true);
+
+    external.remove();
+    await vi.waitFor(() => expect(widget.hasAttribute('custom-trigger-active')).toBe(false));
+    await vi.waitFor(() => expect(root.querySelector('.c7-launcher')).not.toBeNull());
+  });
+
+  it('supports Element refs for external triggers', async () => {
+    const externalTrigger = ref<Element | null>(null);
+    const root = document.createElement('div');
+    const app = createApp({
+      render: () =>
+        h('div', [
+          h('button', { ref: externalTrigger }, 'Ask docs'),
+          h(Context7Widget, {
+            customTrigger: externalTrigger,
+            library: '/desource-labs/context7-widget'
+          })
+        ])
+    });
+    mountedApps.push(app);
+    document.body.append(root);
+    app.mount(root);
+    await nextTick();
+    await nextTick();
+
+    const widget = root.querySelector<HTMLElement>('.context7-widget')!;
+    expect(widget.hasAttribute('custom-trigger-active')).toBe(true);
+    expect(root.querySelector('.c7-launcher')).toBeNull();
+
+    (externalTrigger.value as HTMLElement | null)?.click();
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(true);
+  });
 });
 
 function mount(renderWidget: () => ReturnType<typeof h>): HTMLElement {

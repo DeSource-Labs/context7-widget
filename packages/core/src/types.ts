@@ -39,11 +39,13 @@ export interface Context7TriggerA11yState {
   readonly element: Element;
 }
 
+export type Context7WidgetTrigger = Element | string;
+
 export interface Context7WidgetOptions {
   backdrop?: boolean;
   closeOnOutsideClick?: boolean;
   color?: string;
-  customTrigger?: string;
+  customTrigger?: Context7WidgetTrigger;
   defaultOpen?: boolean;
   initialMessage?: string;
   launcherLabel?: string;
@@ -81,8 +83,9 @@ export interface Context7WidgetConfig {
 
 export type Context7WidgetTarget = Element | DocumentFragment | string;
 
-export interface Context7WidgetScriptOptions extends Context7WidgetOptions {
+export interface Context7WidgetScriptOptions extends Omit<Context7WidgetOptions, 'customTrigger'> {
   async?: boolean;
+  customTrigger?: string;
   defer?: boolean;
   id?: string;
   nonce?: string;

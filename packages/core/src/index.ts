@@ -52,6 +52,7 @@ export type {
   Context7WidgetQuestionEventDetail,
   Context7WidgetScriptOptions,
   Context7WidgetTarget,
+  Context7WidgetTrigger,
   Context7WidgetToolCallEventDetail,
   Context7WidgetToolResultEventDetail
 } from './types.js';

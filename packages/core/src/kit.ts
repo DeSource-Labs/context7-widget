@@ -63,8 +63,10 @@ export {
   assertBrowser,
   cancelRenderFrame,
   captureTriggerAccessibility,
+  isContext7WidgetTriggerElement,
   querySelectorSafely,
   requestRenderFrame,
+  resolveContext7CustomTrigger,
   resolveContext7AnchorLayout,
   resolveTarget,
   restoreTriggerAccessibility,
@@ -74,7 +76,12 @@ export {
 export { escapeHtml, renderMarkdown } from './markdown.js';
 export { buildContext7ErrorHtml, DEFAULT_CONTEXT7_INITIAL_MESSAGE, isAbortError } from './runtime.js';
 export { Context7TransportError, streamContext7Response } from './transport.js';
-export type { Context7AnchorLayout, Context7AnchorLayoutOptions, Context7AnchorRect } from './dom.js';
+export type {
+  Context7AnchorLayout,
+  Context7AnchorLayoutOptions,
+  Context7AnchorRect,
+  Context7CustomTriggerResolution
+} from './dom.js';
 export type {
   Context7ActiveRequest,
   Context7LauncherVariant,
@@ -105,6 +112,7 @@ export type {
   Context7WidgetPreset,
   Context7WidgetQuestionEventDetail,
   Context7WidgetTarget,
+  Context7WidgetTrigger,
   Context7WidgetToolCallEventDetail,
   Context7WidgetToolResultEventDetail
 } from './types.js';

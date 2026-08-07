@@ -32,6 +32,28 @@ describe('core helpers', () => {
     });
   });
 
+  it('binds Element custom trigger options without serializing them as attributes', () => {
+    const trigger = document.createElement('button');
+    document.body.append(trigger);
+
+    expect(
+      toContext7WidgetAttributes({
+        customTrigger: trigger,
+        library: '/vercel/next.js'
+      })
+    ).toEqual({
+      library: '/vercel/next.js'
+    });
+
+    const widget = mountContext7Widget({
+      customTrigger: trigger,
+      library: '/vercel/next.js'
+    });
+
+    expect(widget.customTrigger).toBe(trigger);
+    expect(widget.hasAttribute('custom-trigger')).toBe(false);
+  });
+
   it('mounts a widget into a target', () => {
     const target = document.createElement('div');
     target.id = 'widget-root';

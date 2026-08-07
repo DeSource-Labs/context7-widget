@@ -12,6 +12,7 @@ import type {
   Context7WidgetToolCallEventDetail,
   Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
+import type { MaybeRefOrGetter } from 'vue';
 
 export type {
   Context7WidgetAnswerCompleteEventDetail,
@@ -28,13 +29,14 @@ export type {
   Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
 
-export type Context7WidgetCustomTrigger = boolean | string;
+export type Context7WidgetCustomTrigger = boolean | MaybeRefOrGetter<Element | null | undefined> | string;
 
 export interface Context7WidgetProps extends Omit<Context7WidgetOptions, 'customTrigger'> {
   /**
    * Use a custom trigger instead of the built-in widget launcher.
    * - true renders the Vue package trigger button.
    * - a simple string binds an external trigger id; CSS selector syntax is also supported.
+   * - an Element or Vue ref/getter binds that external trigger directly.
    * - undefined keeps the built-in widget launcher.
    */
   customTrigger?: Context7WidgetCustomTrigger;

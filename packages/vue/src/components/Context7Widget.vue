@@ -7,6 +7,7 @@
     :close-on-outside-click="String(resolvedCloseOnOutsideClick)"
     :color="resolvedColor || undefined"
     :custom-trigger="customTriggerSelector"
+    :custom-trigger-active="hasCustomTrigger ? '' : undefined"
     :default-open="String(resolvedDefaultOpen)"
     :launcher-variant="resolvedLauncherVariant"
     :library="resolvedLibrary"
@@ -228,11 +229,12 @@ import {
   context7LogoSvg,
   deSourceLabsLogoUrl,
   escapeHtml,
+  isContext7WidgetTriggerElement,
   isAbortError,
   normalizeContext7WidgetTrigger,
-  querySelectorSafely,
   renderMarkdown,
   requestRenderFrame,
+  resolveContext7CustomTrigger,
   resolveContext7WidgetConfig,
   restoreTriggerAccessibility,
   streamContext7Response,
@@ -259,11 +261,13 @@ import {
   onMounted,
   reactive,
   ref,
+  toValue,
   useAttrs,
   useId,
   useTemplateRef,
   watch,
-  type Directive
+  type Directive,
+  type MaybeRefOrGetter
 } from 'vue';
 import { context7WidgetDefaultsKey } from '../internal/injection';
 import { registerVueContext7Widget, unregisterVueContext7Widget } from '../internal/registry';
@@ -274,6 +278,7 @@ import type {
   Context7WidgetProps,
   Context7WidgetSlots,
   Context7WidgetStateListener,
+  Context7WidgetCustomTrigger,
   DisplayItem,
   MessageDisplayItem,
   ToolDisplayItem
@@ -307,12 +312,16 @@ const displayItems = ref<DisplayItem[]>([]);
 const conversation = ref<Context7Message[]>([]);
 const showTyping = ref(false);
 const activeAnchor = ref<Element | null>(null);
+const hasBoundExternalTrigger = ref(false);
 const messageCounter = ref(0);
 const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '-');
 const managedTriggerId = `context7-widget-trigger-${instanceId}`;
 const panelId = `context7-widget-panel-${instanceId}`;
 const stateListeners = new Set<Context7WidgetStateListener>();
 let activeRequest: Context7ActiveRequest | null = null;
+let customTriggerObserver: MutationObserver | null = null;
+let customTriggerSelectorInvalid = false;
+let customTriggerWarningKey = '';
 let externalTrigger: Element | null = null;
 let externalTriggerAccessibility: Context7TriggerA11yState | null = null;
 let floatingLayoutFrame: number | null = null;
@@ -353,11 +362,9 @@ const resolvedPanelWidth = computed(() => resolvedConfig.value.panelWidth);
 const resolvedPlaceholder = computed(() => resolvedConfig.value.placeholder);
 const resolvedTitle = computed(() => resolvedConfig.value.title);
 const resolvedWidgetId = computed(() => resolvedConfig.value.widgetId);
-const resolvedCustomTrigger = computed(() => props.customTrigger ?? defaults.customTrigger);
+const resolvedCustomTrigger = computed(() => resolveVueCustomTrigger(props.customTrigger ?? defaults.customTrigger));
 const rendersManagedTrigger = computed(() => resolvedCustomTrigger.value === true);
-const hasCustomTrigger = computed(
-  () => resolvedCustomTrigger.value === true || typeof resolvedCustomTrigger.value === 'string'
-);
+const hasCustomTrigger = computed(() => rendersManagedTrigger.value || hasBoundExternalTrigger.value);
 const customTriggerSelector = computed(() => {
   if (resolvedCustomTrigger.value === true) return `#${managedTriggerId}`;
   if (typeof resolvedCustomTrigger.value === 'string')
@@ -386,6 +393,14 @@ const reset = () => {
 
 const renderMessage = (item: MessageDisplayItem): string =>
   item.role === 'assistant' ? renderMarkdown(item.content) : escapeHtml(item.content);
+
+const resolveVueCustomTrigger = (
+  value: Context7WidgetCustomTrigger | undefined
+): Element | string | true | undefined => {
+  if (value === true || typeof value === 'string' || isContext7WidgetTriggerElement(value)) return value;
+  const resolved = toValue(value as MaybeRefOrGetter<Element | null | undefined>);
+  return isContext7WidgetTriggerElement(resolved) ? resolved : undefined;
+};
 
 const nextMessageId = (): string => {
   messageCounter.value += 1;
@@ -641,27 +656,85 @@ const onKeyDown = (event: KeyboardEvent) => {
 
 const bindExternalTrigger = () => {
   unbindExternalTrigger();
-  if (typeof resolvedCustomTrigger.value !== 'string') return;
-  const selector = normalizeContext7WidgetTrigger(resolvedCustomTrigger.value);
-  if (!selector) return;
-  externalTrigger = querySelectorSafely(selector);
-  externalTrigger?.addEventListener('click', onExternalTriggerClick);
-  if (externalTrigger) {
+  customTriggerSelectorInvalid = false;
+
+  const trigger = normalizeExternalTrigger(resolvedCustomTrigger.value);
+  if (!trigger) return;
+
+  const resolution = resolveContext7CustomTrigger(trigger, false);
+  customTriggerSelectorInvalid = resolution.invalidSelector;
+
+  if (resolution.element?.isConnected) {
+    externalTrigger = resolution.element;
+    externalTrigger.addEventListener('click', onExternalTriggerClick);
     externalTriggerAccessibility = captureTriggerAccessibility(externalTrigger);
     externalTrigger.setAttribute('aria-controls', panelId);
     externalTrigger.setAttribute('aria-haspopup', 'dialog');
     externalTrigger.setAttribute('aria-expanded', String(isOpen.value));
+    hasBoundExternalTrigger.value = true;
+    customTriggerWarningKey = '';
+  } else {
+    warnExternalTriggerBindingFailure(trigger, resolution.invalidSelector);
   }
+
+  observeExternalTrigger();
 };
 
 const unbindExternalTrigger = () => {
+  customTriggerObserver?.disconnect();
+  customTriggerObserver = null;
+  if (activeAnchor.value === externalTrigger) activeAnchor.value = null;
   externalTrigger?.removeEventListener('click', onExternalTriggerClick);
   if (externalTriggerAccessibility) restoreTriggerAccessibility(externalTriggerAccessibility);
   externalTriggerAccessibility = null;
   externalTrigger = null;
+  hasBoundExternalTrigger.value = false;
 };
 
 const syncExternalTriggerExpandedState = () => externalTrigger?.setAttribute('aria-expanded', String(isOpen.value));
+
+const normalizeExternalTrigger = (trigger: Element | string | true | undefined): Element | string | null => {
+  if (typeof trigger === 'string') return normalizeContext7WidgetTrigger(trigger) || null;
+  return isContext7WidgetTriggerElement(trigger) ? trigger : null;
+};
+
+const observeExternalTrigger = () => {
+  const trigger = normalizeExternalTrigger(resolvedCustomTrigger.value);
+  if (!trigger || customTriggerSelectorInvalid || typeof MutationObserver !== 'function') return;
+
+  const observerTarget = document.documentElement ?? document.body;
+  if (!observerTarget) return;
+
+  customTriggerObserver = new MutationObserver(() => {
+    if (externalTrigger?.isConnected) return;
+    bindExternalTrigger();
+    if (isOpen.value) {
+      bindFloatingListeners();
+      updateAnchorPosition();
+    }
+  });
+  customTriggerObserver.observe(observerTarget, { childList: true, subtree: true });
+};
+
+const warnExternalTriggerBindingFailure = (trigger: Element | string, invalidSelector: boolean) => {
+  const warningKey = isContext7WidgetTriggerElement(trigger) ? 'element' : `selector:${trigger}`;
+  if (customTriggerWarningKey === warningKey) return;
+  customTriggerWarningKey = warningKey;
+
+  if (isContext7WidgetTriggerElement(trigger)) {
+    console.warn('[Context7 Widget] Custom trigger element is not connected. Keeping the built-in launcher visible.');
+    return;
+  }
+
+  if (invalidSelector) {
+    console.warn(`[Context7 Widget] Invalid custom trigger selector: ${trigger}`);
+    return;
+  }
+
+  console.warn(
+    `[Context7 Widget] Custom trigger selector was not found: ${trigger}. Keeping the built-in launcher visible.`
+  );
+};
 
 const onExternalTriggerClick = (event: Event) => {
   event.preventDefault();

@@ -50,6 +50,71 @@ describe('Context7WidgetElement', () => {
     expect(widget.hasAttribute('open')).toBe(true);
   });
 
+  it('keeps the launcher reachable until a selector custom trigger binds', async () => {
+    defineContext7Widget();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    const widget = document.createElement('context7-widget');
+    widget.setAttribute('library', '/vercel/next.js');
+    widget.setAttribute('custom-trigger', '#late-ask');
+    document.body.append(widget);
+
+    const launcher = widget.shadowRoot?.querySelector<HTMLButtonElement>('[data-c7-launcher]');
+    expect(widget.hasAttribute('custom-trigger-active')).toBe(false);
+    expect(warn).toHaveBeenCalledWith(
+      '[Context7 Widget] Custom trigger selector was not found: #late-ask. Keeping the built-in launcher visible.'
+    );
+
+    launcher?.click();
+    expect(widget.hasAttribute('open')).toBe(true);
+    launcher?.click();
+    expect(widget.hasAttribute('open')).toBe(false);
+
+    const trigger = document.createElement('button');
+    trigger.id = 'late-ask';
+    document.body.append(trigger);
+
+    await vi.waitFor(() => expect(widget.hasAttribute('custom-trigger-active')).toBe(true));
+    trigger.click();
+    expect(widget.hasAttribute('open')).toBe(true);
+  });
+
+  it('fails open again when a bound selector trigger is removed', async () => {
+    defineContext7Widget();
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    const trigger = document.createElement('button');
+    trigger.id = 'removable-ask';
+    const widget = document.createElement('context7-widget');
+    widget.setAttribute('library', '/vercel/next.js');
+    widget.setAttribute('custom-trigger', '#removable-ask');
+    document.body.append(trigger, widget);
+
+    expect(widget.hasAttribute('custom-trigger-active')).toBe(true);
+    trigger.remove();
+
+    await vi.waitFor(() => expect(widget.hasAttribute('custom-trigger-active')).toBe(false));
+    widget.shadowRoot?.querySelector<HTMLButtonElement>('[data-c7-launcher]')?.click();
+
+    expect(widget.hasAttribute('open')).toBe(true);
+  });
+
+  it('accepts an Element customTrigger option through the custom element property', () => {
+    defineContext7Widget();
+
+    const trigger = document.createElement('button');
+    const widget = document.createElement('context7-widget') as Context7WidgetElement;
+    widget.customTrigger = trigger;
+    widget.setAttribute('library', '/vercel/next.js');
+    document.body.append(trigger, widget);
+
+    expect(widget.hasAttribute('custom-trigger-active')).toBe(true);
+    expect(widget.hasAttribute('custom-trigger')).toBe(false);
+
+    trigger.click();
+    expect(widget.hasAttribute('open')).toBe(true);
+  });
+
   it('closes when clicking outside by default', () => {
     defineContext7Widget();
 
