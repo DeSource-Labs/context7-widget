@@ -733,8 +733,8 @@ const updateAnchorPosition = () => {
   const panelWidth = panel.value.offsetWidth || 400;
   const panelHeight = panel.value.offsetHeight || 600;
   const viewport = window.visualViewport;
-  const viewportWidth = viewport?.width ?? window.innerWidth ?? document.documentElement.clientWidth ?? panelWidth;
-  const viewportHeight = viewport?.height ?? window.innerHeight ?? document.documentElement.clientHeight ?? panelHeight;
+  const viewportWidth = viewport?.width || window.innerWidth || document.documentElement.clientWidth || panelWidth;
+  const viewportHeight = viewport?.height || window.innerHeight || document.documentElement.clientHeight || panelHeight;
   const { left, maxHeight, maxWidth, origin, placement, top } = resolveContext7AnchorLayout({
     anchor: rect,
     panelHeight,

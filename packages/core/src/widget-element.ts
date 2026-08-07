@@ -702,9 +702,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
     const panelWidth = panel.offsetWidth || 400;
     const panelHeight = panel.offsetHeight || 600;
     const viewport = window.visualViewport;
-    const viewportWidth = viewport?.width ?? window.innerWidth ?? document.documentElement.clientWidth ?? panelWidth;
+    const viewportWidth = viewport?.width || window.innerWidth || document.documentElement.clientWidth || panelWidth;
     const viewportHeight =
-      viewport?.height ?? window.innerHeight ?? document.documentElement.clientHeight ?? panelHeight;
+      viewport?.height || window.innerHeight || document.documentElement.clientHeight || panelHeight;
     const { left, maxHeight, maxWidth, origin, placement, top } = resolveContext7AnchorLayout({
       anchor: rect,
       panelHeight,

@@ -572,7 +572,7 @@
     max-width: var(--c7-anchor-max-width, calc(100vw - 24px));
     right: auto;
     top: var(--c7-anchor-top, 20px);
-    transform: translateY(var(--c7-anchor-translate-y, -8px)) scale(0.98);
+    transform: translateY(var(--c7-anchor-translate-y, 8px)) scale(0.98);
     transform-origin: var(--c7-anchor-origin, top right);
   }
 
@@ -1027,7 +1027,7 @@
       max-height: var(--c7-anchor-max-height, calc(100dvh - 28px));
       max-width: var(--c7-anchor-max-width, calc(100vw - 24px));
       top: var(--c7-anchor-top, 12px);
-      transform: translateY(var(--c7-anchor-translate-y, -8px)) scale(0.98);
+      transform: translateY(var(--c7-anchor-translate-y, 8px)) scale(0.98);
       transform-origin: var(--c7-anchor-origin, top right);
     }
 
