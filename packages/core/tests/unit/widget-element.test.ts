@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Context7WidgetElement, defineContext7Widget } from '../../src';
-import { setElementRect, setElementSize, setViewportSize } from '@common/tests/unit/dom';
+import { setDocumentClientSize, setElementRect, setElementSize, setViewportSize } from '@common/tests/unit/dom';
 import { createSseStream } from '@common/tests/unit/stream';
 
 describe('Context7WidgetElement', () => {
@@ -129,6 +129,37 @@ describe('Context7WidgetElement', () => {
     });
     expect(widget.style.getPropertyValue('--c7-anchor-origin')).toBe('top right');
     expect(widget.style.getPropertyValue('--c7-anchor-translate-y')).toBe('-8px');
+  });
+
+  it('falls back to document dimensions for zero viewport dimensions', () => {
+    defineContext7Widget();
+    setViewportSize(0, 0);
+    setDocumentClientSize(900, 700);
+    vi.stubGlobal(
+      'visualViewport',
+      Object.assign(new EventTarget(), {
+        height: 0,
+        offsetLeft: 0,
+        offsetTop: 0,
+        width: 0
+      })
+    );
+
+    const widget = document.createElement('context7-widget');
+    widget.setAttribute('library', '/vercel/next.js');
+    widget.setAttribute('position', 'anchor');
+    document.body.append(widget);
+
+    const panel = widget.shadowRoot?.querySelector<HTMLElement>('.c7-panel');
+    const launcher = widget.shadowRoot?.querySelector<HTMLElement>('[data-c7-launcher]');
+    setElementSize(panel, 400, 300);
+    setElementRect(launcher, { bottom: 640, height: 56, left: 700, right: 840, top: 584, width: 140 });
+
+    widget.open();
+
+    expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('272px');
+    expect(widget.style.getPropertyValue('--c7-anchor-max-height')).toBe('560px');
+    expect(widget.style.getPropertyValue('--c7-anchor-max-width')).toBe('876px');
   });
 
   it('uses the launcher as the anchor when opened programmatically', () => {

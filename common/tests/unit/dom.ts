@@ -9,6 +9,17 @@ export function setViewportSize(width: number, height: number): void {
   });
 }
 
+export function setDocumentClientSize(width: number, height: number): void {
+  Object.defineProperty(document.documentElement, 'clientWidth', {
+    configurable: true,
+    value: width
+  });
+  Object.defineProperty(document.documentElement, 'clientHeight', {
+    configurable: true,
+    value: height
+  });
+}
+
 export function setElementSize(element: HTMLElement | null | undefined, width: number, height: number): void {
   if (!element) throw new Error('Expected element to exist.');
 
