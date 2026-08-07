@@ -7,8 +7,10 @@ import {
   requestRenderFrame,
   resolveTarget,
   restoreTriggerAccessibility,
-  trapFocus
+  trapFocus,
+  updateAnchorPosition
 } from '../../src/kit';
+import { setDocumentClientSize, setElementRect, setElementSize, setViewportSize } from '@common/tests/unit/dom';
 
 describe('DOM accessibility helpers', () => {
   afterEach(() => {
@@ -90,6 +92,60 @@ describe('DOM accessibility helpers', () => {
     expect(warn).toHaveBeenCalledWith('[Context7 Widget] Invalid custom trigger selector: [');
   });
 
+  it('updates anchored panel CSS variables from visual viewport geometry', () => {
+    const { anchor, panel, root } = createAnchorPositionElements();
+    vi.stubGlobal(
+      'visualViewport',
+      Object.assign(new EventTarget(), {
+        height: 400,
+        offsetLeft: 50,
+        offsetTop: 100,
+        width: 600
+      })
+    );
+    setElementRect(anchor, { bottom: 460, height: 40, left: 450, right: 550, top: 420, width: 100 });
+
+    updateAnchorPosition('anchor', anchor, panel, root.style);
+
+    expect(root.style.getPropertyValue('--c7-anchor-left')).toBe('150px');
+    expect(root.style.getPropertyValue('--c7-anchor-max-height')).toBe('296px');
+    expect(root.style.getPropertyValue('--c7-anchor-max-width')).toBe('576px');
+    expect(root.style.getPropertyValue('--c7-anchor-top')).toBe('112px');
+    expect(root.style.getPropertyValue('--c7-anchor-origin')).toBe('bottom right');
+    expect(root.style.getPropertyValue('--c7-anchor-translate-y')).toBe('8px');
+  });
+
+  it('falls back to document dimensions for zero viewport dimensions', () => {
+    const { anchor, panel, root } = createAnchorPositionElements();
+    setViewportSize(0, 0);
+    setDocumentClientSize(900, 700);
+    vi.stubGlobal(
+      'visualViewport',
+      Object.assign(new EventTarget(), {
+        height: 0,
+        offsetLeft: 0,
+        offsetTop: 0,
+        width: 0
+      })
+    );
+    setElementRect(anchor, { bottom: 640, height: 56, left: 700, right: 840, top: 584, width: 140 });
+
+    updateAnchorPosition('anchor', anchor, panel, root.style);
+
+    expect(root.style.getPropertyValue('--c7-anchor-top')).toBe('272px');
+    expect(root.style.getPropertyValue('--c7-anchor-max-height')).toBe('560px');
+    expect(root.style.getPropertyValue('--c7-anchor-max-width')).toBe('876px');
+  });
+
+  it('does not update anchor variables for non-anchor positions', () => {
+    const { anchor, panel, root } = createAnchorPositionElements();
+    root.style.setProperty('--c7-anchor-top', 'stale');
+
+    updateAnchorPosition('bottom-right', anchor, panel, root.style);
+
+    expect(root.style.getPropertyValue('--c7-anchor-top')).toBe('stale');
+  });
+
   it('uses timer fallbacks when animation-frame APIs are unavailable', () => {
     vi.useFakeTimers();
     vi.stubGlobal('requestAnimationFrame', undefined);
@@ -133,4 +189,17 @@ function makeVisible(...elements: HTMLElement[]): void {
       value: element.parentElement
     });
   }
+}
+
+function createAnchorPositionElements(): {
+  anchor: HTMLElement;
+  panel: HTMLElement;
+  root: HTMLElement;
+} {
+  const root = document.createElement('div');
+  const anchor = document.createElement('button');
+  const panel = document.createElement('section');
+  document.body.append(root, anchor, panel);
+  setElementSize(panel, 400, 300);
+  return { anchor, panel, root };
 }

@@ -30,9 +30,9 @@ const fileBudgets: readonly FileBudget[] = [
 
 const consumerBudgets: readonly ConsumerBudget[] = [
   {
-    contents: "export { resolveContext7AnchorLayout } from '@desource/context7-widget';",
+    contents: "export { updateAnchorPosition } from '@desource/context7-widget';",
     forbiddenMarkers: ['api/v2/widget/chat', 'data:image', 'Context7WidgetElement'],
-    maxGzipBytes: 400,
+    maxGzipBytes: 700,
     name: 'core root layout-only consumer',
     resolveDir: corePackageRoot
   },
@@ -52,7 +52,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
   },
   {
     contents: "export { mountContext7Widget } from '@desource/context7-widget';",
-    maxGzipBytes: 16_000,
+    maxGzipBytes: 17_000,
     name: 'core custom-element runtime consumer',
     resolveDir: corePackageRoot
   },

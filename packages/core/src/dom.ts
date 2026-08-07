@@ -1,4 +1,4 @@
-import type { Context7TriggerA11yState, Context7WidgetTarget } from './types.js';
+import type { Context7Position, Context7TriggerA11yState, Context7WidgetTarget } from './types.js';
 
 export interface Context7AnchorRect {
   readonly bottom: number;
@@ -14,16 +14,21 @@ export interface Context7AnchorLayoutOptions {
   readonly panelHeight: number;
   readonly panelWidth: number;
   readonly viewportHeight: number;
+  readonly viewportLeft?: number;
+  readonly viewportTop?: number;
   readonly viewportWidth: number;
 }
 
 export interface Context7AnchorLayout {
   readonly left: number;
+  readonly maxHeight: number;
+  readonly maxWidth: number;
   readonly origin: string;
+  readonly placement: 'bottom' | 'top';
   readonly top: number;
 }
 
-/** Resolve an end-aligned floating panel within the visible viewport. */
+/** Resolve an end-aligned floating panel within the visible visual viewport. */
 export function resolveContext7AnchorLayout({
   anchor,
   gap = 12,
@@ -31,23 +36,76 @@ export function resolveContext7AnchorLayout({
   panelHeight,
   panelWidth,
   viewportHeight,
+  viewportLeft = 0,
+  viewportTop = 0,
   viewportWidth
 }: Context7AnchorLayoutOptions): Context7AnchorLayout {
-  const above = anchor.top - panelHeight - gap;
-  const below = anchor.bottom + gap;
-  const spaceAbove = anchor.top - margin - gap;
-  const spaceBelow = viewportHeight - anchor.bottom - margin - gap;
-  const hasSpaceAbove = above >= margin;
-  const hasSpaceBelow = below + panelHeight <= viewportHeight - margin;
-  const opensAbove = hasSpaceAbove || (!hasSpaceBelow && spaceAbove >= spaceBelow);
-  const left = clamp(anchor.right - panelWidth, margin, Math.max(margin, viewportWidth - panelWidth - margin));
-  const top = clamp(opensAbove ? above : below, margin, Math.max(margin, viewportHeight - panelHeight - margin));
+  const viewportBottom = viewportTop + Math.max(0, viewportHeight);
+  const viewportRight = viewportLeft + Math.max(0, viewportWidth);
+  const topBoundary = viewportTop + margin;
+  const leftBoundary = viewportLeft + margin;
+  const maxHeight = Math.max(0, viewportHeight - margin * 2);
+  const maxWidth = Math.max(0, viewportWidth - margin * 2);
+  const renderedWidth = Math.min(Math.max(0, panelWidth), maxWidth);
+  const spaceAbove = Math.max(0, anchor.top - gap - topBoundary);
+  const spaceBelow = Math.max(0, viewportBottom - margin - anchor.bottom - gap);
+
+  // Prefer the top placement. Flip when it cannot fit there, or choose the
+  // roomier side when neither side can fit the requested height.
+  const opensAbove = spaceAbove >= panelHeight || (spaceBelow < panelHeight && spaceAbove >= spaceBelow);
+  const placement = opensAbove ? 'top' : 'bottom';
+  const availableHeight = Math.min(opensAbove ? spaceAbove : spaceBelow, maxHeight);
+  const renderedHeight = Math.min(Math.max(0, panelHeight), availableHeight);
+  const left = clamp(
+    anchor.right - renderedWidth,
+    leftBoundary,
+    Math.max(leftBoundary, viewportRight - margin - renderedWidth)
+  );
+  const naturalTop = opensAbove ? anchor.top - gap - renderedHeight : anchor.bottom + gap;
+  const top = clamp(naturalTop, topBoundary, Math.max(topBoundary, viewportBottom - margin - renderedHeight));
 
   return {
     left,
+    maxHeight: availableHeight,
+    maxWidth,
     origin: `${opensAbove ? 'bottom' : 'top'} right`,
+    placement,
     top
   };
+}
+
+/** Update the CSS custom properties for an anchored floating panel. */
+export function updateAnchorPosition(
+  position: Context7Position,
+  anchor: Element | null,
+  panel?: HTMLElement | null,
+  rootStyle?: CSSStyleDeclaration
+): void {
+  if (position !== 'anchor' || !anchor || !panel || !rootStyle) return;
+
+  const rect = anchor.getBoundingClientRect();
+  rootStyle.removeProperty('--c7-anchor-max-height');
+  rootStyle.removeProperty('--c7-anchor-max-width');
+  const panelWidth = panel.offsetWidth || 400;
+  const panelHeight = panel.offsetHeight || 600;
+  const viewport = window.visualViewport;
+  const viewportWidth = viewport?.width || window.innerWidth || document.documentElement.clientWidth || panelWidth;
+  const viewportHeight = viewport?.height || window.innerHeight || document.documentElement.clientHeight || panelHeight;
+  const { left, maxHeight, maxWidth, origin, placement, top } = resolveContext7AnchorLayout({
+    anchor: rect,
+    panelHeight,
+    panelWidth,
+    viewportHeight,
+    viewportLeft: viewport?.offsetLeft,
+    viewportTop: viewport?.offsetTop,
+    viewportWidth
+  });
+  rootStyle.setProperty('--c7-anchor-left', `${left}px`);
+  rootStyle.setProperty('--c7-anchor-max-height', `${maxHeight}px`);
+  rootStyle.setProperty('--c7-anchor-max-width', `${maxWidth}px`);
+  rootStyle.setProperty('--c7-anchor-top', `${top}px`);
+  rootStyle.setProperty('--c7-anchor-origin', origin);
+  rootStyle.setProperty('--c7-anchor-translate-y', placement === 'top' ? '8px' : '-8px');
 }
 
 export function requestRenderFrame(callback: (timestamp: number) => void): number {

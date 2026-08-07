@@ -17,7 +17,7 @@ export {
   isContext7WidgetEventName
 } from './kit.js';
 export { mountContext7WidgetFromScript } from './loader.js';
-export { resolveContext7AnchorLayout } from './dom.js';
+export { resolveContext7AnchorLayout, updateAnchorPosition } from './dom.js';
 export { renderMarkdown } from './markdown.js';
 export { streamContext7Response, Context7TransportError } from './transport.js';
 export { Context7WidgetElement, defineContext7Widget } from './widget-element.js';

@@ -567,12 +567,12 @@
   &[position='anchor'] .c7-panel {
     bottom: auto;
     left: var(--c7-anchor-left, 20px);
-    max-height: calc(100vh - 24px);
-    max-height: calc(100dvh - 24px);
-    max-width: calc(100vw - 24px);
+    max-height: var(--c7-anchor-max-height, calc(100vh - 24px));
+    max-height: var(--c7-anchor-max-height, calc(100dvh - 24px));
+    max-width: var(--c7-anchor-max-width, calc(100vw - 24px));
     right: auto;
     top: var(--c7-anchor-top, 20px);
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(var(--c7-anchor-translate-y, 8px)) scale(0.98);
     transform-origin: var(--c7-anchor-origin, top right);
   }
 
@@ -1024,8 +1024,10 @@
 
     &[position='anchor'] .c7-panel {
       left: var(--c7-anchor-left, 12px);
+      max-height: var(--c7-anchor-max-height, calc(100dvh - 28px));
+      max-width: var(--c7-anchor-max-width, calc(100vw - 24px));
       top: var(--c7-anchor-top, 12px);
-      transform: translateY(8px) scale(0.98);
+      transform: translateY(var(--c7-anchor-translate-y, 8px)) scale(0.98);
       transform-origin: var(--c7-anchor-origin, top right);
     }
 

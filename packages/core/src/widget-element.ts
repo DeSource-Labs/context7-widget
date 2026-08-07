@@ -5,9 +5,9 @@ import {
   captureTriggerAccessibility,
   querySelectorSafely,
   requestRenderFrame,
-  resolveContext7AnchorLayout,
   restoreTriggerAccessibility,
-  trapFocus
+  trapFocus,
+  updateAnchorPosition
 } from './dom.js';
 import { escapeHtml, renderMarkdown } from './markdown.js';
 import { buildContext7ErrorHtml, isAbortError } from './runtime.js';
@@ -94,6 +94,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
   private config: Context7WidgetConfig = readConfig(this);
   private conversationInitialized = false;
   private readonly elements: WidgetElements;
+  private floatingLayoutFrame: number | null = null;
+  private floatingResizeObserver: ResizeObserver | null = null;
+  private floatingViewport: VisualViewport | null = null;
   private lastFocus: Element | null = null;
   private messageCounter = 0;
   private messages: Context7Message[] = [];
@@ -131,8 +134,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.close();
   };
 
-  private readonly onFloatingLayout = () => {
-    if (this.isOpen()) this.updateAnchorPosition();
+  private readonly onFloatingLayout = (event: Event) => {
+    if (event.type === 'scroll' && event.composedPath().includes(this)) return;
+    this.scheduleAnchorPositionUpdate();
   };
 
   private readonly onKeyDown = (event: KeyboardEvent) => {
@@ -650,6 +654,16 @@ export class Context7WidgetElement extends BaseHTMLElement {
     if (this.config.position === 'anchor') {
       window.addEventListener('resize', this.onFloatingLayout);
       window.addEventListener('scroll', this.onFloatingLayout, true);
+      this.floatingViewport = window.visualViewport;
+      this.floatingViewport?.addEventListener('resize', this.onFloatingLayout);
+      this.floatingViewport?.addEventListener('scroll', this.onFloatingLayout);
+
+      if (typeof ResizeObserver === 'function') {
+        this.floatingResizeObserver = new ResizeObserver(() => this.scheduleAnchorPositionUpdate());
+        const anchor = this.getAnchorElement();
+        if (anchor) this.floatingResizeObserver.observe(anchor);
+        this.floatingResizeObserver.observe(this.panel);
+      }
     }
   }
 
@@ -657,31 +671,26 @@ export class Context7WidgetElement extends BaseHTMLElement {
     document.removeEventListener('pointerdown', this.onDocumentPointerDown, true);
     window.removeEventListener('resize', this.onFloatingLayout);
     window.removeEventListener('scroll', this.onFloatingLayout, true);
+    this.floatingViewport?.removeEventListener('resize', this.onFloatingLayout);
+    this.floatingViewport?.removeEventListener('scroll', this.onFloatingLayout);
+    this.floatingViewport = null;
+    this.floatingResizeObserver?.disconnect();
+    this.floatingResizeObserver = null;
+    cancelRenderFrame(this.floatingLayoutFrame);
+    this.floatingLayoutFrame = null;
+  }
+
+  private scheduleAnchorPositionUpdate(): void {
+    if (!this.isOpen() || this.floatingLayoutFrame !== null) return;
+
+    this.floatingLayoutFrame = requestRenderFrame(() => {
+      this.floatingLayoutFrame = null;
+      if (this.isOpen()) this.updateAnchorPosition();
+    });
   }
 
   private updateAnchorPosition(): void {
-    if (this.config.position !== 'anchor') return;
-
-    const anchor = this.getAnchorElement();
-    const panel = this.panel;
-    if (!anchor || !panel) return;
-
-    const rect = anchor.getBoundingClientRect();
-    const panelWidth = panel.offsetWidth || 400;
-    const panelHeight = panel.offsetHeight || 600;
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || panelWidth;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || panelHeight;
-    const { left, origin, top } = resolveContext7AnchorLayout({
-      anchor: rect,
-      panelHeight,
-      panelWidth,
-      viewportHeight,
-      viewportWidth
-    });
-
-    this.style.setProperty('--c7-anchor-left', `${left}px`);
-    this.style.setProperty('--c7-anchor-top', `${top}px`);
-    this.style.setProperty('--c7-anchor-origin', origin);
+    updateAnchorPosition(this.config.position, this.getAnchorElement(), this.panel, this.style);
   }
 
   private getAnchorElement(): Element | null {
