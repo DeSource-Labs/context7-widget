@@ -68,7 +68,8 @@ export {
   resolveContext7AnchorLayout,
   resolveTarget,
   restoreTriggerAccessibility,
-  trapFocus
+  trapFocus,
+  updateAnchorPosition
 } from './dom.js';
 export { escapeHtml, renderMarkdown } from './markdown.js';
 export { buildContext7ErrorHtml, DEFAULT_CONTEXT7_INITIAL_MESSAGE, isAbortError } from './runtime.js';

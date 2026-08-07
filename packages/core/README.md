@@ -240,7 +240,7 @@ Events: `c7:ready`, `c7:open`, `c7:close`, `c7:question`, `c7:first-token`,
 The root and `/kit` are ESM-only and preserve internal module boundaries.
 Downstream bundlers can therefore remove the custom-element runtime when an
 application imports only a helper such as `renderMarkdown` or
-`resolveContext7AnchorLayout`. The `widget.js` subpath is the classic browser
+`updateAnchorPosition`. The `widget.js` subpath is the classic browser
 script and intentionally has side effects.
 
 The custom element shares one constructable stylesheet across instances when

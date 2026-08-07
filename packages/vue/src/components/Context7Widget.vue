@@ -233,11 +233,11 @@ import {
   querySelectorSafely,
   renderMarkdown,
   requestRenderFrame,
-  resolveContext7AnchorLayout,
   resolveContext7WidgetConfig,
   restoreTriggerAccessibility,
   streamContext7Response,
   trapFocus,
+  updateAnchorPosition as _updateAnchorPosition,
   type Context7Message,
   type Context7ToolCall,
   type Context7ToolResult,
@@ -722,35 +722,8 @@ const getAnchorElement = (): Element | null =>
   (externalTrigger?.isConnected ? externalTrigger : null) ??
   launcher.value;
 
-const updateAnchorPosition = () => {
-  if (resolvedPosition.value !== 'anchor' || !root.value || !panel.value) return;
-  const anchor = getAnchorElement();
-  if (!anchor) return;
-
-  const rect = anchor.getBoundingClientRect();
-  root.value.style.removeProperty('--c7-anchor-max-height');
-  root.value.style.removeProperty('--c7-anchor-max-width');
-  const panelWidth = panel.value.offsetWidth || 400;
-  const panelHeight = panel.value.offsetHeight || 600;
-  const viewport = window.visualViewport;
-  const viewportWidth = viewport?.width || window.innerWidth || document.documentElement.clientWidth || panelWidth;
-  const viewportHeight = viewport?.height || window.innerHeight || document.documentElement.clientHeight || panelHeight;
-  const { left, maxHeight, maxWidth, origin, placement, top } = resolveContext7AnchorLayout({
-    anchor: rect,
-    panelHeight,
-    panelWidth,
-    viewportHeight,
-    viewportLeft: viewport?.offsetLeft,
-    viewportTop: viewport?.offsetTop,
-    viewportWidth
-  });
-  root.value.style.setProperty('--c7-anchor-left', `${left}px`);
-  root.value.style.setProperty('--c7-anchor-max-height', `${maxHeight}px`);
-  root.value.style.setProperty('--c7-anchor-max-width', `${maxWidth}px`);
-  root.value.style.setProperty('--c7-anchor-top', `${top}px`);
-  root.value.style.setProperty('--c7-anchor-origin', origin);
-  root.value.style.setProperty('--c7-anchor-translate-y', placement === 'top' ? '8px' : '-8px');
-};
+const updateAnchorPosition = () =>
+  _updateAnchorPosition(resolvedPosition.value, getAnchorElement(), panel.value, root.value?.style);
 
 const register = () => {
   if (registeredWidgetId && registeredWidgetId !== resolvedWidgetId.value) {

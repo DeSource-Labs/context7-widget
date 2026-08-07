@@ -1,4 +1,4 @@
-import type { Context7TriggerA11yState, Context7WidgetTarget } from './types.js';
+import type { Context7Position, Context7TriggerA11yState, Context7WidgetTarget } from './types.js';
 
 export interface Context7AnchorRect {
   readonly bottom: number;
@@ -72,6 +72,40 @@ export function resolveContext7AnchorLayout({
     placement,
     top
   };
+}
+
+/** Update the CSS custom properties for an anchored floating panel. */
+export function updateAnchorPosition(
+  position: Context7Position,
+  anchor: Element | null,
+  panel?: HTMLElement | null,
+  rootStyle?: CSSStyleDeclaration
+): void {
+  if (position !== 'anchor' || !anchor || !panel || !rootStyle) return;
+
+  const rect = anchor.getBoundingClientRect();
+  rootStyle.removeProperty('--c7-anchor-max-height');
+  rootStyle.removeProperty('--c7-anchor-max-width');
+  const panelWidth = panel.offsetWidth || 400;
+  const panelHeight = panel.offsetHeight || 600;
+  const viewport = window.visualViewport;
+  const viewportWidth = viewport?.width || window.innerWidth || document.documentElement.clientWidth || panelWidth;
+  const viewportHeight = viewport?.height || window.innerHeight || document.documentElement.clientHeight || panelHeight;
+  const { left, maxHeight, maxWidth, origin, placement, top } = resolveContext7AnchorLayout({
+    anchor: rect,
+    panelHeight,
+    panelWidth,
+    viewportHeight,
+    viewportLeft: viewport?.offsetLeft,
+    viewportTop: viewport?.offsetTop,
+    viewportWidth
+  });
+  rootStyle.setProperty('--c7-anchor-left', `${left}px`);
+  rootStyle.setProperty('--c7-anchor-max-height', `${maxHeight}px`);
+  rootStyle.setProperty('--c7-anchor-max-width', `${maxWidth}px`);
+  rootStyle.setProperty('--c7-anchor-top', `${top}px`);
+  rootStyle.setProperty('--c7-anchor-origin', origin);
+  rootStyle.setProperty('--c7-anchor-translate-y', placement === 'top' ? '8px' : '-8px');
 }
 
 export function requestRenderFrame(callback: (timestamp: number) => void): number {
