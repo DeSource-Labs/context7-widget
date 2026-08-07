@@ -23,7 +23,7 @@ const corePackageRoot = fileURLToPath(new URL('../packages/core', import.meta.ur
 const coreKit = fileURLToPath(new URL('../packages/core/dist/kit.js', import.meta.url));
 
 const fileBudgets: readonly FileBudget[] = [
-  { file: 'packages/core/dist/widget.js', maxGzipBytes: 15_800 },
+  { file: 'packages/core/dist/widget.js', maxGzipBytes: 16_300 },
   { file: 'packages/vue/dist/index.js', maxGzipBytes: 8_500 },
   { file: 'packages/vue/dist/styles.css', maxGzipBytes: 5_200 }
 ];
@@ -62,7 +62,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { Context7Widget } from './packages/vue/dist/index.js';",
     external: ['vue'],
-    maxGzipBytes: 11_000,
+    maxGzipBytes: 11_300,
     name: 'Vue component with core /kit consumer',
     resolveDir: workspaceRoot
   }

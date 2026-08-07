@@ -707,6 +707,62 @@ describe('@desource/context7-widget-vue', () => {
     ]);
   });
 
+  it('emits cancel and commits a visible partial answer as cancelled', async () => {
+    const encoder = new TextEncoder();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async (_url, init?: RequestInit) =>
+          new Response(
+            new ReadableStream<Uint8Array>({
+              start(controller) {
+                init?.signal?.addEventListener(
+                  'abort',
+                  () => controller.error(new DOMException('Aborted', 'AbortError')),
+                  { once: true }
+                );
+                controller.enqueue(encoder.encode('data: {"type":"text-delta","delta":"Partial Vue answer"}\n'));
+              }
+            })
+          )
+      )
+    );
+
+    const cancel = vi.fn();
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        library: '/desource-labs/context7-widget',
+        onCancel: cancel,
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    const pending = widgetRef.value!.send('Stop after a token');
+    await vi.waitFor(async () => {
+      await nextTick();
+      expect(root.textContent).toContain('Partial Vue answer');
+    });
+    widgetRef.value!.cancel();
+    const result = await pending;
+    await nextTick();
+
+    expect(result?.status).toBe('cancelled');
+    expect(cancel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        answer: 'Partial Vue answer',
+        message: expect.objectContaining({ status: 'cancelled' }),
+        question: 'Stop after a token'
+      })
+    );
+    expect(widgetRef.value?.getMessages().map((message) => message.content)).toEqual([
+      'Stop after a token',
+      'Partial Vue answer'
+    ]);
+    expect(widgetRef.value?.getMessages()[1]?.status).toBe('cancelled');
+  });
+
   it('offers a visible stop action and reports reactive composable state', async () => {
     let signal: AbortSignal | undefined;
     vi.stubGlobal(

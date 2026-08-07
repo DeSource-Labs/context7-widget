@@ -9,6 +9,7 @@ const externalTrigger = requireElement<HTMLButtonElement>('[data-testid="externa
 const eventLog = requireElement<HTMLElement>('[data-testid="event-log"]');
 const stats = {
   answerComplete: 0,
+  cancel: 0,
   close: 0,
   error: 0,
   firstToken: 0,
@@ -49,6 +50,7 @@ requireElement<HTMLButtonElement>('[data-testid="programmatic-send"]').addEventL
 for (const [eventName, stat] of [
   ['c7:open', 'open'],
   ['c7:close', 'close'],
+  ['c7:cancel', 'cancel'],
   ['c7:question', 'question'],
   ['c7:first-token', 'firstToken'],
   ['c7:answer-complete', 'answerComplete'],
@@ -82,7 +84,7 @@ function bindBooleanControl(testId: string, attribute: string): void {
 }
 
 function renderStats(): void {
-  eventLog.textContent = `open:${stats.open} close:${stats.close} question:${stats.question} firstToken:${stats.firstToken} answerComplete:${stats.answerComplete} toolCall:${stats.toolCall} toolResult:${stats.toolResult} error:${stats.error}`;
+  eventLog.textContent = `open:${stats.open} close:${stats.close} cancel:${stats.cancel} question:${stats.question} firstToken:${stats.firstToken} answerComplete:${stats.answerComplete} toolCall:${stats.toolCall} toolResult:${stats.toolResult} error:${stats.error}`;
 }
 
 function requireElement<ElementType extends Element>(selector: string): ElementType {

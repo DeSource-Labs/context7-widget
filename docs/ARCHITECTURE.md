@@ -176,6 +176,7 @@ Events bubble and are composed, so host pages can listen at `document` level:
 - `c7:ready`
 - `c7:open`
 - `c7:close`
+- `c7:cancel`
 - `c7:question`
 - `c7:first-token`
 - `c7:answer`
@@ -185,7 +186,9 @@ Events bubble and are composed, so host pages can listen at `document` level:
 - `c7:error`
 
 Every event includes `detail.library`, `detail.widgetId`, and `detail.widget`.
-Question and answer events include the current message payload where relevant.
+Question, answer, and cancel events include the current message payload where
+relevant. Cancelling after answer tokens arrive preserves that visible partial
+assistant message in public conversation state with `status: 'cancelled'`.
 
 ## Site Hosting
 

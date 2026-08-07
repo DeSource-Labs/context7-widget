@@ -229,9 +229,13 @@ function trackQuestion(detail: Context7WidgetQuestionEventDetail) {
 }
 ```
 
-Events: `c7:ready`, `c7:open`, `c7:close`, `c7:question`, `c7:first-token`,
-`c7:answer`, `c7:answer-complete`, `c7:tool-call`, `c7:tool-result`, and
-`c7:error`.
+Events: `c7:ready`, `c7:open`, `c7:close`, `c7:cancel`, `c7:question`,
+`c7:first-token`, `c7:answer`, `c7:answer-complete`, `c7:tool-call`,
+`c7:tool-result`, and `c7:error`.
+
+Cancelling after answer tokens arrive preserves the visible partial assistant
+message in `getMessages()` with `status: 'cancelled'`. `send()` resolves with a
+status result such as `complete`, `cancelled`, `error`, `busy`, or `empty`.
 
 ## Exports
 

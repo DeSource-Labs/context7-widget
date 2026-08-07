@@ -6,9 +6,11 @@ import type {
   Context7WidgetOptions,
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
+  Context7WidgetCancelEventDetail,
   Context7WidgetErrorEventDetail,
   Context7WidgetLifecycleEventDetail,
   Context7WidgetQuestionEventDetail,
+  Context7WidgetSendResult,
   Context7WidgetToolCallEventDetail,
   Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
@@ -18,6 +20,7 @@ export type {
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
   Context7WidgetBaseEventDetail,
+  Context7WidgetCancelEventDetail,
   Context7WidgetDomEvent,
   Context7WidgetDomEventMap,
   Context7WidgetErrorEventDetail,
@@ -45,6 +48,7 @@ export interface Context7WidgetProps extends Omit<Context7WidgetOptions, 'custom
 export interface Context7WidgetVueEventMap {
   answer: Context7WidgetAnswerEventDetail;
   'answer-complete': Context7WidgetAnswerCompleteEventDetail;
+  cancel: Context7WidgetCancelEventDetail;
   close: Context7WidgetLifecycleEventDetail;
   error: Context7WidgetErrorEventDetail;
   'first-token': Context7WidgetAnswerEventDetail;
@@ -64,6 +68,8 @@ export interface Context7WidgetEmits {
   (event: 'answer', detail: Context7WidgetAnswerEventDetail): void;
   /** Emitted when the final assistant answer is available. */
   (event: 'answer-complete', detail: Context7WidgetAnswerCompleteEventDetail): void;
+  /** Emitted when an active response is cancelled. */
+  (event: 'cancel', detail: Context7WidgetCancelEventDetail): void;
   /** Emitted when the widget panel closes. */
   (event: 'close', detail: Context7WidgetLifecycleEventDetail): void;
   /** Emitted when a Context7 request fails. */
@@ -133,3 +139,5 @@ export type ToolDisplayItem = {
 export type DisplayItem = ErrorDisplayItem | MessageDisplayItem | ToolDisplayItem;
 
 export type Context7ActiveRequest = Omit<_Context7ActiveRequest, 'typing'>;
+
+export type { Context7WidgetSendResult };

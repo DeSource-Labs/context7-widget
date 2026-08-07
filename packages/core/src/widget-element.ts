@@ -25,6 +25,7 @@ import type {
   Context7WidgetEventDetailFor,
   Context7WidgetEventName,
   Context7WidgetEventPayload,
+  Context7WidgetSendResult,
   Context7WidgetTrigger
 } from './types.js';
 
@@ -313,6 +314,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     const request = this.activeRequest;
     if (!request) return;
 
+    request.onCancel?.();
     this.activeRequest = null;
     request.controller.abort();
     request.typing.remove();
@@ -321,15 +323,16 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.input?.focus();
   }
 
-  async send(rawQuestion?: string): Promise<void> {
+  async send(rawQuestion?: string): Promise<Context7WidgetSendResult> {
     const question = (rawQuestion ?? this.input?.value ?? '').trim();
-    if (!question || this.busy) return;
+    if (!question) return this.createSendResult('empty', question);
+    if (this.busy) return this.createSendResult('busy', question);
 
     if (!this.config.library) {
       const message = 'Missing data-library attribute.';
       this.appendError(message);
       this.emit('c7:error', { error: message, question });
-      return;
+      return this.createSendResult('error', question, { error: message });
     }
 
     this.open();
@@ -354,13 +357,10 @@ export class Context7WidgetElement extends BaseHTMLElement {
     let answer = '';
     let answerElement: HTMLElement | null = null;
     let answerMessageId = '';
+    let assistantMessage: Context7Message | undefined;
+    let sendResult: Context7WidgetSendResult | undefined;
     let sawFirstToken = false;
-    const request: Context7ActiveRequest = {
-      controller: new AbortController(),
-      renderFrame: null,
-      typing
-    };
-    this.activeRequest = request;
+    let request: Context7ActiveRequest;
 
     const renderAnswer = () => {
       request.renderFrame = null;
@@ -375,6 +375,36 @@ export class Context7WidgetElement extends BaseHTMLElement {
       if (answerElement) answerElement.innerHTML = renderMarkdown(answer);
       this.scrollToBottom();
     };
+
+    const commitAnswer = (status?: Context7Message['status']) => {
+      if (!answer || assistantMessage) return assistantMessage;
+      flushAnswer();
+      assistantMessage = {
+        id: answerMessageId || this.nextMessageId(),
+        role: 'assistant',
+        content: answer,
+        ...(status ? { status } : {})
+      };
+      this.messages.push(assistantMessage);
+      return assistantMessage;
+    };
+
+    request = {
+      controller: new AbortController(),
+      onCancel: () => {
+        const message = commitAnswer('cancelled');
+        const result = this.createSendResult('cancelled', question, {
+          answer,
+          message
+        });
+        sendResult = result;
+        this.emit('c7:cancel', result);
+        return result;
+      },
+      renderFrame: null,
+      typing
+    };
+    this.activeRequest = request;
 
     try {
       await streamContext7Response(
@@ -415,31 +445,39 @@ export class Context7WidgetElement extends BaseHTMLElement {
         request.controller.signal
       );
 
-      if (this.activeRequest !== request) return;
+      if (this.activeRequest !== request) return sendResult ?? this.createSendResult('cancelled', question, { answer });
       typing.remove();
 
       if (answer) {
-        flushAnswer();
-        const assistantMessage: Context7Message = {
-          id: answerMessageId || this.nextMessageId(),
-          role: 'assistant',
-          content: answer
-        };
-        this.messages.push(assistantMessage);
+        const message = commitAnswer();
+        sendResult = this.createSendResult('complete', question, {
+          answer,
+          message
+        });
         this.emit('c7:answer-complete', {
           answer,
-          message: assistantMessage,
+          message: message as Context7Message,
           messages: [...this.messages],
           question
         });
+        return sendResult;
       }
+
+      sendResult = this.createSendResult('complete', question);
+      return sendResult;
     } catch (error) {
       typing.remove();
+      if (this.activeRequest !== request) return sendResult ?? this.createSendResult('cancelled', question, { answer });
       if (this.activeRequest === request && !isAbortError(error)) {
         const message =
           error instanceof Context7TransportError || error instanceof Error ? error.message : 'Something went wrong.';
         this.appendError(message);
         this.emit('c7:error', { error: message, question });
+        sendResult = this.createSendResult('error', question, {
+          answer,
+          error: message
+        });
+        return sendResult;
       }
     } finally {
       if (this.activeRequest === request) {
@@ -449,6 +487,8 @@ export class Context7WidgetElement extends BaseHTMLElement {
         this.input?.focus();
       }
     }
+
+    return sendResult ?? this.createSendResult('cancelled', question, { answer });
   }
 
   private renderShell(): void {
@@ -820,6 +860,25 @@ export class Context7WidgetElement extends BaseHTMLElement {
     syncStateAttribute(this, 'custom-trigger-active', Boolean(this.triggerElement?.isConnected));
   }
 
+  private createSendResult<Status extends Context7WidgetSendResult['status']>(
+    status: Status,
+    question: string,
+    options: {
+      readonly answer?: string;
+      readonly error?: Error | string;
+      readonly message?: Context7Message;
+    } = {}
+  ): Context7WidgetSendResult & { readonly status: Status } {
+    return {
+      answer: options.answer ?? '',
+      error: options.error,
+      message: options.message,
+      messages: [...this.messages],
+      question,
+      status
+    };
+  }
+
   private syncExpandedState(): void {
     const expanded = String(this.isOpen());
     this.launcher?.setAttribute('aria-expanded', expanded);
@@ -944,9 +1003,7 @@ function installGlobalApi(): void {
     isOpen: (widgetId?: string) => resolveWidget(widgetId)?.isOpen() ?? false,
     open: (widgetId?: string) => resolveWidget(widgetId)?.open(),
     reset: (widgetId?: string) => resolveWidget(widgetId)?.reset(),
-    send: async (message: string, widgetId?: string) => {
-      await resolveWidget(widgetId)?.send(message);
-    },
+    send: async (message: string, widgetId?: string) => await resolveWidget(widgetId)?.send(message),
     toggle: (widgetId?: string) => resolveWidget(widgetId)?.toggle()
   };
 

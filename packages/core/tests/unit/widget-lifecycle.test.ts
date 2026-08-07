@@ -134,17 +134,70 @@ describe('Context7WidgetElement lifecycle behavior', () => {
 
     const widget = document.createElement('context7-widget') as HTMLElement & {
       cancel: () => void;
-      send: (question: string) => Promise<void>;
+      send: (question: string) => Promise<unknown>;
     };
     widget.setAttribute('library', '/desource-labs/context7-widget');
     document.body.append(widget);
 
     const pending = widget.send('Please stop');
     widget.cancel();
-    await expect(pending).resolves.toBeUndefined();
+    await expect(pending).resolves.toMatchObject({ status: 'cancelled' });
 
     expect(abortSignal?.aborted).toBe(true);
     expect(widget.shadowRoot?.textContent).not.toContain('Aborted');
+  });
+
+  it('emits cancel and commits a visible partial answer as cancelled', async () => {
+    defineContext7Widget();
+
+    const encoder = new TextEncoder();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async (_url, init?: RequestInit) =>
+          new Response(
+            new ReadableStream<Uint8Array>({
+              start(controller) {
+                init?.signal?.addEventListener(
+                  'abort',
+                  () => controller.error(new DOMException('Aborted', 'AbortError')),
+                  { once: true }
+                );
+                controller.enqueue(encoder.encode('data: {"type":"text-delta","delta":"Partial core answer"}\n'));
+              }
+            })
+          )
+      )
+    );
+
+    const widget = document.createElement('context7-widget') as HTMLElement & {
+      cancel: () => void;
+      getMessages: () => readonly { content: string; status?: string }[];
+      send: (question: string) => Promise<{ status?: string } | undefined>;
+    };
+    const cancel = vi.fn();
+    widget.setAttribute('library', '/desource-labs/context7-widget');
+    widget.addEventListener('c7:cancel', (event) => cancel((event as CustomEvent).detail));
+    document.body.append(widget);
+
+    const pending = widget.send('Stop after a token');
+    await vi.waitFor(() => expect(widget.shadowRoot?.textContent).toContain('Partial core answer'));
+    widget.cancel();
+    const result = await pending;
+
+    expect(result?.status).toBe('cancelled');
+    expect(cancel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        answer: 'Partial core answer',
+        message: expect.objectContaining({ status: 'cancelled' }),
+        question: 'Stop after a token'
+      })
+    );
+    expect(widget.getMessages().map((message) => message.content)).toEqual([
+      'Stop after a token',
+      'Partial core answer'
+    ]);
+    expect(widget.getMessages()[1]?.status).toBe('cancelled');
   });
 
   it('isolates a replacement request from late frames and cleanup in a cancelled request', async () => {
@@ -173,7 +226,7 @@ describe('Context7WidgetElement lifecycle behavior', () => {
       cancel: () => void;
       getMessages: () => readonly { content: string }[];
       isBusy: () => boolean;
-      send: (question: string) => Promise<void>;
+      send: (question: string) => Promise<unknown>;
     };
     widget.setAttribute('library', '/desource-labs/context7-widget');
     document.body.append(widget);
@@ -315,7 +368,7 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     const widget = document.createElement('context7-widget') as HTMLElement & {
-      send: (question: string) => Promise<void>;
+      send: (question: string) => Promise<unknown>;
     };
     document.body.append(widget);
 
@@ -343,7 +396,7 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     );
 
     const widget = document.createElement('context7-widget') as HTMLElement & {
-      send: (question: string) => Promise<void>;
+      send: (question: string) => Promise<unknown>;
     };
     widget.setAttribute('library', '/desource-labs/context7-widget');
     document.body.append(widget);
@@ -386,7 +439,7 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     );
 
     const widget = document.createElement('context7-widget') as HTMLElement & {
-      send: (question: string) => Promise<void>;
+      send: (question: string) => Promise<unknown>;
     };
     widget.setAttribute('library', '/desource-labs/context7-widget');
     document.body.append(widget);

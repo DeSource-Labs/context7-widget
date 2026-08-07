@@ -207,6 +207,7 @@ The host element dispatches composed DOM events:
 - `c7:ready`
 - `c7:open`
 - `c7:close`
+- `c7:cancel`
 - `c7:question`
 - `c7:first-token`
 - `c7:answer`
@@ -214,6 +215,9 @@ The host element dispatches composed DOM events:
 - `c7:tool-call`
 - `c7:tool-result`
 - `c7:error`
+
+Cancelling after answer tokens arrive preserves the visible partial assistant
+message in `getMessages()` with `status: 'cancelled'`.
 
 Example:
 

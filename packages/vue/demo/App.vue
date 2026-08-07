@@ -77,13 +77,13 @@
       <button data-testid="programmatic-send" type="button" @click="sendPrompt">Programmatic send</button>
 
       <div data-testid="event-log" class="event-log">
-        open:{{ stats.open }} close:{{ stats.close }} question:{{ stats.question }} firstToken:{{
-          stats.firstToken
+        open:{{ stats.open }} close:{{ stats.close }} cancel:{{ stats.cancel }} question:{{
+          stats.question
         }}
-        answerComplete:{{ stats.answerComplete }} toolCall:{{ stats.toolCall }} toolResult:{{
-          stats.toolResult
+        firstToken:{{ stats.firstToken }} answerComplete:{{ stats.answerComplete }} toolCall:{{
+          stats.toolCall
         }}
-        error:{{ stats.error }}
+        toolResult:{{ stats.toolResult }} error:{{ stats.error }}
       </div>
 
       <Context7Widget
@@ -105,6 +105,7 @@
         title="Demo Docs"
         widget-id="demo-widget"
         @answer-complete="stats.answerComplete++"
+        @cancel="stats.cancel++"
         @close="stats.close++"
         @error="stats.error++"
         @first-token="stats.firstToken++"
@@ -141,6 +142,7 @@ const closeOnOutsideClick = ref(true);
 const widget = ref<Context7WidgetExpose | null>(null);
 const stats = reactive({
   answerComplete: 0,
+  cancel: 0,
   close: 0,
   error: 0,
   firstToken: 0,

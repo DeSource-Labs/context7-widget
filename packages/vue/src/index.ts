@@ -3,6 +3,7 @@ export type {
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
   Context7WidgetBaseEventDetail,
+  Context7WidgetCancelEventDetail,
   Context7WidgetCustomTrigger,
   Context7WidgetDomEvent,
   Context7WidgetDomEventMap,
@@ -14,6 +15,7 @@ export type {
   Context7WidgetLifecycleEventDetail,
   Context7WidgetProps,
   Context7WidgetQuestionEventDetail,
+  Context7WidgetSendResult,
   Context7WidgetSlots,
   Context7WidgetState,
   Context7WidgetStateListener,
@@ -31,6 +33,7 @@ export type { UseContext7WidgetReturn } from './composables/useContext7Widget';
 export type {
   Context7LauncherVariant,
   Context7Message,
+  Context7MessageStatus,
   Context7Position,
   Context7Role,
   Context7Theme,
@@ -41,5 +44,6 @@ export type {
   Context7WidgetOptions,
   Context7WidgetController,
   Context7WidgetPreset,
+  Context7WidgetSendStatus,
   Context7WidgetTarget
 } from '@desource/context7-widget/kit';

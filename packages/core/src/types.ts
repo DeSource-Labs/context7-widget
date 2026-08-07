@@ -12,6 +12,7 @@ export type Context7WidgetEventName =
   | 'c7:ready'
   | 'c7:open'
   | 'c7:close'
+  | 'c7:cancel'
   | 'c7:question'
   | 'c7:first-token'
   | 'c7:answer'
@@ -24,10 +25,25 @@ export interface Context7Message {
   readonly content: string;
   readonly id: string;
   readonly role: Context7Role;
+  readonly status?: Context7MessageStatus;
+}
+
+export type Context7MessageStatus = 'cancelled' | 'complete';
+
+export type Context7WidgetSendStatus = 'busy' | 'cancelled' | 'complete' | 'empty' | 'error';
+
+export interface Context7WidgetSendResult {
+  readonly answer: string;
+  readonly error?: Error | string;
+  readonly message?: Context7Message;
+  readonly messages: readonly Context7Message[];
+  readonly question: string;
+  readonly status: Context7WidgetSendStatus;
 }
 
 export interface Context7ActiveRequest {
   readonly controller: AbortController;
+  readonly onCancel?: () => Context7WidgetSendResult;
   renderFrame: number | null;
   readonly typing: HTMLElement;
 }
@@ -118,7 +134,7 @@ export interface Context7WidgetController {
   isOpen(): boolean;
   open(): void;
   reset(): void;
-  send(message: string): Promise<void>;
+  send(message: string): Promise<Context7WidgetSendResult | undefined>;
   toggle(): void;
 }
 
@@ -135,6 +151,19 @@ export interface Context7WidgetBaseEventDetail {
 }
 
 export type Context7WidgetLifecycleEventDetail = Context7WidgetBaseEventDetail;
+
+export interface Context7WidgetCancelEventDetail extends Context7WidgetBaseEventDetail {
+  /** Partial assistant answer preserved when cancellation happened after streamed tokens. */
+  readonly answer: string;
+  /** Cancelled partial assistant message, if any answer tokens had arrived. */
+  readonly message?: Context7Message;
+  /** Conversation snapshot after the cancellation state was applied. */
+  readonly messages: readonly Context7Message[];
+  /** Submitted user question that was cancelled. */
+  readonly question: string;
+  /** Send lifecycle status for this cancellation. */
+  readonly status: 'cancelled';
+}
 
 export interface Context7WidgetQuestionEventDetail extends Context7WidgetBaseEventDetail {
   /** User message that was just appended to the conversation. */
@@ -187,6 +216,7 @@ export interface Context7WidgetToolResultEventDetail extends Context7WidgetBaseE
 export interface Context7WidgetEventMap {
   'c7:answer': Context7WidgetAnswerEventDetail;
   'c7:answer-complete': Context7WidgetAnswerCompleteEventDetail;
+  'c7:cancel': Context7WidgetCancelEventDetail;
   'c7:close': Context7WidgetLifecycleEventDetail;
   'c7:error': Context7WidgetErrorEventDetail;
   'c7:first-token': Context7WidgetAnswerEventDetail;
@@ -213,6 +243,7 @@ export type Context7WidgetDomEvent<EventName extends Context7WidgetEventName = C
 export interface Context7WidgetDomEventMap {
   'c7:answer': Context7WidgetDomEvent<'c7:answer'>;
   'c7:answer-complete': Context7WidgetDomEvent<'c7:answer-complete'>;
+  'c7:cancel': Context7WidgetDomEvent<'c7:cancel'>;
   'c7:close': Context7WidgetDomEvent<'c7:close'>;
   'c7:error': Context7WidgetDomEvent<'c7:error'>;
   'c7:first-token': Context7WidgetDomEvent<'c7:first-token'>;
@@ -233,6 +264,6 @@ export interface Context7WidgetApi {
   isOpen(widgetId?: string): boolean;
   open(widgetId?: string): void;
   reset(widgetId?: string): void;
-  send(message: string, widgetId?: string): Promise<void>;
+  send(message: string, widgetId?: string): Promise<Context7WidgetSendResult | undefined>;
   toggle(widgetId?: string): void;
 }

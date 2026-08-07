@@ -1,4 +1,10 @@
-import type { Context7WidgetProps, Context7WidgetQuestionEventDetail, UseContext7WidgetReturn } from '../../src';
+import type {
+  Context7WidgetCancelEventDetail,
+  Context7WidgetProps,
+  Context7WidgetQuestionEventDetail,
+  Context7WidgetSendResult,
+  UseContext7WidgetReturn
+} from '../../src';
 import { useContext7Widget } from '../../src';
 import { ref } from 'vue';
 
@@ -14,6 +20,7 @@ const props = {
 const controller: UseContext7WidgetReturn = useContext7Widget(props);
 expectType<boolean>(controller.isOpen.value);
 expectType<readonly string[]>(controller.messages.value.map((message) => message.content));
+expectType<Promise<Context7WidgetSendResult | undefined>>(controller.send('How do refs work?'));
 
 const trigger = ref<HTMLElement | null>(null);
 expectType<Context7WidgetProps>({
@@ -26,6 +33,12 @@ function onQuestion(detail: Context7WidgetQuestionEventDetail): void {
   expectType<HTMLElement>(detail.widget);
 }
 expectType<(detail: Context7WidgetQuestionEventDetail) => void>(onQuestion);
+
+function onCancel(detail: Context7WidgetCancelEventDetail): void {
+  expectType<string>(detail.answer);
+  expectType<'cancelled' | 'complete' | undefined>(detail.message?.status);
+}
+expectType<(detail: Context7WidgetCancelEventDetail) => void>(onCancel);
 
 expectType<Context7WidgetProps>({
   library: '/desource-labs/context7-widget',

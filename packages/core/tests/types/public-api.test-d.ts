@@ -1,10 +1,15 @@
-import { createContext7Widget, getContext7Widget, type Context7WidgetInstance } from '../../src/index.js';
+import {
+  createContext7Widget,
+  getContext7Widget,
+  type Context7WidgetInstance,
+  type Context7WidgetSendResult
+} from '../../src/index.js';
 
 declare function expectType<Type>(value: Type): void;
 
 const widget: Context7WidgetInstance | undefined = getContext7Widget('docs');
 widget?.cancel();
-expectType<Promise<void> | undefined>(widget?.send('How do I configure the widget?'));
+expectType<Promise<Context7WidgetSendResult | undefined> | undefined>(widget?.send('How do I configure the widget?'));
 
 createContext7Widget({
   customTrigger: document.createElement('button'),
@@ -14,6 +19,11 @@ createContext7Widget({
 document.addEventListener('c7:question', (event) => {
   expectType<string>(event.detail.question);
   expectType<string>(event.detail.message.id);
+});
+
+document.addEventListener('c7:cancel', (event) => {
+  expectType<'cancelled' | 'complete' | undefined>(event.detail.message?.status);
+  expectType<readonly string[]>(event.detail.messages.map((message) => message.content));
 });
 
 document.addEventListener('c7:ready', (event) => {

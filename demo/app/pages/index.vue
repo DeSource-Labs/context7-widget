@@ -220,7 +220,7 @@ const audiences = [
   }
 ];
 
-const eventPulses = ['ready', 'open', 'question', 'first-token', 'tool-call', 'answer-complete', 'error'];
+const eventPulses = ['ready', 'open', 'cancel', 'question', 'first-token', 'tool-call', 'answer-complete', 'error'];
 
 const useCases = [
   {

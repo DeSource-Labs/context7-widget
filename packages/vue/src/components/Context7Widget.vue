@@ -250,6 +250,7 @@ import {
   type Context7WidgetLifecycleEventDetail,
   type Context7WidgetOptions,
   type Context7WidgetQuestionEventDetail,
+  type Context7WidgetSendResult,
   type Context7WidgetToolCallEventDetail,
   type Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
@@ -442,6 +443,7 @@ const cancel = () => {
   const request = activeRequest;
   if (!request) return;
 
+  request.onCancel?.();
   activeRequest = null;
   request.controller.abort();
   cancelRenderFrame(request.renderFrame);
@@ -451,9 +453,10 @@ const cancel = () => {
   void nextTick(() => input.value?.focus());
 };
 
-const send = async (rawQuestion?: string) => {
+const send = async (rawQuestion?: string): Promise<Context7WidgetSendResult> => {
   const question = (rawQuestion ?? draft.value).trim();
-  if (!question || busy.value) return;
+  if (!question) return createSendResult('empty', question);
+  if (busy.value) return createSendResult('busy', question);
 
   if (!resolvedLibrary.value) {
     const message = 'Missing library prop.';
@@ -464,7 +467,7 @@ const send = async (rawQuestion?: string) => {
     });
     emit('error', { ...detail(), error: message, question } satisfies Context7WidgetErrorEventDetail);
     await scrollToBottom();
-    return;
+    return createSendResult('error', question, { error: message });
   }
 
   open();
@@ -488,13 +491,10 @@ const send = async (rawQuestion?: string) => {
   showTyping.value = true;
   let answer = '';
   let answerItem: MessageDisplayItem | undefined;
+  let assistantMessage: Context7Message | undefined;
+  let sendResult: Context7WidgetSendResult | undefined;
   let sawFirstToken = false;
-  const request: Context7ActiveRequest = {
-    controller: new AbortController(),
-    renderFrame: null
-  };
-  activeRequest = request;
-  notifyState();
+  let request: Context7ActiveRequest;
 
   const renderAnswer = () => {
     request.renderFrame = null;
@@ -508,6 +508,36 @@ const send = async (rawQuestion?: string) => {
     request.renderFrame = null;
     if (answerItem) answerItem.content = answer;
   };
+
+  const commitAnswer = (status?: Context7Message['status']) => {
+    if (!answer || assistantMessage) return assistantMessage;
+    flushAnswer();
+    assistantMessage = {
+      content: answer,
+      id: answerItem?.id ?? nextMessageId(),
+      role: 'assistant',
+      ...(status ? { status } : {})
+    };
+    conversation.value.push(assistantMessage);
+    return assistantMessage;
+  };
+
+  request = {
+    controller: new AbortController(),
+    onCancel: () => {
+      const message = commitAnswer('cancelled');
+      const result = createSendResult('cancelled', question, {
+        answer,
+        message
+      });
+      sendResult = result;
+      emit('cancel', { ...detail(), ...result });
+      return result;
+    },
+    renderFrame: null
+  };
+  activeRequest = request;
+  notifyState();
 
   try {
     await streamContext7Response(
@@ -551,29 +581,32 @@ const send = async (rawQuestion?: string) => {
       request.controller.signal
     );
 
-    if (activeRequest !== request) return;
+    if (activeRequest !== request) return sendResult ?? createSendResult('cancelled', question, { answer });
     showTyping.value = false;
     if (answer) {
-      flushAnswer();
-      const assistantMessage: Context7Message = {
-        content: answer,
-        id: answerItem?.id ?? nextMessageId(),
-        role: 'assistant'
-      };
-      conversation.value.push(assistantMessage);
+      const message = commitAnswer();
       notifyState();
+      sendResult = createSendResult('complete', question, {
+        answer,
+        message
+      });
       emit('answer-complete', {
         ...detail(),
         answer,
-        message: assistantMessage,
+        message: message as Context7Message,
         messages: [...conversation.value],
         question
       } satisfies Context7WidgetAnswerCompleteEventDetail);
+      return sendResult;
     }
+
+    sendResult = createSendResult('complete', question);
+    return sendResult;
   } catch (error) {
     if (activeRequest === request) {
       showTyping.value = false;
     }
+    if (activeRequest !== request) return sendResult ?? createSendResult('cancelled', question, { answer });
     if (activeRequest === request && !isAbortError(error)) {
       const message =
         error instanceof Context7TransportError || error instanceof Error ? error.message : 'Something went wrong.';
@@ -583,6 +616,11 @@ const send = async (rawQuestion?: string) => {
         kind: 'error'
       });
       emit('error', { ...detail(), error: message, question } satisfies Context7WidgetErrorEventDetail);
+      sendResult = createSendResult('error', question, {
+        answer,
+        error: message
+      });
+      return sendResult;
     }
   } finally {
     if (activeRequest === request) {
@@ -594,6 +632,8 @@ const send = async (rawQuestion?: string) => {
       input.value?.focus();
     }
   }
+
+  return sendResult ?? createSendResult('cancelled', question, { answer });
 };
 
 const appendToolCall = (toolCall: Context7ToolCall) => {
@@ -807,6 +847,23 @@ const register = () => {
 };
 
 const getMessages = (): readonly Context7Message[] => [...conversation.value];
+
+const createSendResult = <Status extends Context7WidgetSendResult['status']>(
+  status: Status,
+  question: string,
+  options: {
+    readonly answer?: string;
+    readonly error?: Error | string;
+    readonly message?: Context7Message;
+  } = {}
+): Context7WidgetSendResult & { readonly status: Status } => ({
+  answer: options.answer ?? '',
+  error: options.error,
+  message: options.message,
+  messages: getMessages(),
+  question,
+  status
+});
 
 const notifyState = () => {
   if (stateListeners.size === 0) return;

@@ -7,6 +7,7 @@ describe('core kit', () => {
       'c7:ready',
       'c7:open',
       'c7:close',
+      'c7:cancel',
       'c7:question',
       'c7:first-token',
       'c7:answer',

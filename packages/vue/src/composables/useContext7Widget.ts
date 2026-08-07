@@ -3,6 +3,7 @@ import {
   compactContext7WidgetOptions,
   resolveTarget,
   type Context7Message,
+  type Context7WidgetSendResult,
   type Context7WidgetTarget
 } from '@desource/context7-widget/kit';
 import {
@@ -49,7 +50,7 @@ export interface UseContext7WidgetReturn {
   mount: (overrides?: Partial<Context7WidgetProps>) => HTMLElement;
   open: () => void;
   reset: () => void;
-  send: (message: string) => Promise<void>;
+  send: (message: string) => Promise<Context7WidgetSendResult | undefined>;
   toggle: () => void;
   unmount: () => void;
   widget: Readonly<ShallowRef<HTMLElement | null>>;
@@ -183,11 +184,12 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
     syncState();
   }
 
-  async function send(message: string): Promise<void> {
+  async function send(message: string): Promise<Context7WidgetSendResult | undefined> {
     const pending = resolveController()?.send(message);
     syncState();
-    await pending;
+    const result = await pending;
     syncState();
+    return result;
   }
 
   function cancel(): void {

@@ -5,6 +5,15 @@ export interface Context7WidgetContractMessage {
   readonly content: string;
   readonly id: string;
   readonly role: 'assistant' | 'user';
+  readonly status?: 'cancelled' | 'complete';
+}
+
+export interface Context7WidgetContractSendResult {
+  readonly answer: string;
+  readonly message?: Context7WidgetContractMessage;
+  readonly messages: readonly Context7WidgetContractMessage[];
+  readonly question: string;
+  readonly status: 'busy' | 'cancelled' | 'complete' | 'empty' | 'error';
 }
 
 export interface Context7WidgetContractController {
@@ -15,7 +24,7 @@ export interface Context7WidgetContractController {
   isOpen(): boolean;
   open(): void;
   reset(): void;
-  send(message: string): Promise<void>;
+  send(message: string): Promise<Context7WidgetContractSendResult | undefined>;
   toggle(): void;
 }
 
@@ -118,7 +127,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
 
       const pending = controller.send('First question');
       expect(controller.isBusy()).toBe(true);
-      await controller.send('Second question');
+      await expect(controller.send('Second question')).resolves.toMatchObject({ status: 'busy' });
 
       expect(fetchMock).toHaveBeenCalledOnce();
       expect(controller.getMessages().map((message) => message.content)).toEqual(['First question']);
@@ -128,6 +137,59 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
 
       expect(requestSignal?.aborted).toBe(true);
       expect(controller.isBusy()).toBe(false);
+    });
+
+    it('preserves visible partial answers in public state when cancelled', async () => {
+      const encoder = new TextEncoder();
+      let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(
+          async (_input: RequestInfo | URL, init?: RequestInit) =>
+            new Response(
+              new ReadableStream<Uint8Array>({
+                start(controller) {
+                  stream = controller;
+                  init?.signal?.addEventListener(
+                    'abort',
+                    () => controller.error(new DOMException('The request was aborted.', 'AbortError')),
+                    { once: true }
+                  );
+                  controller.enqueue(encoder.encode(jsonFrame({ delta: 'Partial answer', type: 'text-delta' })));
+                }
+              })
+            )
+        )
+      );
+      const { controller, flush, view } = await mount();
+
+      const pending = controller.send('Stop after the first token');
+      await vi.waitFor(async () => {
+        await flush();
+        expect(view.textContent).toContain('Partial answer');
+      });
+
+      controller.cancel();
+      const result = await pending;
+      await flush();
+
+      expect(stream).toBeDefined();
+      expect(result).toMatchObject({
+        answer: 'Partial answer',
+        question: 'Stop after the first token',
+        status: 'cancelled'
+      });
+      expect(result?.message).toMatchObject({
+        content: 'Partial answer',
+        role: 'assistant',
+        status: 'cancelled'
+      });
+      expect(controller.getMessages().map((message) => message.content)).toEqual([
+        'Stop after the first token',
+        'Partial answer'
+      ]);
+      expect(controller.getMessages()[1]?.status).toBe('cancelled');
+      expect(view.textContent).toContain('Partial answer');
     });
 
     it('keeps controller operations idempotent and reset restores the initial conversation', async () => {

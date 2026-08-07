@@ -197,14 +197,17 @@ Vue’s only prop-level difference is `customTrigger`:
 | CSS selector | Bind the first matching external trigger                   |
 | Element/ref  | Bind the provided external trigger element                 |
 
-Vue events: `ready`, `open`, `close`, `question`, `first-token`, `answer`,
-`answer-complete`, `tool-call`, `tool-result`, and `error`.
+Vue events: `ready`, `open`, `close`, `cancel`, `question`, `first-token`,
+`answer`, `answer-complete`, `tool-call`, `tool-result`, and `error`.
 
 Each handler receives the typed event detail as its only argument.
 
 Component refs expose the same control surface as the composable:
 `open`, `close`, `toggle`, `send`, `cancel`, `reset`, `isOpen`, `isBusy`, and
-`getMessages`.
+`getMessages`. Cancelling after answer tokens arrive preserves the visible
+partial assistant message in `getMessages()` with `status: 'cancelled'`.
+`send()` resolves with a status result such as `complete`, `cancelled`, `error`,
+`busy`, or `empty`.
 
 While a response streams, the send action becomes an enabled **Stop** action.
 Both built-in and external triggers receive `aria-controls`,
