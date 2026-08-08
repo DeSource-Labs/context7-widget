@@ -29,11 +29,11 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.vue",
+    "src/**/*.tsx",
     "tests/**/*.ts",
     "../../common/tests/**/*.ts",
     "demo/**/*.ts",
-    "demo/**/*.vue",
+    "demo/**/*.tsx",
     "playwright.config.ts",
     "vitest.config.ts"
   ]

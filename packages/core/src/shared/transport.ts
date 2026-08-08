@@ -4,10 +4,22 @@ import type {
   Context7ToolCall,
   Context7ToolResult,
   Context7WidgetConfig
-} from './types.js';
-import { isAbortError } from './runtime.js';
+} from '../types.js';
 
 const CONTEXT7_CHAT_ENDPOINT = 'https://context7.com/api/v2/widget/chat';
+
+export function isAbortError(error: unknown): boolean {
+  if (typeof DOMException !== 'undefined' && error instanceof DOMException) {
+    return error.name === 'AbortError';
+  }
+
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'name' in error &&
+    (error as { readonly name?: unknown }).name === 'AbortError'
+  );
+}
 
 export class Context7TransportError extends Error {
   constructor(message: string) {

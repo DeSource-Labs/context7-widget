@@ -1,4 +1,4 @@
-import { DEFAULT_CONTEXT7_INITIAL_MESSAGE } from './runtime.js';
+import { DEFAULT_CONTEXT7_INITIAL_MESSAGE } from './consts.js';
 import type {
   Context7LauncherVariant,
   Context7Position,
@@ -6,9 +6,9 @@ import type {
   Context7WidgetConfig,
   Context7WidgetOptions,
   Context7WidgetPreset
-} from './types.js';
+} from '../types.js';
 
-export type Context7WidgetConfigInput = {
+type Context7WidgetConfigInput = {
   readonly [Key in keyof Context7WidgetOptions]?: unknown;
 };
 

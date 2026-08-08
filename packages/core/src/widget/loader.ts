@@ -1,4 +1,4 @@
-import { defineContext7Widget, type Context7WidgetElement } from './widget-element.js';
+import { defineContext7Widget, type Context7WidgetElement } from './element.js';
 
 const DATASET_ATTRIBUTE_MAP = [
   ['backdrop', 'backdrop'],

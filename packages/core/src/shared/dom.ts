@@ -3,7 +3,7 @@ import type {
   Context7TriggerA11yState,
   Context7WidgetTarget,
   Context7WidgetTrigger
-} from './types.js';
+} from '../types.js';
 
 export interface Context7AnchorRect {
   readonly bottom: number;

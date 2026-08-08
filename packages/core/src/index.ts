@@ -1,5 +1,11 @@
-export { context7WidgetDefaults, normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from './config.js';
-export type { Context7WidgetConfigInput } from './config.js';
+// Root entry point @desource/context7-widget
+// Includes all Web Component and script installation approaches of Context7 Widget and all needed types
+
+export {
+  context7WidgetDefaults,
+  normalizeContext7WidgetTrigger,
+  resolveContext7WidgetConfig
+} from './shared/config.js';
 export type { Context7WidgetGlobalEventMap } from './globals.js';
 export {
   buildContext7WidgetScriptTag,
@@ -9,19 +15,19 @@ export {
   mountContext7Widget,
   setContext7WidgetAttributes,
   toContext7WidgetAttributes
-} from './helpers.js';
+} from './widget/helpers.js';
 export {
   compactContext7WidgetOptions,
   context7WidgetEvents,
   context7WidgetOptionKeys,
   isContext7WidgetEventName
 } from './kit.js';
-export { mountContext7WidgetFromScript } from './loader.js';
-export { resolveContext7AnchorLayout, updateAnchorPosition } from './dom.js';
-export { renderMarkdown } from './markdown.js';
-export { streamContext7Response, Context7TransportError } from './transport.js';
-export { Context7WidgetElement, defineContext7Widget } from './widget-element.js';
-export type { Context7AnchorLayout, Context7AnchorLayoutOptions, Context7AnchorRect } from './dom.js';
+export { mountContext7WidgetFromScript } from './widget/loader.js';
+export { resolveContext7AnchorLayout, updateAnchorPosition } from './shared/dom.js';
+export { renderMarkdown } from './shared/markdown.js';
+export { streamContext7Response, Context7TransportError } from './shared/transport.js';
+export { Context7WidgetElement, defineContext7Widget } from './widget/element.js';
+export type { Context7AnchorLayout, Context7AnchorLayoutOptions, Context7AnchorRect } from './shared/dom.js';
 export type {
   Context7LauncherVariant,
   Context7Message,

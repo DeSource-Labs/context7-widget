@@ -5,8 +5,9 @@ export default defineConfig({
   build: {
     lib: {
       entry: {
-        index: 'src/index.ts',
-        kit: 'src/kit.ts'
+        index: 'src/index.ts', // widget usage
+        kit: 'src/kit.ts', // framework related packages (Vue, React, etc.)
+        core: 'src/core.ts' // core utilities and types
       },
       fileName: (_format, entryName) => `${entryName}.js`,
       formats: ['es']

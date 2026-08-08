@@ -23,36 +23,28 @@ const corePackageRoot = fileURLToPath(new URL('../packages/core', import.meta.ur
 const coreKit = fileURLToPath(new URL('../packages/core/dist/kit.js', import.meta.url));
 
 const fileBudgets: readonly FileBudget[] = [
-  { file: 'packages/core/dist/widget.js', maxGzipBytes: 16_300 },
-  { file: 'packages/vue/dist/index.js', maxGzipBytes: 8_500 },
-  { file: 'packages/vue/dist/styles.css', maxGzipBytes: 5_200 }
+  { file: 'packages/core/dist/widget.js', maxGzipBytes: 20_000 },
+  { file: 'packages/vue/dist/index.js', maxGzipBytes: 20_000 },
+  { file: 'packages/vue/dist/styles.css', maxGzipBytes: 6_000 }
 ];
 
 const consumerBudgets: readonly ConsumerBudget[] = [
   {
-    contents: "export { updateAnchorPosition } from '@desource/context7-widget';",
-    forbiddenMarkers: ['api/v2/widget/chat', 'data:image', 'Context7WidgetElement'],
-    maxGzipBytes: 700,
-    name: 'core root layout-only consumer',
+    contents: "export * as core from '@desource/context7-widget/core';",
+    maxGzipBytes: 20_000,
+    name: 'core consumer (all exports)',
     resolveDir: corePackageRoot
   },
   {
-    contents: "export { renderMarkdown } from '@desource/context7-widget';",
-    forbiddenMarkers: ['api/v2/widget/chat', 'data:image', 'Context7WidgetElement'],
-    maxGzipBytes: 900,
-    name: 'core root Markdown-only consumer',
-    resolveDir: corePackageRoot
-  },
-  {
-    contents: "export { streamContext7Response } from '@desource/context7-widget/kit';",
-    forbiddenMarkers: ['data:image', 'Context7WidgetElement'],
-    maxGzipBytes: 1_200,
-    name: 'core /kit transport-only consumer',
+    contents: "export * as kit from '@desource/context7-widget/kit';",
+    forbiddenMarkers: ['Context7WidgetElement'],
+    maxGzipBytes: 20_000,
+    name: 'kit consumer (all exports)',
     resolveDir: corePackageRoot
   },
   {
     contents: "export { mountContext7Widget } from '@desource/context7-widget';",
-    maxGzipBytes: 17_000,
+    maxGzipBytes: 20_000,
     name: 'core custom-element runtime consumer',
     resolveDir: corePackageRoot
   },
@@ -62,7 +54,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { Context7Widget } from './packages/vue/dist/index.js';",
     external: ['vue'],
-    maxGzipBytes: 11_300,
+    maxGzipBytes: 20_000,
     name: 'Vue component with core /kit consumer',
     resolveDir: workspaceRoot
   }

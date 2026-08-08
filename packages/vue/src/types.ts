@@ -1,7 +1,5 @@
 import type {
-  Context7ActiveRequest as _Context7ActiveRequest,
   Context7Message,
-  Context7Role,
   Context7WidgetController,
   Context7WidgetOptions,
   Context7WidgetAnswerCompleteEventDetail,
@@ -10,7 +8,6 @@ import type {
   Context7WidgetErrorEventDetail,
   Context7WidgetLifecycleEventDetail,
   Context7WidgetQuestionEventDetail,
-  Context7WidgetSendResult,
   Context7WidgetToolCallEventDetail,
   Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
@@ -28,6 +25,7 @@ export type {
   Context7WidgetEventMap,
   Context7WidgetLifecycleEventDetail,
   Context7WidgetQuestionEventDetail,
+  Context7WidgetSendResult,
   Context7WidgetToolCallEventDetail,
   Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
@@ -111,33 +109,3 @@ export interface Context7WidgetState {
 }
 
 export type Context7WidgetStateListener = (state: Context7WidgetState) => void;
-
-type ErrorDisplayItem = {
-  html: string;
-  id: string;
-  kind: 'error';
-};
-
-export type MessageDisplayItem = {
-  content: string;
-  id: string;
-  kind: 'message';
-  role: Context7Role;
-};
-
-export type ToolDisplayItem = {
-  contentId: string;
-  expanded: boolean;
-  hasResult: boolean;
-  id: string;
-  kind: 'tool';
-  query: string;
-  result: string;
-  toolCallId: string;
-};
-
-export type DisplayItem = ErrorDisplayItem | MessageDisplayItem | ToolDisplayItem;
-
-export type Context7ActiveRequest = Omit<_Context7ActiveRequest, 'typing'>;
-
-export type { Context7WidgetSendResult };

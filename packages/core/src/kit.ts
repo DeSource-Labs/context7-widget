@@ -1,3 +1,11 @@
+// Kit entry point @desource/context7-widget/kit
+// Designed specifically for other @desource/context7-widget packages:
+// - @desource/context7-widget-vue
+// - @desource/context7-widget-react
+// - @desource/context7-widget-svelte
+// - @desource/context7-widget-angular
+// Includes only needed types and utility functions for working with Context7 Widget
+
 import type { Context7WidgetEventName, Context7WidgetOptions } from './types.js';
 
 export const context7WidgetEvents = [
@@ -57,32 +65,16 @@ export function isContext7WidgetEventName(value: string): value is Context7Widge
   return (context7WidgetEvents as readonly string[]).includes(value);
 }
 
-export { CONTEXT7_URL, DESOURCE_LABS_URL, context7LogoSvg, deSourceLabsLogoUrl } from './branding.js';
-export { context7WidgetDefaults, normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from './config.js';
-export type { Context7WidgetConfigInput } from './config.js';
-export {
-  assertBrowser,
-  cancelRenderFrame,
-  captureTriggerAccessibility,
-  isContext7WidgetTriggerElement,
-  querySelectorSafely,
-  requestRenderFrame,
-  resolveContext7CustomTrigger,
-  resolveContext7AnchorLayout,
-  resolveTarget,
-  restoreTriggerAccessibility,
-  trapFocus,
-  updateAnchorPosition
-} from './dom.js';
-export { escapeHtml, renderMarkdown } from './markdown.js';
-export { buildContext7ErrorHtml, DEFAULT_CONTEXT7_INITIAL_MESSAGE, isAbortError } from './runtime.js';
-export { Context7TransportError, streamContext7Response } from './transport.js';
+export { normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from './shared/config.js';
+export { CONTEXT7_URL, DESOURCE_LABS_URL, deSourceLabsLogoUrl } from './shared/consts.js';
+export { assertBrowser, isContext7WidgetTriggerElement, resolveTarget } from './shared/dom.js';
+export { useContext7Session, type Context7Session, type Context7SessionEvent } from './shared/session.js';
 export type {
   Context7AnchorLayout,
   Context7AnchorLayoutOptions,
   Context7AnchorRect,
   Context7CustomTriggerResolution
-} from './dom.js';
+} from './shared/dom.js';
 export type {
   Context7ActiveRequest,
   Context7LauncherVariant,

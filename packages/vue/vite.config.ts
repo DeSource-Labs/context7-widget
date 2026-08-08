@@ -10,7 +10,7 @@ export default defineConfig({
       formats: ['es']
     },
     rollupOptions: {
-      external: ['@desource/context7-widget/kit', 'vue']
+      external: ['/^@desource/context7-widget(?:/.*)?$/', 'vue']
     },
     sourcemap: true,
     target: 'es2020'
@@ -21,7 +21,7 @@ export default defineConfig({
       bundleTypes: true,
       entryRoot: 'src',
       include: ['src'],
-      outDir: 'dist',
+      outDirs: 'dist',
       pathsToAliases: false,
       tsconfigPath: 'tsconfig.json'
     })

@@ -1,12 +1,12 @@
-import { defineContext7Widget, Context7WidgetElement } from './widget-element.js';
+import { defineContext7Widget, Context7WidgetElement } from './element.js';
 import type {
   Context7WidgetApi,
   Context7WidgetInstance,
   Context7WidgetOptions,
   Context7WidgetScriptOptions,
   Context7WidgetTarget
-} from './types.js';
-import { assertBrowser, isContext7WidgetTriggerElement, resolveTarget } from './dom.js';
+} from '../types.js';
+import { assertBrowser, isContext7WidgetTriggerElement, resolveTarget } from '../shared/dom.js';
 
 const DEFAULT_SCRIPT_SRC = 'https://context7.desource-labs.org/widget.js';
 
