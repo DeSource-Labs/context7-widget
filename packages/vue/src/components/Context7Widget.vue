@@ -19,9 +19,9 @@
     :style="widgetStyle"
     :theme="resolvedTheme"
     :widget-id="resolvedWidgetId"
-    @keydown="session.handleKeyDown"
+    @keydown="onKeyDown"
   >
-    <div class="c7-backdrop" data-c7-backdrop part="backdrop" aria-hidden="true" @click="session.backdropClick" />
+    <div class="c7-backdrop" data-c7-backdrop part="backdrop" aria-hidden="true" @click="onBackdropClick" />
 
     <button
       v-if="rendersManagedTrigger"
@@ -34,6 +34,7 @@
       aria-haspopup="dialog"
       :data-preset="resolvedPreset"
       :data-theme="resolvedTheme"
+      @click="openFrom($event.currentTarget)"
     >
       <slot name="trigger" :label="resolvedLauncherLabel" :trigger-id="managedTriggerId">
         {{ resolvedLauncherLabel }}
@@ -51,10 +52,7 @@
       role="dialog"
     >
       <header class="c7-header" part="header">
-        <div class="c7-title" part="title">
-          {{ resolvedTitle }}
-        </div>
-
+        <div class="c7-title" part="title">{{ resolvedTitle }}</div>
         <button class="c7-close" part="close-button" type="button" aria-label="Close chat" @click="close">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6 6 18" />
@@ -73,40 +71,20 @@
         role="log"
       >
         <template v-for="item in displayItems" :key="item.id">
-          <!--
-            item.html is produced exclusively by core/session.ts using
-            renderMarkdown(), which escapes arbitrary source input.
-          -->
           <div
-            v-if="item.kind === 'message' && item.role === 'assistant'"
-            class="c7-message c7-message--assistant"
-            part="message assistant-message"
-            v-html="item.html"
+            v-if="item.kind === 'message'"
+            v-safe-html="renderMessage(item)"
+            :class="['c7-message', `c7-message--${item.role}`]"
+            :part="`message ${item.role}-message`"
           />
-
-          <div v-else-if="item.kind === 'message'" class="c7-message c7-message--user" part="message user-message">
-            {{ item.content }}
-          </div>
 
           <div
             v-else-if="item.kind === 'error'"
+            v-safe-html="item.html"
             class="c7-message c7-message--error"
             part="message error-message"
             role="alert"
-          >
-            {{ item.message }}
-
-            <template v-if="item.adminUrl">
-              <br />
-              <br />
-
-              If you are the library owner, check your
-
-              <a :href="item.adminUrl" target="_blank" rel="noopener noreferrer"> widget settings </a>
-
-              on Context7.
-            </template>
-          </div>
+          />
 
           <div v-else class="c7-tool-call" part="tool-call">
             <div class="c7-tool-header">
@@ -114,9 +92,7 @@
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.35-4.35" />
               </svg>
-
-              <span> Searching: {{ item.query }} </span>
-
+              <span>Searching: {{ item.query }}</span>
               <svg
                 v-if="!item.hasResult"
                 class="c7-spinner"
@@ -137,15 +113,13 @@
                 type="button"
                 :aria-controls="item.contentId"
                 :aria-expanded="item.expanded"
-                @click="session.toggleTool(item.id)"
+                @click="item.expanded = !item.expanded"
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="m6 9 6 6 6-6" />
                 </svg>
-
                 <span>{{ item.expanded ? 'Hide results' : 'View results' }}</span>
               </button>
-
               <div
                 v-show="item.expanded"
                 :id="item.contentId"
@@ -166,7 +140,7 @@
         </div>
       </div>
 
-      <form class="c7-composer" part="composer" @submit.prevent="onSubmit">
+      <form class="c7-composer" part="composer" @submit.prevent="busy ? cancel() : send()">
         <input
           ref="input"
           v-model="draft"
@@ -178,7 +152,6 @@
           :disabled="busy"
           :placeholder="resolvedPlaceholder"
         />
-
         <button :aria-label="busy ? 'Stop response' : 'Send question'" class="c7-send" part="send-button" type="submit">
           {{ busy ? 'Stop' : 'Send' }}
         </button>
@@ -187,41 +160,15 @@
       <footer class="c7-footer" part="footer">
         <span class="c7-branding" part="powered-by" aria-label="Powered by Context7, Enhanced by DeSource Labs">
           <a
+            v-safe-html="`<span class='c7-brand-prefix'>Powered by</span>` + context7LogoSvg"
             class="c7-brand-link"
             :href="CONTEXT7_URL"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Powered by Context7"
             title="Powered by Context7"
-          >
-            <span class="c7-brand-prefix"> Powered by </span>
-            <svg
-              class="c7-brand-logo c7-brand-logo--context7"
-              aria-hidden="true"
-              viewBox="0 0 28 28"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect width="28" height="28" rx="4" fill="currentColor"></rect>
-              <path
-                d="M10.5724 15.2565C10.5724 17.5025 9.6613 19.3778 8.17805 21.1047H11.6319L11.6319 22.7786H6.33459V21.1895C7.95557 19.3566 8.58065 17.8628 8.58065 15.2565L10.5724 15.2565Z"
-                fill="var(--c7-footer-background, #000000)"
-              ></path>
-              <path
-                d="M17.4276 15.2565C17.4276 17.5025 18.3387 19.3778 19.822 21.1047H16.3681V22.7786H21.6654V21.1895C20.0444 19.3566 19.4194 17.8628 19.4194 15.2565H17.4276Z"
-                fill="var(--c7-footer-background, #000000)"
-              ></path>
-              <path
-                d="M10.5724 12.7435C10.5724 10.4975 9.66131 8.62224 8.17807 6.89532L11.6319 6.89532V5.22137L6.33461 5.22137V6.81056C7.95558 8.64343 8.58066 10.1373 8.58066 12.7435L10.5724 12.7435Z"
-                fill="var(--c7-footer-background, #000000)"
-              ></path>
-              <path
-                d="M17.4276 12.7435C17.4276 10.4975 18.3387 8.62224 19.822 6.89532L16.3681 6.89532L16.3681 5.22138L21.6654 5.22138V6.81056C20.0445 8.64343 19.4194 10.1373 19.4194 12.7435H17.4276Z"
-                fill="var(--c7-footer-background, #000000)"
-              ></path>
-            </svg>
-          </a>
-          <span class="c7-brand-separator" aria-hidden="true"> · </span>
+          />
+          <span class="c7-brand-separator" aria-hidden="true">·</span>
           <a
             class="c7-brand-link"
             :href="DESOURCE_LABS_URL"
@@ -230,7 +177,7 @@
             aria-label="Enhanced by DeSource Labs"
             title="Enhanced by DeSource Labs"
           >
-            <span class="c7-brand-prefix"> Enhanced by </span>
+            <span class="c7-brand-prefix">Enhanced by</span>
             <img class="c7-brand-logo c7-brand-logo--desource" :src="deSourceLabsLogoUrl" alt="" />
           </a>
         </span>
@@ -247,7 +194,7 @@
       :aria-expanded="isOpen"
       :aria-label="resolvedLauncherLabel"
       aria-haspopup="dialog"
-      @click="session.openFrom($event.currentTarget)"
+      @click="openFrom($event.currentTarget)"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -263,9 +210,7 @@
         <path d="M8 13h6" />
         <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-5l-5 3v-3H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h12" />
       </svg>
-      <span class="c7-launcher-label">
-        {{ resolvedLauncherLabel }}
-      </span>
+      <span class="c7-launcher-label">{{ resolvedLauncherLabel }}</span>
     </button>
 
     <slot />
@@ -275,41 +220,69 @@
 <script setup lang="ts">
 import {
   CONTEXT7_URL,
+  Context7TransportError,
   DESOURCE_LABS_URL,
+  buildContext7ErrorHtml,
+  cancelRenderFrame,
+  captureTriggerAccessibility,
   compactContext7WidgetOptions,
+  context7LogoSvg,
   deSourceLabsLogoUrl,
+  escapeHtml,
   isContext7WidgetTriggerElement,
+  isAbortError,
   normalizeContext7WidgetTrigger,
+  renderMarkdown,
+  requestRenderFrame,
+  resolveContext7CustomTrigger,
   resolveContext7WidgetConfig,
-  useContext7Session,
+  restoreTriggerAccessibility,
+  streamContext7Response,
+  trapFocus,
+  updateAnchorPosition as _updateAnchorPosition,
   type Context7Message,
-  type Context7SessionEvent,
+  type Context7ToolCall,
+  type Context7ToolResult,
+  type Context7TriggerA11yState,
+  type Context7WidgetAnswerCompleteEventDetail,
+  type Context7WidgetAnswerEventDetail,
+  type Context7WidgetErrorEventDetail,
   type Context7WidgetLifecycleEventDetail,
-  type Context7WidgetOptions
+  type Context7WidgetOptions,
+  type Context7WidgetQuestionEventDetail,
+  type Context7WidgetSendResult,
+  type Context7WidgetToolCallEventDetail,
+  type Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
 import {
   computed,
   inject,
+  nextTick,
   onBeforeUnmount,
   onMounted,
+  reactive,
   ref,
-  shallowRef,
   toValue,
   useAttrs,
   useId,
   useTemplateRef,
   watch,
+  type Directive,
   type MaybeRefOrGetter
 } from 'vue';
 import { context7WidgetDefaultsKey } from '../internal/injection';
 import { registerVueContext7Widget, unregisterVueContext7Widget } from '../internal/registry';
 import type {
-  Context7WidgetCustomTrigger,
+  Context7ActiveRequest,
   Context7WidgetEmits,
   Context7WidgetExpose,
   Context7WidgetProps,
   Context7WidgetSlots,
-  Context7WidgetStateListener
+  Context7WidgetStateListener,
+  Context7WidgetCustomTrigger,
+  DisplayItem,
+  MessageDisplayItem,
+  ToolDisplayItem
 } from '../types';
 
 defineOptions({
@@ -322,100 +295,86 @@ const props = withDefaults(defineProps<Context7WidgetProps>(), {
   closeOnOutsideClick: undefined,
   defaultOpen: undefined
 });
-
 defineSlots<Context7WidgetSlots>();
-
 const emit = defineEmits<Context7WidgetEmits>();
 
 const attrs = useAttrs();
-
 const defaults = inject(context7WidgetDefaultsKey, {});
-
 const root = useTemplateRef('root');
 const panel = useTemplateRef('panel');
 const input = useTemplateRef('input');
 const launcher = useTemplateRef('launcher');
 const managedTrigger = useTemplateRef('managedTrigger');
 const messagesElement = useTemplateRef('messagesElement');
-
+const isOpen = ref(false);
+const busy = ref(false);
 const draft = ref('');
-
+const displayItems = ref<DisplayItem[]>([]);
+const conversation = ref<Context7Message[]>([]);
+const showTyping = ref(false);
+const activeAnchor = ref<Element | null>(null);
+const hasBoundExternalTrigger = ref(false);
+const messageCounter = ref(0);
 const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '-');
-
 const managedTriggerId = `context7-widget-trigger-${instanceId}`;
-
 const panelId = `context7-widget-panel-${instanceId}`;
-
+const stateListeners = new Set<Context7WidgetStateListener>();
+let activeRequest: Context7ActiveRequest | null = null;
+let customTriggerObserver: MutationObserver | null = null;
+let customTriggerSelectorInvalid = false;
+let customTriggerWarningKey = '';
+let externalTrigger: Element | null = null;
+let externalTriggerAccessibility: Context7TriggerA11yState | null = null;
+let floatingLayoutFrame: number | null = null;
+let floatingResizeObserver: ResizeObserver | null = null;
+let floatingViewport: VisualViewport | null = null;
+let lastFocus: Element | null = null;
 let registeredWidgetId = '';
+
+const vSafeHtml: Directive<HTMLElement, string> = {
+  beforeMount(element, binding) {
+    element.innerHTML = binding.value;
+  },
+  updated(element, binding) {
+    if (binding.value !== binding.oldValue) element.innerHTML = binding.value;
+  }
+};
 
 const options = computed<Partial<Context7WidgetOptions>>(() => {
   const { customTrigger: _customTrigger, ...widgetProps } = props;
-
   const { customTrigger: _defaultCustomTrigger, ...defaultOptions } = defaults;
-
   const provided = compactContext7WidgetOptions(widgetProps);
-
-  return compactContext7WidgetOptions({
-    ...defaultOptions,
-    ...provided
-  });
+  return compactContext7WidgetOptions({ ...defaultOptions, ...provided });
 });
-
 const resolvedConfig = computed(() => resolveContext7WidgetConfig(options.value));
-
 const resolvedLibrary = computed(() => resolvedConfig.value.library);
-
 const resolvedPosition = computed(() => resolvedConfig.value.position);
-
 const resolvedPreset = computed(() => resolvedConfig.value.preset);
-
 const resolvedTheme = computed(() => resolvedConfig.value.theme);
-
 const resolvedBackdrop = computed(() => resolvedConfig.value.backdrop);
-
 const resolvedCloseOnOutsideClick = computed(() => resolvedConfig.value.closeOnOutsideClick);
-
 const resolvedColor = computed(() => resolvedConfig.value.color);
-
 const resolvedDefaultOpen = computed(() => resolvedConfig.value.defaultOpen);
-
 const resolvedInitialMessage = computed(() => resolvedConfig.value.initialMessage);
-
 const resolvedLauncherLabel = computed(() => resolvedConfig.value.launcherLabel);
-
 const resolvedLauncherVariant = computed(() => resolvedConfig.value.launcherVariant);
-
 const resolvedPanelHeight = computed(() => resolvedConfig.value.panelHeight);
-
 const resolvedPanelWidth = computed(() => resolvedConfig.value.panelWidth);
-
 const resolvedPlaceholder = computed(() => resolvedConfig.value.placeholder);
-
 const resolvedTitle = computed(() => resolvedConfig.value.title);
-
 const resolvedWidgetId = computed(() => resolvedConfig.value.widgetId);
-
 const resolvedCustomTrigger = computed(() => resolveVueCustomTrigger(props.customTrigger ?? defaults.customTrigger));
-
 const rendersManagedTrigger = computed(() => resolvedCustomTrigger.value === true);
-
+const hasCustomTrigger = computed(() => rendersManagedTrigger.value || hasBoundExternalTrigger.value);
 const customTriggerSelector = computed(() => {
-  if (resolvedCustomTrigger.value === true) {
-    return `#${managedTriggerId}`;
-  }
-
-  if (typeof resolvedCustomTrigger.value === 'string') {
+  if (resolvedCustomTrigger.value === true) return `#${managedTriggerId}`;
+  if (typeof resolvedCustomTrigger.value === 'string')
     return normalizeContext7WidgetTrigger(resolvedCustomTrigger.value);
-  }
-
   return undefined;
 });
-
 const widgetStyle = computed(() => ({
   '--c7-accent': resolvedColor.value || undefined,
-
   '--c7-panel-height': resolvedPanelHeight.value || undefined,
-
   '--c7-panel-width': resolvedPanelWidth.value || undefined
 }));
 
@@ -425,173 +384,505 @@ const detail = (): Context7WidgetLifecycleEventDetail => ({
   widgetId: resolvedWidgetId.value
 });
 
-function getSessionCustomTrigger(): Element | string | null {
-  const value = resolvedCustomTrigger.value;
+const reset = () => {
+  cancel();
+  const intro = resolvedInitialMessage.value.replace(/\{library\}/g, resolvedLibrary.value || 'this library');
+  displayItems.value = [{ content: intro, id: nextMessageId(), kind: 'message', role: 'assistant' }];
+  conversation.value = [];
+  notifyState();
+};
 
-  if (value === true) {
-    return managedTrigger.value;
-  }
+const renderMessage = (item: MessageDisplayItem): string =>
+  item.role === 'assistant' ? renderMarkdown(item.content) : escapeHtml(item.content);
 
-  if (typeof value === 'string') {
-    return normalizeContext7WidgetTrigger(value) || null;
-  }
-
-  return isContext7WidgetTriggerElement(value) ? value : null;
-}
-
-function handleSessionEvent(event: Context7SessionEvent): void {
-  switch (event.type) {
-    case 'open':
-      emit('open', detail());
-      return;
-
-    case 'close':
-      emit('close', detail());
-      return;
-
-    case 'question':
-      draft.value = '';
-      emit('question', { ...detail(), ...event.detail });
-      return;
-
-    case 'first-token':
-      emit('first-token', { ...detail(), ...event.detail });
-      return;
-
-    case 'answer':
-      emit('answer', { ...detail(), ...event.detail });
-      return;
-
-    case 'answer-complete':
-      emit('answer-complete', { ...detail(), ...event.detail });
-      return;
-
-    case 'cancel':
-      emit('cancel', { ...detail(), ...event.detail });
-      return;
-
-    case 'tool-call':
-      emit('tool-call', { ...detail(), ...event.detail });
-      return;
-
-    case 'tool-result':
-      emit('tool-result', { ...detail(), ...event.detail });
-      return;
-
-    case 'error':
-      emit('error', { ...detail(), ...event.detail });
-      return;
-  }
-}
-
-const session = useContext7Session({
-  elements: {
-    input: () => input.value,
-    launcher: () => launcher.value,
-    messages: () => messagesElement.value,
-    panel: () => panel.value,
-    root: () => root.value
-  },
-
-  getConfig: () => ({
-    closeOnOutsideClick: resolvedCloseOnOutsideClick.value,
-    initialMessage: resolvedInitialMessage.value,
-    library: resolvedLibrary.value,
-    position: resolvedPosition.value
-  }),
-
-  getCustomTrigger: getSessionCustomTrigger,
-
-  missingLibraryMessage: 'Missing library prop.',
-
-  onEvent: handleSessionEvent,
-
-  panelId
-});
-
-/*
- * Do this before subscribing so SSR / initial render already receives
- * the welcome message snapshot.
- */
-session.reset();
-
-const sessionState = shallowRef(session.getSnapshot());
-
-const stopSessionSubscription = session.subscribe((snapshot) => {
-  sessionState.value = snapshot;
-});
-
-const isOpen = computed(() => sessionState.value.open);
-
-const busy = computed(() => sessionState.value.busy);
-
-const displayItems = computed(() => sessionState.value.items);
-
-const showTyping = computed(() => sessionState.value.typing);
-
-const hasCustomTrigger = computed(() => rendersManagedTrigger.value || sessionState.value.customTriggerBound);
-
-function resolveVueCustomTrigger(value: Context7WidgetCustomTrigger | undefined): Element | string | true | undefined {
-  if (value === true || typeof value === 'string' || isContext7WidgetTriggerElement(value)) {
-    return value;
-  }
-
+const resolveVueCustomTrigger = (
+  value: Context7WidgetCustomTrigger | undefined
+): Element | string | true | undefined => {
+  if (value === true || typeof value === 'string' || isContext7WidgetTriggerElement(value)) return value;
   const resolved = toValue(value as MaybeRefOrGetter<Element | null | undefined>);
-
   return isContext7WidgetTriggerElement(resolved) ? resolved : undefined;
-}
+};
 
-function send(rawQuestion?: string) {
-  return session.send(rawQuestion ?? draft.value);
-}
+const nextMessageId = (): string => {
+  messageCounter.value += 1;
+  return `c7m-${messageCounter.value}`;
+};
 
-function onSubmit(): void {
-  if (busy.value) {
-    session.cancel();
+const openFrom = (target: EventTarget | null) => {
+  if (target instanceof Element) activeAnchor.value = target;
+  toggle();
+};
+
+const open = () => {
+  if (isOpen.value) return;
+  lastFocus = document.activeElement;
+  isOpen.value = true;
+  syncExternalTriggerExpandedState();
+  bindFloatingListeners();
+  emit('open', detail());
+  notifyState();
+  nextTick(() => {
+    updateAnchorPosition();
+    if (isOpen.value) focusInput();
+  });
+};
+
+const close = () => {
+  if (!isOpen.value) return;
+  isOpen.value = false;
+  syncExternalTriggerExpandedState();
+  unbindFloatingListeners();
+  emit('close', detail());
+  notifyState();
+  if (lastFocus instanceof HTMLElement && lastFocus.isConnected) lastFocus.focus();
+};
+
+const toggle = () => (isOpen.value ? close() : open());
+
+const cancel = () => {
+  const request = activeRequest;
+  if (!request) return;
+
+  request.onCancel?.();
+  activeRequest = null;
+  request.controller.abort();
+  cancelRenderFrame(request.renderFrame);
+  busy.value = false;
+  showTyping.value = false;
+  notifyState();
+  void nextTick(() => input.value?.focus());
+};
+
+const send = async (rawQuestion?: string): Promise<Context7WidgetSendResult> => {
+  const question = (rawQuestion ?? draft.value).trim();
+  if (!question) return createSendResult('empty', question);
+  if (busy.value) return createSendResult('busy', question);
+
+  if (!resolvedLibrary.value) {
+    const message = 'Missing library prop.';
+    displayItems.value.push({
+      html: buildContext7ErrorHtml(message, resolvedLibrary.value),
+      id: nextMessageId(),
+      kind: 'error'
+    });
+    emit('error', { ...detail(), error: message, question } satisfies Context7WidgetErrorEventDetail);
+    await scrollToBottom();
+    return createSendResult('error', question, { error: message });
+  }
+
+  open();
+  busy.value = true;
+  draft.value = '';
+
+  const userMessage: Context7Message = {
+    content: question,
+    id: nextMessageId(),
+    role: 'user'
+  };
+  conversation.value.push(userMessage);
+  displayItems.value.push({ ...userMessage, kind: 'message' });
+  emit('question', {
+    ...detail(),
+    message: userMessage,
+    messages: [...conversation.value],
+    question
+  } satisfies Context7WidgetQuestionEventDetail);
+
+  showTyping.value = true;
+  let answer = '';
+  let answerItem: MessageDisplayItem | undefined;
+  let assistantMessage: Context7Message | undefined;
+  let sendResult: Context7WidgetSendResult | undefined;
+  let sawFirstToken = false;
+  let request: Context7ActiveRequest;
+
+  const renderAnswer = () => {
+    request.renderFrame = null;
+    if (activeRequest !== request || !answerItem) return;
+    answerItem.content = answer;
+    void scrollToBottom();
+  };
+
+  const flushAnswer = () => {
+    cancelRenderFrame(request.renderFrame);
+    request.renderFrame = null;
+    if (answerItem) answerItem.content = answer;
+  };
+
+  const commitAnswer = (status?: Context7Message['status']) => {
+    if (!answer || assistantMessage) return assistantMessage;
+    flushAnswer();
+    assistantMessage = {
+      content: answer,
+      id: answerItem?.id ?? nextMessageId(),
+      role: 'assistant',
+      ...(status ? { status } : {})
+    };
+    conversation.value.push(assistantMessage);
+    return assistantMessage;
+  };
+
+  request = {
+    controller: new AbortController(),
+    onCancel: () => {
+      const message = commitAnswer('cancelled');
+      const result = createSendResult('cancelled', question, {
+        answer,
+        message
+      });
+      sendResult = result;
+      emit('cancel', { ...detail(), ...result });
+      return result;
+    },
+    renderFrame: null
+  };
+  activeRequest = request;
+  notifyState();
+
+  try {
+    await streamContext7Response(
+      { library: resolvedLibrary.value },
+      conversation.value,
+      {
+        onChunk(delta) {
+          if (activeRequest !== request) return;
+          showTyping.value = false;
+          answer += delta;
+          if (!answerItem) {
+            answerItem = reactive<MessageDisplayItem>({
+              content: '',
+              id: nextMessageId(),
+              kind: 'message',
+              role: 'assistant'
+            });
+            displayItems.value.push(answerItem);
+          }
+          request.renderFrame ??= requestRenderFrame(renderAnswer);
+
+          const answerDetail = { ...detail(), answer, question } satisfies Context7WidgetAnswerEventDetail;
+          if (!sawFirstToken) {
+            sawFirstToken = true;
+            emit('first-token', answerDetail);
+          }
+          emit('answer', answerDetail);
+        },
+        onToolCall(toolCall) {
+          if (activeRequest !== request) return;
+          showTyping.value = false;
+          appendToolCall(toolCall);
+          emit('tool-call', { ...detail(), question, toolCall } satisfies Context7WidgetToolCallEventDetail);
+        },
+        onToolResult(toolResult) {
+          if (activeRequest !== request) return;
+          updateToolResult(toolResult);
+          emit('tool-result', { ...detail(), question, toolResult } satisfies Context7WidgetToolResultEventDetail);
+        }
+      },
+      request.controller.signal
+    );
+
+    if (activeRequest !== request) return sendResult ?? createSendResult('cancelled', question, { answer });
+    showTyping.value = false;
+    if (answer) {
+      const message = commitAnswer();
+      notifyState();
+      sendResult = createSendResult('complete', question, {
+        answer,
+        message
+      });
+      emit('answer-complete', {
+        ...detail(),
+        answer,
+        message: message as Context7Message,
+        messages: [...conversation.value],
+        question
+      } satisfies Context7WidgetAnswerCompleteEventDetail);
+      return sendResult;
+    }
+
+    sendResult = createSendResult('complete', question);
+    return sendResult;
+  } catch (error) {
+    if (activeRequest === request) {
+      showTyping.value = false;
+    }
+    if (activeRequest !== request) return sendResult ?? createSendResult('cancelled', question, { answer });
+    if (activeRequest === request && !isAbortError(error)) {
+      const message =
+        error instanceof Context7TransportError || error instanceof Error ? error.message : 'Something went wrong.';
+      displayItems.value.push({
+        html: buildContext7ErrorHtml(message, resolvedLibrary.value),
+        id: nextMessageId(),
+        kind: 'error'
+      });
+      emit('error', { ...detail(), error: message, question } satisfies Context7WidgetErrorEventDetail);
+      sendResult = createSendResult('error', question, {
+        answer,
+        error: message
+      });
+      return sendResult;
+    }
+  } finally {
+    if (activeRequest === request) {
+      cancelRenderFrame(request.renderFrame);
+      activeRequest = null;
+      busy.value = false;
+      notifyState();
+      await scrollToBottom();
+      input.value?.focus();
+    }
+  }
+
+  return sendResult ?? createSendResult('cancelled', question, { answer });
+};
+
+const appendToolCall = (toolCall: Context7ToolCall) => {
+  const id = nextMessageId();
+  displayItems.value.push({
+    contentId: `${panelId}-${id}-tool-result`,
+    expanded: false,
+    hasResult: false,
+    id,
+    kind: 'tool',
+    query: typeof toolCall.args.query === 'string' ? toolCall.args.query : 'documentation',
+    result: '',
+    toolCallId: toolCall.toolCallId
+  });
+  void scrollToBottom();
+};
+
+const updateToolResult = (toolResult: Context7ToolResult) => {
+  const item = displayItems.value.find(
+    (candidate): candidate is ToolDisplayItem =>
+      candidate.kind === 'tool' && candidate.toolCallId === toolResult.toolCallId
+  );
+  if (item) {
+    item.hasResult = true;
+    item.result = formatToolResult(toolResult.result);
+  }
+  void scrollToBottom();
+};
+
+const formatToolResult = (result: unknown) =>
+  typeof result === 'string' ? result : (JSON.stringify(result, null, 2) ?? String(result ?? ''));
+
+const scrollToBottom = async () => {
+  await nextTick();
+  if (messagesElement.value) messagesElement.value.scrollTop = messagesElement.value.scrollHeight;
+};
+
+const onBackdropClick = () => {
+  if (resolvedCloseOnOutsideClick.value) close();
+};
+
+const onDocumentPointerDown = (event: Event) => {
+  if (!isOpen.value || !resolvedCloseOnOutsideClick.value) return;
+  const path = event.composedPath();
+  if (root.value && path.includes(root.value)) return;
+  if (externalTrigger && path.includes(externalTrigger)) return;
+  close();
+};
+
+const onKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && isOpen.value) {
+    event.preventDefault();
+    close();
+    return;
+  }
+  if (event.key === 'Tab' && isOpen.value && resolvedPosition.value === 'center' && root.value) {
+    if (panel.value) trapFocus(event, panel.value);
+  }
+};
+
+const bindExternalTrigger = () => {
+  unbindExternalTrigger();
+  customTriggerSelectorInvalid = false;
+
+  const trigger = normalizeExternalTrigger(resolvedCustomTrigger.value);
+  if (!trigger) return;
+
+  const resolution = resolveContext7CustomTrigger(trigger, false);
+  customTriggerSelectorInvalid = resolution.invalidSelector;
+
+  if (resolution.element?.isConnected) {
+    externalTrigger = resolution.element;
+    externalTrigger.addEventListener('click', onExternalTriggerClick);
+    externalTriggerAccessibility = captureTriggerAccessibility(externalTrigger);
+    externalTrigger.setAttribute('aria-controls', panelId);
+    externalTrigger.setAttribute('aria-haspopup', 'dialog');
+    externalTrigger.setAttribute('aria-expanded', String(isOpen.value));
+    hasBoundExternalTrigger.value = true;
+    customTriggerWarningKey = '';
+  } else {
+    warnExternalTriggerBindingFailure(trigger, resolution.invalidSelector);
+  }
+
+  observeExternalTrigger();
+};
+
+const unbindExternalTrigger = () => {
+  customTriggerObserver?.disconnect();
+  customTriggerObserver = null;
+  if (activeAnchor.value === externalTrigger) activeAnchor.value = null;
+  externalTrigger?.removeEventListener('click', onExternalTriggerClick);
+  if (externalTriggerAccessibility) restoreTriggerAccessibility(externalTriggerAccessibility);
+  externalTriggerAccessibility = null;
+  externalTrigger = null;
+  hasBoundExternalTrigger.value = false;
+};
+
+const syncExternalTriggerExpandedState = () => externalTrigger?.setAttribute('aria-expanded', String(isOpen.value));
+
+const normalizeExternalTrigger = (trigger: Element | string | true | undefined): Element | string | null => {
+  if (typeof trigger === 'string') return normalizeContext7WidgetTrigger(trigger) || null;
+  return isContext7WidgetTriggerElement(trigger) ? trigger : null;
+};
+
+const observeExternalTrigger = () => {
+  const trigger = normalizeExternalTrigger(resolvedCustomTrigger.value);
+  if (!trigger || customTriggerSelectorInvalid || typeof MutationObserver !== 'function') return;
+
+  const observerTarget = document.documentElement ?? document.body;
+  if (!observerTarget) return;
+
+  customTriggerObserver = new MutationObserver(() => {
+    if (externalTrigger?.isConnected) return;
+    bindExternalTrigger();
+    if (isOpen.value) {
+      bindFloatingListeners();
+      updateAnchorPosition();
+    }
+  });
+  customTriggerObserver.observe(observerTarget, { childList: true, subtree: true });
+};
+
+const warnExternalTriggerBindingFailure = (trigger: Element | string, invalidSelector: boolean) => {
+  const warningKey = isContext7WidgetTriggerElement(trigger) ? 'element' : `selector:${trigger}`;
+  if (customTriggerWarningKey === warningKey) return;
+  customTriggerWarningKey = warningKey;
+
+  if (isContext7WidgetTriggerElement(trigger)) {
+    console.warn('[Context7 Widget] Custom trigger element is not connected. Keeping the built-in launcher visible.');
     return;
   }
 
-  void send();
-}
+  if (invalidSelector) {
+    console.warn(`[Context7 Widget] Invalid custom trigger selector: ${trigger}`);
+    return;
+  }
 
-const open = () => session.open();
-const close = () => session.close();
-const toggle = () => session.toggle();
-const cancel = () => session.cancel();
-const reset = () => session.reset();
+  console.warn(
+    `[Context7 Widget] Custom trigger selector was not found: ${trigger}. Keeping the built-in launcher visible.`
+  );
+};
 
-const getMessages = (): readonly Context7Message[] => session.getMessages();
+const onExternalTriggerClick = (event: Event) => {
+  event.preventDefault();
+  if (event.currentTarget instanceof Element) activeAnchor.value = event.currentTarget;
+  toggle();
+};
+
+const scheduleAnchorPositionUpdate = () => {
+  if (!isOpen.value || floatingLayoutFrame !== null) return;
+  floatingLayoutFrame = requestRenderFrame(() => {
+    floatingLayoutFrame = null;
+    if (isOpen.value) updateAnchorPosition();
+  });
+};
+
+const onFloatingLayout = (event: Event) => {
+  if (event.type === 'scroll' && root.value && event.composedPath().includes(root.value)) return;
+  scheduleAnchorPositionUpdate();
+};
+
+const bindFloatingListeners = () => {
+  unbindFloatingListeners();
+  if (resolvedCloseOnOutsideClick.value) {
+    document.addEventListener('pointerdown', onDocumentPointerDown, true);
+  }
+  if (resolvedPosition.value === 'anchor') {
+    window.addEventListener('resize', onFloatingLayout);
+    window.addEventListener('scroll', onFloatingLayout, true);
+    floatingViewport = window.visualViewport;
+    floatingViewport?.addEventListener('resize', onFloatingLayout);
+    floatingViewport?.addEventListener('scroll', onFloatingLayout);
+
+    if (typeof ResizeObserver === 'function') {
+      floatingResizeObserver = new ResizeObserver(scheduleAnchorPositionUpdate);
+      const anchor = getAnchorElement();
+      if (anchor) floatingResizeObserver.observe(anchor);
+      if (panel.value) floatingResizeObserver.observe(panel.value);
+    }
+  }
+};
+
+const unbindFloatingListeners = () => {
+  document.removeEventListener('pointerdown', onDocumentPointerDown, true);
+  window.removeEventListener('resize', onFloatingLayout);
+  window.removeEventListener('scroll', onFloatingLayout, true);
+  floatingViewport?.removeEventListener('resize', onFloatingLayout);
+  floatingViewport?.removeEventListener('scroll', onFloatingLayout);
+  floatingViewport = null;
+  floatingResizeObserver?.disconnect();
+  floatingResizeObserver = null;
+  cancelRenderFrame(floatingLayoutFrame);
+  floatingLayoutFrame = null;
+};
+
+const getAnchorElement = (): Element | null =>
+  (activeAnchor.value?.isConnected ? activeAnchor.value : null) ??
+  managedTrigger.value ??
+  (externalTrigger?.isConnected ? externalTrigger : null) ??
+  launcher.value;
+
+const updateAnchorPosition = () =>
+  _updateAnchorPosition(resolvedPosition.value, getAnchorElement(), panel.value, root.value?.style);
+
+const register = () => {
+  if (registeredWidgetId && registeredWidgetId !== resolvedWidgetId.value) {
+    unregisterVueContext7Widget(registeredWidgetId, exposed);
+  }
+  registerVueContext7Widget(resolvedWidgetId.value, exposed);
+  registeredWidgetId = resolvedWidgetId.value;
+};
+
+const getMessages = (): readonly Context7Message[] => [...conversation.value];
+
+const createSendResult = <Status extends Context7WidgetSendResult['status']>(
+  status: Status,
+  question: string,
+  options: {
+    readonly answer?: string;
+    readonly error?: Error | string;
+    readonly message?: Context7Message;
+  } = {}
+): Context7WidgetSendResult & { readonly status: Status } => ({
+  answer: options.answer ?? '',
+  error: options.error,
+  message: options.message,
+  messages: getMessages(),
+  question,
+  status
+});
+
+const notifyState = () => {
+  if (stateListeners.size === 0) return;
+  const state = {
+    busy: busy.value,
+    messages: getMessages(),
+    open: isOpen.value
+  } as const;
+  for (const listener of stateListeners) listener(state);
+};
 
 function subscribe(listener: Context7WidgetStateListener): () => void {
-  let initialized = false;
-
-  let previousBusy = false;
-  let previousOpen = false;
-
-  let previousMessages: readonly Context7Message[] | undefined;
-
-  return session.subscribe((snapshot) => {
-    if (
-      initialized &&
-      previousBusy === snapshot.busy &&
-      previousOpen === snapshot.open &&
-      previousMessages === snapshot.messages
-    ) {
-      return;
-    }
-
-    initialized = true;
-
-    previousBusy = snapshot.busy;
-    previousOpen = snapshot.open;
-    previousMessages = snapshot.messages;
-
-    listener({
-      busy: snapshot.busy,
-      messages: snapshot.messages,
-      open: snapshot.open
-    });
+  stateListeners.add(listener);
+  listener({
+    busy: busy.value,
+    messages: getMessages(),
+    open: isOpen.value
   });
+  return () => stateListeners.delete(listener);
 }
 
 const exposed: Context7WidgetExpose = {
@@ -601,8 +892,8 @@ const exposed: Context7WidgetExpose = {
   cancel,
   close,
   getMessages,
-  isBusy: () => session.isBusy(),
-  isOpen: () => session.isOpen(),
+  isBusy: () => busy.value,
+  isOpen: () => isOpen.value,
   open,
   reset,
   send,
@@ -610,64 +901,50 @@ const exposed: Context7WidgetExpose = {
   toggle
 };
 
-function register(): void {
-  if (registeredWidgetId && registeredWidgetId !== resolvedWidgetId.value) {
-    unregisterVueContext7Widget(registeredWidgetId, exposed);
-  }
-
-  registerVueContext7Widget(resolvedWidgetId.value, exposed);
-
-  registeredWidgetId = resolvedWidgetId.value;
-}
-
-watch([resolvedLibrary, resolvedInitialMessage], () => {
-  session.reset();
-});
-
+watch([resolvedLibrary, resolvedInitialMessage], reset);
 watch(
   resolvedCustomTrigger,
   () => {
-    session.refreshTrigger();
+    bindExternalTrigger();
+    activeAnchor.value = null;
   },
-  {
-    flush: 'post'
-  }
+  { flush: 'post' }
 );
-
-watch([resolvedPosition, resolvedCloseOnOutsideClick], () => {
-  session.refreshLayout();
-});
-
 watch(resolvedDefaultOpen, (value) => {
-  if (value) {
-    session.open();
+  if (value) open();
+});
+watch(resolvedPosition, () => {
+  unbindFloatingListeners();
+  if (isOpen.value) {
+    bindFloatingListeners();
+    updateAnchorPosition();
   }
 });
-
+watch(resolvedCloseOnOutsideClick, () => {
+  if (isOpen.value) bindFloatingListeners();
+});
 watch(resolvedWidgetId, register);
 
 onMounted(() => {
-  session.mount();
-
+  reset();
+  bindExternalTrigger();
   register();
-
   emit('ready', detail());
-
-  if (resolvedDefaultOpen.value) {
-    session.open();
-  }
+  if (resolvedDefaultOpen.value) open();
 });
 
 onBeforeUnmount(() => {
-  // If a streamed answer is active, cancellation is committed before teardown.
-  session.destroy();
-
-  stopSessionSubscription();
-
-  if (registeredWidgetId) {
-    unregisterVueContext7Widget(registeredWidgetId, exposed);
-  }
+  cancel();
+  unbindFloatingListeners();
+  unbindExternalTrigger();
+  stateListeners.clear();
+  if (registeredWidgetId) unregisterVueContext7Widget(registeredWidgetId, exposed);
 });
 
 defineExpose(exposed);
+
+const focusInput = () => {
+  const inputElement = input.value ?? root.value?.querySelector<HTMLInputElement>('.c7-input');
+  inputElement?.focus({ preventScroll: true });
+};
 </script>
