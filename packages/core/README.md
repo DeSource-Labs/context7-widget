@@ -3,13 +3,14 @@
 Core TypeScript package for a customizable Context7 documentation chat widget.
 
 Use this package when you want the Context7 widget runtime without committing to
-a framework binding. It exports the custom element, script loader helpers,
-typed options, event detail types, the markdown renderer, transport helpers, and
-the `./widget.js` browser build used by the hosted script.
+a framework binding. Its root exports only custom-element/script/helper use
+cases and useful public types. Custom-solution primitives live at `./core`,
+framework internals live at `./kit`, and the hosted browser build is
+`./widget.js`.
 
-The package root is side-effect free and tree-shakeable. Importing a transport,
-Markdown, layout, or helper API does not register an element or boot the
-drop-in script. The only self-starting entry is `./widget.js`.
+All ESM entries are side-effect free and tree-shakeable. Importing them does not
+register an element or boot the drop-in script. The only self-starting entry is
+`./widget.js`.
 
 ## Why It Exists
 
@@ -23,13 +24,13 @@ needed for real product sites:
 - custom triggers
 - typed events for analytics and debugging
 - a stable CSS variable and shadow-part contract
-- framework-agnostic helpers for future React, Svelte, Nuxt, and Angular
-  bindings
+- reusable headless primitives for native Vue, React, Svelte, and Angular
+  bindings or fully custom renderers
 
 ## Install
 
 ```bash
-pnpm add @desource/context7-widget
+npm install @desource/context7-widget
 ```
 
 ## Drop-In Browser Script
@@ -67,11 +68,12 @@ const widget = mountContext7Widget({
 widget.open();
 await widget.send('Show me the recommended setup.');
 widget.cancel();
+await widget.retry();
 widget.reset();
 ```
 
 `Context7WidgetElement` exposes `open`, `close`, `toggle`, `send`, `cancel`,
-`reset`, `isOpen`, `isBusy`, and `getMessages`. The same operations are
+`retry`, `reset`, `isOpen`, `isBusy`, and `getMessages`. The same operations are
 available by `widgetId` through `window.Context7Widget`.
 
 Imports are SSR-safe. Element creation, mounting, and imperative DOM operations
@@ -115,8 +117,10 @@ kebab case; script installs prefix those attributes with `data-`.
 | `closeOnOutsideClick` | `close-on-outside-click` | `true`                                                             |
 | `defaultOpen`         | `default-open`           | `false`                                                            |
 | `initialMessage`      | `initial-message`        | Built-in greeting; `{library}` is interpolated                     |
+| `labels`              | Property only            | Partial localization object merged with English defaults           |
 | `launcherLabel`       | `launcher-label`         | `Ask Docs AI`                                                      |
 | `launcherVariant`     | `launcher-variant`       | `icon`; also `pill` or `badge`                                     |
+| `linkBaseUrl`         | `link-base-url`          | Base for relative links; defaults to the Context7 library page     |
 | `panelHeight`         | `panel-height`           | Responsive stylesheet default                                      |
 | `panelWidth`          | `panel-width`            | Responsive stylesheet default                                      |
 | `placeholder`         | `placeholder`            | `Ask about the docs...`                                            |
@@ -131,6 +135,13 @@ HTML `title` attribute, avoiding an accidental browser tooltip.
 Boolean attributes accept explicit values such as `backdrop="false"` and
 `close-on-outside-click="false"`; their mere presence does not force them to
 `true`.
+
+For a mounted element, assign `widget.labels = { send: 'Enviar', ... }` to
+localize visible and assistive text, including attribution and missing-library
+fallbacks. JavaScript helpers accept the same
+`labels` option. Script-tag `data-*` values remain live after connection; a
+canonical custom-element attribute takes precedence only when the application
+explicitly authors it.
 
 ## Generate A Script Tag
 
@@ -236,28 +247,41 @@ Events: `c7:ready`, `c7:open`, `c7:close`, `c7:cancel`, `c7:question`,
 Cancelling after answer tokens arrive preserves the visible partial assistant
 message in `getMessages()` with `status: 'cancelled'`. `send()` resolves with a
 status result such as `complete`, `cancelled`, `error`, `busy`, or `empty`.
+`retry()` resends the last failed question without duplicating the user message.
+
+The composer is multiline: Enter sends and Shift+Enter inserts a newline.
+Answers and fenced code blocks have copy actions. Markdown escapes raw HTML,
+allows safe HTTP(S) and relative links, and supports headings, fenced code with
+lightweight highlighting, nested lists, tasks, blockquotes, tables, and inline
+formatting. Streaming text stays escaped plain text and is parsed once when the
+answer completes, avoiding quadratic work on long responses.
 
 ## Exports
 
 - `@desource/context7-widget`
-- `@desource/context7-widget/kit` — rendering-independent transport, markdown,
-  floating-layout calculation, contracts, defaults, and brand assets for
-  framework packages
+- `@desource/context7-widget/core` — useful framework-neutral primitives for a
+  custom experience: engine, renderer bridge, transport, Markdown, layout,
+  clipboard, modal isolation, defaults, contracts, and labels
+- `@desource/context7-widget/kit` — rendering-independent conversation engine,
+  renderer bridge, transport, markdown, floating-layout calculation, contracts,
+  defaults, and brand assets for framework packages
 - `@desource/context7-widget/widget.js`
 
-The root and `/kit` are ESM-only and preserve internal module boundaries.
-Downstream bundlers can therefore remove the custom-element runtime when an
-application imports only a helper such as `renderMarkdown` or
-`updateAnchorPosition`. The `widget.js` subpath is the classic browser
-script and intentionally has side effects.
+The root, `/core`, and `/kit` are ESM-only and preserve internal module
+boundaries. Downstream bundlers can therefore omit the custom-element runtime
+when an application imports only `renderMarkdown` or
+`resolveContext7AnchorLayout` from `/core`. `/kit` is intentionally a broader
+framework-author surface; application integrations should prefer the root or
+`/core`. The `widget.js` subpath is the classic browser script and intentionally
+has side effects.
 
 The custom element shares one constructable stylesheet across instances when
 the browser supports it and falls back to an inline shadow stylesheet
-otherwise. Streamed Markdown rendering is frame-throttled, while answer events
-remain available for every received chunk.
+otherwise. Streamed DOM updates are frame-throttled, while answer events remain
+available for every received chunk.
 
-The package publishes ESM only. Its root and `/kit` declarations are validated
-for modern Node ESM and TypeScript bundler resolution.
+The package publishes ESM only. Its root, `/core`, and `/kit` declarations are
+validated for modern Node ESM and TypeScript bundler resolution.
 
 ## Browser, Accessibility, And Security Notes
 
@@ -265,7 +289,8 @@ The runtime targets ES2020-era modern browsers with Custom Elements, open
 Shadow DOM, `fetch`, `ReadableStream`, and `AbortController`. Constructable
 stylesheets are shared when available; older browsers receive an inline
 `<style>` fallback. Centered panels use modal dialog semantics, keep keyboard
-focus inside the panel, close with Escape, and restore focus to the opener.
+focus inside the panel, make outside content inert, lock page scrolling, close
+with Escape, and restore both document state and focus to the opener.
 Corner and anchored panels remain non-modal.
 
 For a restrictive Content Security Policy, allow:

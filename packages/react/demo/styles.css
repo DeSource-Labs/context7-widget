@@ -1,0 +1,79 @@
+:root {
+  color-scheme: dark;
+  background: #07120c;
+}
+body {
+  margin: 0;
+}
+.demo-shell {
+  color: #f8fafc;
+  display: grid;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  gap: 1rem;
+  grid-template-columns: 18rem minmax(0, 1fr);
+  min-height: 100vh;
+  padding: 1rem;
+}
+.demo-controls,
+.demo-stage {
+  background: #101513;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  min-width: 0;
+  padding: 1rem;
+}
+.demo-controls,
+.demo-stage {
+  align-content: start;
+  display: grid;
+  gap: 0.8rem;
+}
+label {
+  color: rgba(248, 250, 252, 0.72);
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+.checkbox-control {
+  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+input,
+select,
+button {
+  font: inherit;
+}
+input:not([type='checkbox']),
+select {
+  background: #070b09;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 7px;
+  color: #f8fafc;
+  min-height: 2.4rem;
+  padding: 0 0.7rem;
+}
+button {
+  background: #7cffb2;
+  border: 0;
+  border-radius: 8px;
+  color: #07120c;
+  cursor: pointer;
+  font-weight: 800;
+  min-height: 2.55rem;
+  padding: 0 0.9rem;
+}
+.event-log {
+  background: #070b09;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  color: rgba(248, 250, 252, 0.78);
+  font-family: monospace;
+  line-height: 1.5;
+  padding: 0.85rem;
+}
+@media (max-width: 720px) {
+  .demo-shell {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.75rem;
+  }
+}

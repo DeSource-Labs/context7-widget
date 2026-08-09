@@ -196,4 +196,24 @@ describe('core helpers', () => {
       '<script src="https://context7.desource-labs.org/widget.js" data-backdrop="false" data-default-open="true" data-library="/owner/repo"></script>'
     );
   });
+
+  it('omits non-serializable triggers and supports plain custom-element fallbacks', () => {
+    const trigger = document.createElement('button');
+    const plainWidget = document.createElement('div');
+
+    expect(
+      buildContext7WidgetScriptTag({
+        async: false,
+        customTrigger: trigger as unknown as string,
+        library: '/owner/repo'
+      })
+    ).toBe('<script src="https://context7.desource-labs.org/widget.js" data-library="/owner/repo"></script>');
+
+    setContext7WidgetAttributes(plainWidget, { customTrigger: '#docs' });
+    expect(plainWidget.getAttribute('custom-trigger')).toBe('#docs');
+    setContext7WidgetAttributes(plainWidget, { customTrigger: trigger });
+    expect(plainWidget.hasAttribute('custom-trigger')).toBe(false);
+    setContext7WidgetAttributes(plainWidget, {}, false);
+    expect(plainWidget.hasAttribute('custom-trigger')).toBe(false);
+  });
 });

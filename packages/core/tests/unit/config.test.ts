@@ -56,4 +56,15 @@ describe('widget config', () => {
     expect(normalizeContext7WidgetTrigger('.navigation [data-docs]')).toBe('.navigation [data-docs]');
     expect(normalizeContext7WidgetTrigger('  ')).toBe('');
   });
+
+  it('accepts every non-default theme and managed launcher variant', () => {
+    expect(resolveContext7WidgetConfig({ launcherVariant: 'pill', theme: 'light' })).toMatchObject({
+      launcherVariant: 'pill',
+      theme: 'light'
+    });
+    expect(resolveContext7WidgetConfig({ launcherVariant: 'badge', theme: 'dark' })).toMatchObject({
+      launcherVariant: 'badge',
+      theme: 'dark'
+    });
+  });
 });

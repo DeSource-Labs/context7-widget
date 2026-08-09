@@ -14,13 +14,13 @@ triggers, and a framework-native implementation.
 - `customTrigger` as `true`, selector string, or omitted
 - managed trigger slot for product-specific buttons
 - complete widget styles in `styles.css`
-- shared transport, markdown, types, defaults, and brand assets from
-  `@desource/context7-widget/kit`
+- shared conversation engine, renderer bridge, transport, markdown, types,
+  defaults, and brand assets from `@desource/context7-widget/kit`
 
 ## Install
 
 ```bash
-pnpm add @desource/context7-widget-vue
+npm install @desource/context7-widget-vue
 ```
 
 Import the stylesheet once in your application entry:
@@ -71,12 +71,13 @@ await docs.send('How do I customize the widget?');
 console.log(docs.isOpen.value, docs.isBusy.value, docs.messages.value);
 
 docs.cancel();
+await docs.retry();
 docs.reset();
 ```
 
 The composable exposes reactive `widget`, `isOpen`, `isBusy`, and `messages`
 refs plus `mount`, `unmount`, `open`, `close`, `toggle`, `send`, `cancel`,
-`reset`, and `getMessages`. `mount(overrides)` also updates an existing owned
+`retry`, `reset`, and `getMessages`. `mount(overrides)` also updates an existing owned
 widget, and those overrides remain in effect when reactive source options
 change. Owned widgets are removed with their owner by default; set
 `removeOnUnmount: false` only when another part of the app will own cleanup.
@@ -109,6 +110,18 @@ Defaults are inherited by rendered Vue components and composable-owned widgets;
 the plugin does not create a second widget. Plugin options are captured when the
 plugin is created, so mutating the original options object later does not alter
 installed application behavior.
+
+## Controlled Open State
+
+Omit `open` for state initialized by `defaultOpen`. Use `v-model:open` when the
+parent owns visibility:
+
+```vue
+<Context7Widget v-model:open="docsOpen" library="/owner/repo" />
+```
+
+The component emits `update:open` as the controlled-state request. `open` and
+`close` remain lifecycle notifications emitted only after an actual transition.
 
 ## Trigger Modes
 
@@ -166,12 +179,12 @@ mount the core custom element. Customize it with the shared CSS variables:
 
 ```css
 .context7-widget-trigger {
-  --c7-vue-trigger-background: #111827;
-  --c7-vue-trigger-border: rgba(255, 255, 255, 0.16);
-  --c7-vue-trigger-color: #f8fafc;
-  --c7-vue-trigger-focus: rgba(124, 255, 178, 0.42);
-  --c7-vue-trigger-radius: 8px;
-  --c7-vue-trigger-shadow: none;
+  --c7-trigger-background: #111827;
+  --c7-trigger-border: rgba(255, 255, 255, 0.16);
+  --c7-trigger-color: #f8fafc;
+  --c7-trigger-focus: rgba(124, 255, 178, 0.42);
+  --c7-trigger-radius: 8px;
+  --c7-trigger-shadow: none;
 }
 ```
 
@@ -179,9 +192,15 @@ mount the core custom element. Customize it with the shared CSS variables:
 
 The component accepts the same public widget options as the core package:
 `library`, `theme`, `preset`, `position`, `color`, `customTrigger`, `backdrop`,
-`closeOnOutsideClick`, `defaultOpen`, `initialMessage`, `launcherLabel`,
-`launcherVariant`, `panelHeight`, `panelWidth`, `placeholder`,
-`title`, and `widgetId`.
+`closeOnOutsideClick`, `defaultOpen`, `initialMessage`, `labels`,
+`launcherLabel`, `launcherVariant`, `linkBaseUrl`, `panelHeight`, `panelWidth`,
+`placeholder`, `title`, and `widgetId`.
+
+Use `labels` for partial localization of every visible and assistive string,
+including attribution and library fallbacks. `Context7WidgetLabels` is exported
+for typed dictionaries.
+Relative Markdown links resolve against the Context7 library page unless
+`linkBaseUrl` supplies a documentation origin.
 
 Defaults are shared with core: `position="bottom-right"`, `preset="default"`,
 `theme="auto"`, `launcher-variant="icon"`, and `widget-id="default"`. A centered
@@ -198,22 +217,27 @@ Vue’s only prop-level difference is `customTrigger`:
 | Element/ref  | Bind the provided external trigger element                 |
 
 Vue events: `ready`, `open`, `close`, `cancel`, `question`, `first-token`,
-`answer`, `answer-complete`, `tool-call`, `tool-result`, and `error`.
+`answer`, `answer-complete`, `tool-call`, `tool-result`, `error`, and
+`update:open`.
 
 Each handler receives the typed event detail as its only argument.
 
 Component refs expose the same control surface as the composable:
-`open`, `close`, `toggle`, `send`, `cancel`, `reset`, `isOpen`, `isBusy`, and
-`getMessages`. Cancelling after answer tokens arrive preserves the visible
+`open`, `close`, `toggle`, `send`, `cancel`, `retry`, `reset`, `isOpen`,
+`isBusy`, and `getMessages`. Cancelling after answer tokens arrive preserves the visible
 partial assistant message in `getMessages()` with `status: 'cancelled'`.
 `send()` resolves with a status result such as `complete`, `cancelled`, `error`,
 `busy`, or `empty`.
 
 While a response streams, the send action becomes an enabled **Stop** action.
+The composer accepts multiline/code-paste input: Enter sends and Shift+Enter
+inserts a newline. Completed answers and fenced code blocks can be copied, and
+transport errors expose a retry action without duplicating the question.
 Both built-in and external triggers receive `aria-controls`,
 `aria-haspopup="dialog"`, and synchronized `aria-expanded`; attributes owned by
 an external trigger are restored when it is unbound. Centered dialogs trap
-focus, while non-modal corner and anchored panels do not.
+focus, make outside content inert, and lock page scrolling, while non-modal
+corner and anchored panels do not.
 
 The component is SSR-safe. `useContext7Widget` can also be created during SSR,
 but its imperative `mount()` method requires a browser document.

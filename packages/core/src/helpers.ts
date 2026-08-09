@@ -10,8 +10,10 @@ import { assertBrowser, isContext7WidgetTriggerElement, resolveTarget } from './
 
 const DEFAULT_SCRIPT_SRC = 'https://context7.desource-labs.org/widget.js';
 
+type Context7SerializableOptionKey = Exclude<keyof Context7WidgetOptions, 'labels'>;
+
 const OPTION_ATTRIBUTES: ReadonlyArray<
-  readonly [key: keyof Context7WidgetOptions, elementAttribute: string, scriptAttribute: string]
+  readonly [key: Context7SerializableOptionKey, elementAttribute: string, scriptAttribute: string]
 > = [
   ['backdrop', 'backdrop', 'data-backdrop'],
   ['closeOnOutsideClick', 'close-on-outside-click', 'data-close-on-outside-click'],
@@ -22,6 +24,7 @@ const OPTION_ATTRIBUTES: ReadonlyArray<
   ['launcherLabel', 'launcher-label', 'data-launcher-label'],
   ['launcherVariant', 'launcher-variant', 'data-launcher-variant'],
   ['library', 'library', 'data-library'],
+  ['linkBaseUrl', 'link-base-url', 'data-link-base-url'],
   ['panelHeight', 'panel-height', 'data-panel-height'],
   ['panelWidth', 'panel-width', 'data-panel-width'],
   ['placeholder', 'placeholder', 'data-placeholder'],
@@ -72,6 +75,7 @@ export function setContext7WidgetAttributes(
   options: Partial<Context7WidgetOptions>,
   clearMissing = false
 ): void {
+  syncContext7WidgetLabels(widget, options.labels, clearMissing);
   for (const [key, attribute] of OPTION_ATTRIBUTES) {
     const value = options[key];
     if (key === 'customTrigger') {
@@ -95,6 +99,15 @@ export function setContext7WidgetAttributes(
       widget.setAttribute(attribute, String(value));
     }
   }
+}
+
+function syncContext7WidgetLabels(
+  widget: HTMLElement,
+  value: Context7WidgetOptions['labels'] | undefined,
+  clearMissing: boolean
+): void {
+  if (value === undefined && !clearMissing) return;
+  if ('labels' in widget) (widget as Context7WidgetElement).labels = value;
 }
 
 export function getContext7WidgetApi(): Context7WidgetApi | undefined {

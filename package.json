@@ -39,7 +39,7 @@
     "release": "pnpm changeset:version && pnpm changeset:publish",
     "scan:upstream": "node scripts/scan-upstream.mts",
     "size:check": "node scripts/check-bundle-size.mts",
-    "validate:packages": "publint packages/core --strict && publint packages/vue --strict && attw --pack packages/core --profile esm-only && attw --pack packages/vue --profile esm-only --exclude-entrypoints ./styles.css",
+    "validate:packages": "publint packages/core --strict && publint packages/vue --strict && publint packages/react --strict && attw --pack packages/core --profile esm-only && attw --pack packages/vue --profile esm-only --exclude-entrypoints ./styles.css && attw --pack packages/react --profile esm-only --exclude-entrypoints ./styles.css",
     "test:all": "pnpm test:unit && pnpm test:e2e",
     "test:e2e": "pnpm -r --filter \"./packages/**\" --if-present --stream --workspace-concurrency=1 run test:e2e",
     "test:unit": "pnpm -r --filter \"./packages/**\" --if-present --stream run test:unit",

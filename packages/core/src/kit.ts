@@ -21,9 +21,11 @@ export const context7WidgetOptionKeys = [
   'customTrigger',
   'defaultOpen',
   'initialMessage',
+  'labels',
   'launcherLabel',
   'launcherVariant',
   'library',
+  'linkBaseUrl',
   'panelHeight',
   'panelWidth',
   'placeholder',
@@ -58,6 +60,8 @@ export function isContext7WidgetEventName(value: string): value is Context7Widge
 }
 
 export { CONTEXT7_URL, DESOURCE_LABS_URL, context7LogoSvg, deSourceLabsLogoUrl } from './branding.js';
+export { copyContext7Text } from './clipboard.js';
+export { context7WidgetLabels, resolveContext7WidgetLabels } from './labels.js';
 export { context7WidgetDefaults, normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from './config.js';
 export type { Context7WidgetConfigInput } from './config.js';
 export {
@@ -74,7 +78,17 @@ export {
   trapFocus,
   updateAnchorPosition
 } from './dom.js';
-export { escapeHtml, renderMarkdown } from './markdown.js';
+export { Context7ConversationEngine, createContext7ConversationEngine } from './engine.js';
+export { escapeHtml, renderMarkdown, resolveContext7MarkdownBaseUrl } from './markdown.js';
+export type { Context7MarkdownOptions } from './markdown.js';
+export { acquireContext7Modal } from './modal.js';
+export {
+  Context7ConversationRenderBridge,
+  createContext7ConversationRenderBridge,
+  formatContext7ToolResult,
+  getContext7ToolQuery
+} from './renderer.js';
+export type { Context7ConversationRenderBridgeOptions } from './renderer.js';
 export { buildContext7ErrorHtml, DEFAULT_CONTEXT7_INITIAL_MESSAGE, isAbortError } from './runtime.js';
 export { Context7TransportError, streamContext7Response } from './transport.js';
 export type {
@@ -85,6 +99,13 @@ export type {
 } from './dom.js';
 export type {
   Context7ActiveRequest,
+  Context7ConversationEngineOptions,
+  Context7ConversationEvent,
+  Context7ConversationEventListener,
+  Context7ConversationEventName,
+  Context7ConversationState,
+  Context7ConversationStateListener,
+  Context7ConversationTransport,
   Context7LauncherVariant,
   Context7Message,
   Context7Position,
@@ -92,6 +113,7 @@ export type {
   Context7StreamCallbacks,
   Context7Theme,
   Context7ToolCall,
+  Context7ToolFrame,
   Context7ToolResult,
   Context7TriggerA11yState,
   Context7WidgetAnswerCompleteEventDetail,
@@ -109,6 +131,7 @@ export type {
   Context7WidgetEventName,
   Context7WidgetEventPayload,
   Context7WidgetLifecycleEventDetail,
+  Context7WidgetLabels,
   Context7WidgetInstance,
   Context7MessageStatus,
   Context7WidgetOptions,

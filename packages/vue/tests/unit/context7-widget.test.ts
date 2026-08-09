@@ -158,6 +158,34 @@ describe('@desource/context7-widget-vue', () => {
     expect(close).toHaveBeenCalledTimes(3);
   });
 
+  it('supports an idiomatic controlled open state through v-model:open', async () => {
+    const controlledOpen = ref(true);
+    const updates = vi.fn((value: boolean) => {
+      controlledOpen.value = value;
+    });
+    const root = mount(() =>
+      h(Context7Widget, {
+        library: '/desource-labs/context7-widget',
+        open: controlledOpen.value,
+        'onUpdate:open': updates
+      })
+    );
+    await nextTick();
+
+    const widget = root.querySelector<HTMLElement>('.context7-widget')!;
+    expect(widget.hasAttribute('open')).toBe(true);
+
+    root.querySelector<HTMLButtonElement>('.c7-close')?.click();
+    await nextTick();
+    expect(updates).toHaveBeenLastCalledWith(false);
+    expect(widget.hasAttribute('open')).toBe(false);
+
+    root.querySelector<HTMLButtonElement>('.c7-launcher')?.click();
+    await nextTick();
+    expect(updates).toHaveBeenLastCalledWith(true);
+    expect(widget.hasAttribute('open')).toBe(true);
+  });
+
   it('submits a v-model draft through the Vue form', async () => {
     const question = vi.fn();
     const fetch = vi.fn(
@@ -172,7 +200,7 @@ describe('@desource/context7-widget-vue', () => {
     );
     await nextTick();
 
-    const input = root.querySelector<HTMLInputElement>('.c7-input')!;
+    const input = root.querySelector<HTMLTextAreaElement>('.c7-input')!;
     input.value = '  How do Vue forms work?  ';
     input.dispatchEvent(new Event('input', { bubbles: true }));
     root
@@ -261,6 +289,10 @@ describe('@desource/context7-widget-vue', () => {
     expect(widget.style.getPropertyValue('--c7-anchor-max-height')).toBe('296px');
     expect(observe).toHaveBeenCalledWith(trigger);
     expect(observe).toHaveBeenCalledWith(panel);
+
+    widget.dispatchEvent(new Event('scroll', { bubbles: true, composed: true }));
+    window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('resize'));
 
     setElementRect(trigger, { bottom: 160, height: 40, left: 450, right: 550, top: 120, width: 100 });
     visualViewport.dispatchEvent(new Event('scroll'));
@@ -366,6 +398,67 @@ describe('@desource/context7-widget-vue', () => {
     expect(root.querySelector('.c7-tool-content')?.textContent).toContain('Install it.');
   });
 
+  it('ignores orphan and empty tool results without rendering empty result controls', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            createSseStream([
+              'data: {"type":"tool-output-available","toolCallId":"missing","output":"orphan"}\n',
+              'data: {"type":"tool-input-available","toolCallId":"empty","toolName":"search","input":{}}\n',
+              'data: {"type":"tool-output-available","toolCallId":"empty","output":""}\n',
+              'data: [DONE]\n'
+            ])
+          )
+      )
+    );
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    await widgetRef.value?.send('Search without results');
+
+    expect(root.querySelectorAll('.c7-tool-call')).toHaveLength(1);
+    expect(root.querySelector('.c7-tool-toggle')).toBeNull();
+  });
+
+  it('keeps delegated copy interactions safe for unrelated and disconnected targets', async () => {
+    vi.useFakeTimers();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    const root = mount(() => h(Context7Widget, { library: '/desource-labs/context7-widget' }));
+    await nextTick();
+
+    const messages = root.querySelector<HTMLElement>('.c7-messages')!;
+    messages.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const text = document.createTextNode('not a copy action');
+    messages.append(text);
+    text.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    const copy = root.querySelector<HTMLButtonElement>('.c7-copy-answer')!;
+    copy.removeAttribute('aria-label');
+    copy.click();
+    await Promise.resolve();
+    await Promise.resolve();
+    vi.advanceTimersByTime(1600);
+    expect(copy.textContent).toBe('Copy answer');
+
+    copy.setAttribute('aria-label', 'Copy answer');
+    copy.click();
+    await Promise.resolve();
+    await Promise.resolve();
+    copy.remove();
+    vi.advanceTimersByTime(1600);
+    expect(writeText).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
+  });
+
   it('exposes native imperative widget methods through component refs', async () => {
     const widgetRef = ref<Context7WidgetExpose | null>(null);
     const root = mount(() =>
@@ -405,8 +498,8 @@ describe('@desource/context7-widget-vue', () => {
     expect(widgetRef.value?.isOpen()).toBe(true);
 
     await widgetRef.value?.send('Where are the docs?');
-    expect(error).toHaveBeenCalledWith(expect.objectContaining({ error: 'Missing library prop.' }));
-    expect(root.querySelector('[role="alert"]')?.textContent).toContain('Missing library prop.');
+    expect(error).toHaveBeenCalledWith(expect.objectContaining({ error: 'Missing library configuration.' }));
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain('Missing library configuration.');
 
     document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }));
     expect(widgetRef.value?.isOpen()).toBe(false);
@@ -466,6 +559,41 @@ describe('@desource/context7-widget-vue', () => {
     expect(vm.controller.isOpen.value).toBe(true);
     expect(root.querySelector('context7-widget')).toBeNull();
     expect(root.querySelector('.context7-widget')?.textContent).toContain('Hello');
+  });
+
+  it('keeps composable controls safe before mounting and defaults owned mounts to the body', async () => {
+    const hostRoot = document.createElement('div');
+    document.body.append(hostRoot);
+    const Host = defineComponent({
+      setup() {
+        return {
+          controller: useContext7Widget({
+            library: '/desource-labs/context7-widget',
+            widgetId: 'manual-docs'
+          })
+        };
+      },
+      render: () => h('div')
+    });
+    const hostApp = createApp(Host);
+    mountedApps.push(hostApp);
+    const vm = hostApp.mount(hostRoot) as unknown as {
+      controller: ReturnType<typeof useContext7Widget>;
+    };
+    await nextTick();
+
+    vm.controller.open();
+    vm.controller.close();
+    vm.controller.toggle();
+    vm.controller.cancel();
+    vm.controller.reset();
+    expect(vm.controller.getMessages()).toEqual([]);
+    await expect(vm.controller.send('No widget yet')).resolves.toBeUndefined();
+    await expect(vm.controller.retry()).resolves.toBeUndefined();
+    vm.controller.unmount();
+
+    const element = vm.controller.mount();
+    expect(element.parentElement?.parentElement).toBe(document.body);
   });
 
   it('updates a composable-owned Vue widget from reactive options', async () => {
@@ -882,6 +1010,30 @@ describe('@desource/context7-widget-vue', () => {
     expect(external.getAttribute('aria-expanded')).toBe('mixed');
   });
 
+  it('does not treat clicks inside the widget or its external trigger as outside clicks', async () => {
+    const external = document.createElement('button');
+    external.id = 'contained-trigger';
+    document.body.append(external);
+    const root = mount(() =>
+      h(Context7Widget, {
+        customTrigger: external,
+        library: '/desource-labs/context7-widget'
+      })
+    );
+    await nextTick();
+
+    const widget = root.querySelector<HTMLElement>('.context7-widget')!;
+    external.click();
+    await nextTick();
+    external.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }));
+    widget.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }));
+    expect(widget.hasAttribute('open')).toBe(true);
+
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }));
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(false);
+  });
+
   it('keeps the launcher rendered until an external selector trigger binds', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const root = mount(() =>
@@ -902,9 +1054,6 @@ describe('@desource/context7-widget-vue', () => {
     root.querySelector<HTMLButtonElement>('.c7-launcher')?.click();
     await nextTick();
     expect(widget.hasAttribute('open')).toBe(true);
-    root.querySelector<HTMLButtonElement>('.c7-launcher')?.click();
-    await nextTick();
-    expect(widget.hasAttribute('open')).toBe(false);
 
     const external = document.createElement('button');
     external.className = 'late-docs-trigger';
@@ -915,7 +1064,7 @@ describe('@desource/context7-widget-vue', () => {
 
     external.click();
     await nextTick();
-    expect(widget.hasAttribute('open')).toBe(true);
+    expect(widget.hasAttribute('open')).toBe(false);
 
     external.remove();
     await vi.waitFor(() => expect(widget.hasAttribute('custom-trigger-active')).toBe(false));
@@ -948,6 +1097,31 @@ describe('@desource/context7-widget-vue', () => {
     (externalTrigger.value as HTMLElement | null)?.click();
     await nextTick();
     expect(widget.hasAttribute('open')).toBe(true);
+  });
+
+  it('warns once for disconnected Element triggers and binds a later connected value', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const customTrigger = ref<Element | null>(document.createElement('button'));
+    const root = mount(() =>
+      h(Context7Widget, {
+        customTrigger,
+        library: '/desource-labs/context7-widget'
+      })
+    );
+    await nextTick();
+
+    const replacement = document.createElement('button');
+    customTrigger.value = replacement;
+    await nextTick();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(
+      '[Context7 Widget] Custom trigger element is not connected. Keeping the built-in launcher visible.'
+    );
+
+    document.body.append(replacement);
+    await vi.waitFor(() =>
+      expect(root.querySelector('.context7-widget')?.hasAttribute('custom-trigger-active')).toBe(true)
+    );
   });
 });
 

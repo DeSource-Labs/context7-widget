@@ -11,11 +11,18 @@ describe('runtime helpers', () => {
   });
 
   it('provides a useful fallback message without duplicating a leading slash', () => {
-    const html = buildContext7ErrorHtml('', '/owner/repo');
+    const html = buildContext7ErrorHtml('', '/owner/repo/');
 
     expect(html).toContain('Something went wrong.');
     expect(html).toContain('https://context7.com/owner/repo/admin?tab=chat');
     expect(html).not.toContain('context7.com//owner');
+  });
+
+  it('links missing library configuration to the general Context7 admin page', () => {
+    const html = buildContext7ErrorHtml('Missing library configuration.', '');
+
+    expect(html).toContain('https://context7.com/admin?tab=chat');
+    expect(html).not.toContain('context7.com//admin');
   });
 
   it('recognizes native and structurally compatible abort errors', () => {

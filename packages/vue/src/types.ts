@@ -1,5 +1,4 @@
 import type {
-  Context7ActiveRequest as _Context7ActiveRequest,
   Context7Message,
   Context7Role,
   Context7WidgetController,
@@ -43,6 +42,8 @@ export interface Context7WidgetProps extends Omit<Context7WidgetOptions, 'custom
    * - undefined keeps the built-in widget launcher.
    */
   customTrigger?: Context7WidgetCustomTrigger;
+  /** Controlled open state. Pair with v-model:open; omit for internal state. */
+  open?: boolean;
 }
 
 export interface Context7WidgetVueEventMap {
@@ -64,6 +65,8 @@ export type Context7WidgetVueEventName = keyof Context7WidgetVueEventMap;
 export type Context7WidgetVueEventDetail = Context7WidgetVueEventMap[Context7WidgetVueEventName];
 
 export interface Context7WidgetEmits {
+  /** Requests a controlled open-state change for v-model:open. */
+  (event: 'update:open', open: boolean): void;
   /** Emitted on every streamed answer update. */
   (event: 'answer', detail: Context7WidgetAnswerEventDetail): void;
   /** Emitted when the final assistant answer is available. */
@@ -116,6 +119,7 @@ type ErrorDisplayItem = {
   html: string;
   id: string;
   kind: 'error';
+  question: string;
 };
 
 export type MessageDisplayItem = {
@@ -123,6 +127,7 @@ export type MessageDisplayItem = {
   id: string;
   kind: 'message';
   role: Context7Role;
+  streaming?: boolean;
 };
 
 export type ToolDisplayItem = {
@@ -137,7 +142,5 @@ export type ToolDisplayItem = {
 };
 
 export type DisplayItem = ErrorDisplayItem | MessageDisplayItem | ToolDisplayItem;
-
-export type Context7ActiveRequest = Omit<_Context7ActiveRequest, 'typing'>;
 
 export type { Context7WidgetSendResult };

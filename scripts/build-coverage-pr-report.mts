@@ -74,6 +74,11 @@ const PACKAGE_REPORTS: PackageReport[] = [
     label: '@desource/context7-widget-vue',
     file: 'packages/vue/coverage/lcov.info',
     packagePath: 'packages/vue/src'
+  },
+  {
+    label: '@desource/context7-widget-react',
+    file: 'packages/react/coverage/lcov.info',
+    packagePath: 'packages/react/src'
   }
 ];
 

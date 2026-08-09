@@ -5,6 +5,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: {
+        core: 'src/core.ts',
         index: 'src/index.ts',
         kit: 'src/kit.ts'
       },

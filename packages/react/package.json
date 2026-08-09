@@ -1,0 +1,77 @@
+{
+  "name": "@desource/context7-widget-react",
+  "version": "0.1.0",
+  "description": "Native React component and hook for a customizable Context7 documentation chat widget.",
+  "keywords": [
+    "context7",
+    "context7-widget",
+    "react",
+    "chat-widget",
+    "ai-docs",
+    "documentation",
+    "typescript"
+  ],
+  "author": "Stefan Popov <stefan@desource-labs.org>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeSource-Labs/context7-widget.git",
+    "directory": "packages/react"
+  },
+  "bugs": {
+    "url": "https://github.com/DeSource-Labs/context7-widget/issues"
+  },
+  "homepage": "https://github.com/DeSource-Labs/context7-widget/tree/main/packages/react#readme",
+  "type": "module",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": [
+    "./dist/styles.css"
+  ],
+  "scripts": {
+    "clean": "rimraf dist tsconfig.tsbuildinfo test-results coverage",
+    "clean:modules": "rimraf node_modules",
+    "build": "pnpm clean && pnpm build:js && pnpm build:css",
+    "build:css": "sass src/styles.scss dist/styles.css --no-source-map --style=compressed",
+    "build:js": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:e2e": "playwright test",
+    "test:unit": "vitest run",
+    "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage"
+  },
+  "dependencies": {
+    "@desource/context7-widget": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.3.0 || ^19.0.0",
+    "react-dom": "^18.3.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  }
+}

@@ -146,6 +146,41 @@ describe('DOM accessibility helpers', () => {
     expect(root.style.getPropertyValue('--c7-anchor-top')).toBe('stale');
   });
 
+  it('requires complete anchor inputs and uses element/window fallbacks', () => {
+    const { anchor, panel, root } = createAnchorPositionElements();
+    setElementSize(panel, 0, 0);
+    setElementRect(anchor, { bottom: 80, height: 40, left: 40, right: 100, top: 40, width: 60 });
+    vi.stubGlobal('visualViewport', undefined);
+    setViewportSize(640, 480);
+
+    updateAnchorPosition('anchor', null, panel, root.style);
+    updateAnchorPosition('anchor', anchor, null, root.style);
+    updateAnchorPosition('anchor', anchor, panel);
+    expect(root.style.getPropertyValue('--c7-anchor-top')).toBe('');
+
+    updateAnchorPosition('anchor', anchor, panel, root.style);
+    expect(root.style.getPropertyValue('--c7-anchor-max-width')).toBe('616px');
+    expect(root.style.getPropertyValue('--c7-anchor-translate-y')).toBe('-8px');
+  });
+
+  it('uses native animation frames and resolves direct custom-trigger elements without warnings', () => {
+    const callback = vi.fn();
+    const cancel = vi.fn();
+    vi.stubGlobal(
+      'requestAnimationFrame',
+      vi.fn(() => 42)
+    );
+    vi.stubGlobal('cancelAnimationFrame', cancel);
+    const trigger = document.createElement('button');
+    document.body.append(trigger);
+
+    expect(requestRenderFrame(callback)).toBe(42);
+    cancelRenderFrame(42);
+    expect(cancel).toHaveBeenCalledWith(42);
+    expect(querySelectorSafely('button')).toBe(trigger);
+    expect(resolveTarget('button')).toBe(trigger);
+  });
+
   it('uses timer fallbacks when animation-frame APIs are unavailable', () => {
     vi.useFakeTimers();
     vi.stubGlobal('requestAnimationFrame', undefined);

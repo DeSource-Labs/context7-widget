@@ -8,6 +8,36 @@ export type Context7WidgetPreset = 'default' | 'minimal' | 'glass' | 'neo' | 'te
 
 export type Context7Theme = 'auto' | 'light' | 'dark';
 
+export interface Context7WidgetLabels {
+  readonly branding: string;
+  readonly close: string;
+  readonly conversation: string;
+  readonly context7Attribution: string;
+  readonly copied: string;
+  readonly copyAnswer: string;
+  readonly copyCode: string;
+  readonly deSourceLabsAttribution: string;
+  readonly enhancedBy: string;
+  readonly errorFallback: string;
+  readonly errorOwnerPrefix: string;
+  readonly errorOwnerSuffix: string;
+  readonly errorSettings: string;
+  readonly hideResults: string;
+  readonly input: string;
+  readonly libraryFallback: string;
+  readonly missingLibrary: string;
+  readonly poweredBy: string;
+  readonly responding: string;
+  readonly retry: string;
+  readonly searching: string;
+  readonly searchResults: string;
+  readonly send: string;
+  readonly sendQuestion: string;
+  readonly stop: string;
+  readonly stopResponse: string;
+  readonly viewResults: string;
+}
+
 export type Context7WidgetEventName =
   | 'c7:ready'
   | 'c7:open'
@@ -43,9 +73,57 @@ export interface Context7WidgetSendResult {
 
 export interface Context7ActiveRequest {
   readonly controller: AbortController;
-  readonly onCancel?: () => Context7WidgetSendResult;
-  renderFrame: number | null;
-  readonly typing: HTMLElement;
+  readonly id: number;
+  readonly question: string;
+  readonly signal: AbortSignal;
+}
+
+export interface Context7ToolFrame {
+  readonly toolCall: Context7ToolCall;
+  readonly toolResult?: Context7ToolResult;
+}
+
+export interface Context7ConversationState {
+  readonly activeRequest: Context7ActiveRequest | null;
+  readonly busy: boolean;
+  readonly messages: readonly Context7Message[];
+  readonly partialAnswer: string;
+  readonly toolFrames: readonly Context7ToolFrame[];
+}
+
+export type Context7ConversationEventName = Exclude<Context7WidgetEventName, 'c7:close' | 'c7:open' | 'c7:ready'>;
+
+export type Context7ConversationEvent<EventName extends Context7ConversationEventName = Context7ConversationEventName> =
+  {
+    readonly [Name in EventName]: {
+      readonly detail: Context7WidgetEventPayload<Name>;
+      readonly request: Context7ActiveRequest | null;
+      readonly type: Name;
+    };
+  }[EventName];
+
+export type Context7ConversationEventListener = (event: Context7ConversationEvent) => void;
+
+export type Context7ConversationStateListener = (state: Context7ConversationState) => void;
+
+export type Context7ConversationTransport = (
+  config: Pick<Context7WidgetConfig, 'library'>,
+  messages: readonly Context7Message[],
+  callbacks: Context7StreamCallbacks,
+  signal?: AbortSignal
+) => Promise<void>;
+
+export interface Context7ConversationEngineOptions {
+  /** Maximum number of recent conversation messages sent to the transport. Defaults to unlimited. */
+  readonly historyLimit?: number;
+  /** Message used when send() is called without a configured library. A resolver supports live localization. */
+  readonly missingLibraryMessage?: string | (() => string);
+  /** Shared id factory so renderers can keep DOM/display keys aligned with conversation messages. */
+  readonly nextMessageId?: () => string;
+  /** Live transport config lookup owned by the renderer. */
+  readonly resolveConfig: () => Pick<Context7WidgetConfig, 'library'>;
+  /** Injectable transport for tests and non-default runtime integrations. */
+  readonly transport?: Context7ConversationTransport;
 }
 
 export interface Context7TriggerA11yState {
@@ -64,9 +142,11 @@ export interface Context7WidgetOptions {
   customTrigger?: Context7WidgetTrigger;
   defaultOpen?: boolean;
   initialMessage?: string;
+  labels?: Partial<Context7WidgetLabels>;
   launcherLabel?: string;
   launcherVariant?: Context7LauncherVariant;
   library: string;
+  linkBaseUrl?: string;
   panelHeight?: string;
   panelWidth?: string;
   placeholder?: string;
@@ -84,9 +164,11 @@ export interface Context7WidgetConfig {
   readonly customTrigger: string;
   readonly defaultOpen: boolean;
   readonly initialMessage: string;
+  readonly labels: Context7WidgetLabels;
   readonly launcherLabel: string;
   readonly launcherVariant: Context7LauncherVariant;
   readonly library: string;
+  readonly linkBaseUrl: string;
   readonly panelHeight: string;
   readonly panelWidth: string;
   readonly placeholder: string;
@@ -99,7 +181,7 @@ export interface Context7WidgetConfig {
 
 export type Context7WidgetTarget = Element | DocumentFragment | string;
 
-export interface Context7WidgetScriptOptions extends Omit<Context7WidgetOptions, 'customTrigger'> {
+export interface Context7WidgetScriptOptions extends Omit<Context7WidgetOptions, 'customTrigger' | 'labels'> {
   async?: boolean;
   customTrigger?: string;
   defer?: boolean;
@@ -134,6 +216,7 @@ export interface Context7WidgetController {
   isOpen(): boolean;
   open(): void;
   reset(): void;
+  retry(): Promise<Context7WidgetSendResult | undefined>;
   send(message: string): Promise<Context7WidgetSendResult | undefined>;
   toggle(): void;
 }
@@ -172,6 +255,8 @@ export interface Context7WidgetQuestionEventDetail extends Context7WidgetBaseEve
   readonly messages: readonly Context7Message[];
   /** Submitted user question. */
   readonly question: string;
+  /** True when an existing failed question is retried without duplicating history. */
+  readonly retry?: boolean;
 }
 
 export interface Context7WidgetAnswerEventDetail extends Context7WidgetBaseEventDetail {
@@ -264,6 +349,7 @@ export interface Context7WidgetApi {
   isOpen(widgetId?: string): boolean;
   open(widgetId?: string): void;
   reset(widgetId?: string): void;
+  retry(widgetId?: string): Promise<Context7WidgetSendResult | undefined>;
   send(message: string, widgetId?: string): Promise<Context7WidgetSendResult | undefined>;
   toggle(widgetId?: string): void;
 }

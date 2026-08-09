@@ -1,4 +1,5 @@
 import { DEFAULT_CONTEXT7_INITIAL_MESSAGE } from './runtime.js';
+import { context7WidgetLabels, resolveContext7WidgetLabels } from './labels.js';
 import type {
   Context7LauncherVariant,
   Context7Position,
@@ -19,9 +20,11 @@ export const context7WidgetDefaults = /* @__PURE__ */ Object.freeze({
   customTrigger: '',
   defaultOpen: false,
   initialMessage: DEFAULT_CONTEXT7_INITIAL_MESSAGE,
+  labels: context7WidgetLabels,
   launcherLabel: 'Ask Docs AI',
   launcherVariant: 'icon',
   library: '',
+  linkBaseUrl: '',
   panelHeight: '',
   panelWidth: '',
   placeholder: 'Ask about the docs...',
@@ -43,9 +46,11 @@ export function resolveContext7WidgetConfig(options: Context7WidgetConfigInput):
     customTrigger: normalizeContext7WidgetTrigger(options.customTrigger),
     defaultOpen: normalizeBoolean(options.defaultOpen, context7WidgetDefaults.defaultOpen),
     initialMessage: normalizeContent(options.initialMessage, context7WidgetDefaults.initialMessage),
+    labels: resolveContext7WidgetLabels(options.labels),
     launcherLabel: normalizeString(options.launcherLabel, context7WidgetDefaults.launcherLabel),
     launcherVariant: normalizeLauncherVariant(options.launcherVariant),
     library: normalizeOptionalString(options.library),
+    linkBaseUrl: normalizeOptionalString(options.linkBaseUrl),
     panelHeight: normalizeOptionalString(options.panelHeight),
     panelWidth: normalizeOptionalString(options.panelWidth),
     placeholder: normalizeString(options.placeholder, context7WidgetDefaults.placeholder),

@@ -8,7 +8,7 @@ describe('Context7WidgetElement public API', () => {
     vi.restoreAllMocks();
   });
 
-  it('exposes safe controller operations with and without a registered widget', () => {
+  it('exposes safe controller operations with and without a registered widget', async () => {
     defineContext7Widget();
     const widget = document.createElement('context7-widget');
     widget.setAttribute('library', '/desource-labs/context7-widget');
@@ -17,6 +17,7 @@ describe('Context7WidgetElement public API', () => {
 
     const api = window.Context7Widget;
     expect(api?.get('docs')).toBe(widget);
+    expect(api?.get()).toBe(widget);
     expect(api?.getMessages('docs')).toEqual([]);
     expect(api?.isBusy('docs')).toBe(false);
     expect(api?.isOpen('docs')).toBe(false);
@@ -31,6 +32,7 @@ describe('Context7WidgetElement public API', () => {
 
     api?.reset('docs');
     api?.cancel('docs');
+    await expect(api?.retry('missing')).resolves.toBeUndefined();
     widget.remove();
 
     expect(api?.get('docs')).toBeUndefined();
@@ -99,7 +101,7 @@ describe('Context7WidgetElement public API', () => {
 
     await widget.send('How do I install this?');
 
-    const input = widget.shadowRoot?.querySelector<HTMLInputElement>('[data-c7-input]');
+    const input = widget.shadowRoot?.querySelector<HTMLTextAreaElement>('[data-c7-input]');
     const send = widget.shadowRoot?.querySelector<HTMLButtonElement>('[data-c7-send]');
     expect(widget.isBusy()).toBe(false);
     expect(input?.disabled).toBe(false);

@@ -9,7 +9,7 @@ export default defineConfig({
       formats: ['iife'],
       name: 'Context7WidgetLoader'
     },
-    minify: true,
+    minify: 'terser',
     sourcemap: true,
     target: 'es2020'
   }

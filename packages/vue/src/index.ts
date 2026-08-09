@@ -41,6 +41,7 @@ export type {
   Context7ToolResult,
   Context7WidgetEventDetail,
   Context7WidgetEventName,
+  Context7WidgetLabels,
   Context7WidgetOptions,
   Context7WidgetController,
   Context7WidgetPreset,

@@ -5,7 +5,7 @@ do not want a generic widget that clashes with the product.
 
 Context7 provides the hosted documentation backend and grounded answers. This
 repo provides the customizable client layer: script replacement, custom element,
-TypeScript helpers, Vue bindings, styling contract, event stream, and
+TypeScript helpers, native Vue and React bindings, styling contract, event stream, and
 positioning modes.
 
 ## Which Integration Should I Use?
@@ -17,7 +17,8 @@ positioning modes.
 | Docusaurus, Astro, Next.js, Nuxt, Vite | Use `/widget.js` in the root layout                   |
 | Product app with custom controls       | Use `@desource/context7-widget`                       |
 | Vue 3 app                              | Use `@desource/context7-widget-vue`                   |
-| Nuxt, React, Svelte, Angular app later | Use script/core today; dedicated packages are planned |
+| React app                              | Use `@desource/context7-widget-react`                 |
+| Svelte or Angular app                  | Use script/core today; dedicated packages are planned |
 
 ## Drop-In Replacement
 
@@ -100,7 +101,7 @@ onboarding flow, command palette, empty state, or support menu.
 ## Core TypeScript
 
 ```bash
-pnpm add @desource/context7-widget
+npm install @desource/context7-widget
 ```
 
 ```ts
@@ -127,7 +128,7 @@ const script = buildContext7WidgetScriptTag({
 ## Vue
 
 ```bash
-pnpm add @desource/context7-widget-vue
+npm install @desource/context7-widget-vue
 ```
 
 ```vue
@@ -170,7 +171,57 @@ docs.open();
 await docs.send('Show setup examples');
 console.log(docs.isBusy.value, docs.messages.value);
 docs.cancel();
+await docs.retry();
 docs.reset();
+```
+
+For parent-owned visibility, use Vue's controlled API:
+
+```vue
+<Context7Widget v-model:open="docsOpen" library="/owner/repo" />
+```
+
+## React
+
+```bash
+npm install @desource/context7-widget-react
+```
+
+```tsx
+import { useState } from 'react';
+import { Context7Widget } from '@desource/context7-widget-react';
+import '@desource/context7-widget-react/styles.css';
+
+export function DocsAssistant() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Context7Widget
+      library="/owner/repo"
+      open={open}
+      onOpenChange={setOpen}
+      position="anchor"
+      preset="glass"
+      customTrigger
+      onQuestion={(detail) => analytics.track('Docs question', detail)}
+    />
+  );
+}
+```
+
+Hook-owned programmatic widget:
+
+```tsx
+import { useContext7Widget } from '@desource/context7-widget-react';
+
+const docs = useContext7Widget({
+  autoMount: true,
+  library: '/owner/repo',
+  widgetId: 'docs'
+});
+
+await docs.send('Show setup examples');
+await docs.retry();
 ```
 
 ## Next.js App Router
@@ -233,12 +284,45 @@ context7-widget::part(send-button) {
 }
 ```
 
-Do not target internal `.c7-*` classes. They are implementation details. In
-Vue, apply the same CSS variables to `.context7-widget`; shadow parts apply only
-to the core custom element.
+Do not target internal `.c7-*` classes. They are implementation details. In Vue
+or React, apply the same CSS variables to `.context7-widget`; shadow parts apply
+only to the core custom element.
 
-Vue’s `part` attributes remain stable light-DOM selectors and can be targeted as
-`[part~='send-button']`; they are not shadow-DOM `::part()` exports.
+Framework `part` attributes remain stable light-DOM selectors and can be
+targeted as `[part~='send-button']`; they are not shadow-DOM `::part()` exports.
+
+## Localization, Links, And Chat UX
+
+Core helpers, Vue, and React accept a partial `labels` object. Only supplied
+keys replace the English defaults:
+
+```ts
+const labels = {
+  send: 'Enviar',
+  stop: 'Detener',
+  retry: 'Reintentar',
+  close: 'Cerrar chat',
+  poweredBy: 'Con tecnología de',
+  enhancedBy: 'Mejorado por',
+  libraryFallback: 'esta biblioteca',
+  missingLibrary: 'Falta la configuración de la biblioteca.'
+};
+```
+
+The shared `Context7WidgetLabels` type is exported by the core, Vue, and React
+package roots. Attribution prefixes, attribution accessibility labels, the
+initial-message library fallback, and missing-library guidance use the same
+dictionary as the chat controls.
+
+Pass `linkBaseUrl="https://docs.example.com/"` when relative links in generated
+Markdown should resolve to your own docs rather than the Context7 library page.
+Raw HTML is escaped and only safe HTTP(S)/relative links are emitted.
+
+The composer supports code paste and multiline questions: Enter sends and
+Shift+Enter adds a newline. Streaming moves keyboard focus to Stop without
+disabling the composer. Completed answers and code blocks are copyable, failed
+requests are retryable, centered dialogs isolate the background, and mobile
+safe-area/overscroll behavior is built in.
 
 ## Analytics
 

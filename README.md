@@ -1,9 +1,10 @@
 # Context7 Widget
 
 [![Coverage](https://codecov.io/gh/DeSource-Labs/context7-widget/branch/main/graph/badge.svg)](https://codecov.io/gh/DeSource-Labs/context7-widget)
-[![npm core](https://img.shields.io/npm/v/@desource/context7-widget?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget)
-[![npm vue](https://img.shields.io/npm/v/@desource/context7-widget-vue?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget-vue)
-[![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+[![Core](https://img.shields.io/npm/v/@desource/context7-widget?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget)
+[![Vue](https://img.shields.io/npm/v/@desource/context7-widget-vue?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget-vue)
+[![React](https://img.shields.io/npm/v/@desource/context7-widget-react?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget-react)
+[![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
 Add an AI documentation assistant to a product, docs site, dashboard, SDK portal,
 or internal tool, then make it look like it belongs there.
@@ -31,15 +32,17 @@ own site.
 
 ## Package Surfaces
 
-| Surface                                           | Use it when                                                                                     |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `https://context7.desource-labs.org/widget.js`    | You want a drop-in script tag for HTML, Docusaurus, Next.js, Astro, Nuxt, Vite, or static pages |
-| [`@desource/context7-widget`](./packages/core)    | You want TypeScript helpers, the custom element, script generation, or direct runtime control   |
-| [`@desource/context7-widget-vue`](./packages/vue) | You want a Vue 3 component, composable, plugin helper, typed events, and managed triggers       |
+| Surface                                               | Use it when                                                                                      |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `https://context7.desource-labs.org/widget.js`        | You want a drop-in script tag for HTML, Docusaurus, Next.js, Astro, Nuxt, Vite, or static pages  |
+| [`@desource/context7-widget`](./packages/core)        | You want TypeScript helpers, the custom element, script generation, or direct runtime control    |
+| [`@desource/context7-widget-vue`](./packages/vue)     | You want a Vue 3 component, composable, plugin helper, typed events, and managed triggers        |
+| [`@desource/context7-widget-react`](./packages/react) | You want a native React component, controlled state, hook, typed callbacks, and managed triggers |
 
-Coming next: Nuxt, React, Svelte, and Angular packages. Each framework package
-will own its UI and lifecycle while sharing transport, markdown, types, defaults,
-and brand assets through `@desource/context7-widget/kit`.
+Coming next: dedicated Svelte and Angular packages. Each framework package
+will own its UI and lifecycle while sharing the headless conversation engine,
+renderer bridge, transport, markdown, types, defaults, and brand assets through
+`@desource/context7-widget/kit`.
 
 ## Quick Start
 
@@ -93,7 +96,7 @@ backend behavior stay the same.
 ### Vue application
 
 ```bash
-pnpm add @desource/context7-widget-vue
+npm install @desource/context7-widget-vue
 ```
 
 ```vue
@@ -114,7 +117,7 @@ function trackQuestion(detail: Context7WidgetQuestionEventDetail) {
 ### TypeScript application
 
 ```bash
-pnpm add @desource/context7-widget
+npm install @desource/context7-widget
 ```
 
 ```ts
@@ -129,6 +132,21 @@ mountContext7Widget({
 });
 ```
 
+### React application
+
+```bash
+npm install @desource/context7-widget-react
+```
+
+```tsx
+import { Context7Widget } from '@desource/context7-widget-react';
+import '@desource/context7-widget-react/styles.css';
+
+export function DocsAssistant() {
+  return <Context7Widget library="/owner/repo" position="anchor" preset="glass" customTrigger />;
+}
+```
+
 ## Feature Highlights
 
 - Official-compatible script replacement for the fastest migration path.
@@ -140,12 +158,16 @@ mountContext7Widget({
 - Typed DOM events for questions, streaming answers, tool calls, errors, and
   lifecycle state.
 - Race-safe cancellation with a visible Stop action and imperative
-  `cancel`/`reset` controls.
-- Frame-throttled streamed Markdown rendering and shared constructable styles
-  for efficient multi-instance use.
+  `cancel`/`retry`/`reset` controls.
+- Multiline input, answer/code copying, error retry, complete UI localization, safe
+  relative links, tables, task/nested lists, blockquotes, and highlighted code.
+- Frame-throttled plain-text streaming with a single final Markdown parse,
+  avoiding quadratic reparsing for long answers.
+- Centered-dialog background isolation and scroll locking, focus containment,
+  safe-area padding, and contained message scrolling.
 - Public CSS variables and stable shadow parts for product-grade styling.
-- Vue component, composable, plugin helper, managed trigger button, and trigger
-  slot.
+- Native Vue and React renderers with idiomatic controlled state, composables or
+  hooks, managed triggers, and the same parameterized unit/browser contracts.
 - Daily upstream scanner for the official unversioned Context7 widget script.
 
 ## Customization
@@ -192,8 +214,10 @@ Common script attributes and component props:
 - `closeOnOutsideClick`
 - `defaultOpen`
 - `initialMessage`
+- `labels`
 - `launcherLabel`
 - `launcherVariant`
+- `linkBaseUrl`
 - `panelHeight`
 - `panelWidth`
 - `placeholder`
@@ -235,6 +259,7 @@ document.addEventListener('c7:question', (event) => {
 
 - [Core package](./packages/core)
 - [Vue package](./packages/vue)
+- [React package](./packages/react)
 - [Integration recipes](./docs/INTEGRATION.md)
 - [Architecture notes](./docs/ARCHITECTURE.md)
 - [Contributing guide](./CONTRIBUTING.md)
@@ -259,8 +284,9 @@ Nuxt.
 
 CI enforces coverage floors, production dependency and peer checks, package
 metadata/type validation, SSR imports, and gzip budgets for the hosted widget
-and real tree-shaken consumers of core, `/kit`, all framework related packages, and their stylesheets.
-Core and framework related packages also run the same real-Chromium behavior suite.
+and real tree-shaken consumers of core, `/core`, `/kit`, every framework
+package, and their stylesheets. Core, Vue, and React also run the same
+real-Chromium behavior suite.
 
 ## Maintenance
 

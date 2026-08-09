@@ -155,7 +155,7 @@ const scriptInstall =
   data-color="#10b981"
 ></scr` + `ipt>`;
 
-const coreInstall = `pnpm add @desource/context7-widget
+const coreInstall = `npm install @desource/context7-widget
 
 import { mountContext7Widget } from "@desource/context7-widget";
 
@@ -165,7 +165,7 @@ mountContext7Widget({
   color: "#10b981"
 });`;
 
-const vueInstall = `pnpm add @desource/context7-widget-vue
+const vueInstall = `npm install @desource/context7-widget-vue
 
 <Context7Widget
   library="/owner/repo"

@@ -12,6 +12,8 @@ describe('Vue widget registry', () => {
     const second = createController();
     const unrelated = createController();
 
+    unregisterVueContext7Widget('missing-docs', unrelated);
+
     registerVueContext7Widget('shared-docs', first);
     registerVueContext7Widget('shared-docs', first);
     registerVueContext7Widget('shared-docs', second);
@@ -41,6 +43,7 @@ function createController(): Context7WidgetExpose {
     isOpen: () => false,
     open() {},
     reset() {},
+    retry: async () => undefined,
     send: async () => undefined,
     subscribe: () => () => undefined,
     toggle() {}

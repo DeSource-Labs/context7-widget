@@ -23,24 +23,26 @@ const corePackageRoot = fileURLToPath(new URL('../packages/core', import.meta.ur
 const coreKit = fileURLToPath(new URL('../packages/core/dist/kit.js', import.meta.url));
 
 const fileBudgets: readonly FileBudget[] = [
-  { file: 'packages/core/dist/widget.js', maxGzipBytes: 16_300 },
-  { file: 'packages/vue/dist/index.js', maxGzipBytes: 8_500 },
-  { file: 'packages/vue/dist/styles.css', maxGzipBytes: 5_200 }
+  { file: 'packages/core/dist/widget.js', maxGzipBytes: 22_500 },
+  { file: 'packages/vue/dist/index.js', maxGzipBytes: 9_100 },
+  { file: 'packages/vue/dist/styles.css', maxGzipBytes: 5_500 },
+  { file: 'packages/react/dist/index.js', maxGzipBytes: 9_000 },
+  { file: 'packages/react/dist/styles.css', maxGzipBytes: 5_500 }
 ];
 
 const consumerBudgets: readonly ConsumerBudget[] = [
   {
-    contents: "export { updateAnchorPosition } from '@desource/context7-widget';",
+    contents: "export { resolveContext7AnchorLayout } from '@desource/context7-widget/core';",
     forbiddenMarkers: ['api/v2/widget/chat', 'data:image', 'Context7WidgetElement'],
     maxGzipBytes: 700,
-    name: 'core root layout-only consumer',
+    name: 'core /core layout-only consumer',
     resolveDir: corePackageRoot
   },
   {
-    contents: "export { renderMarkdown } from '@desource/context7-widget';",
+    contents: "export { renderMarkdown } from '@desource/context7-widget/core';",
     forbiddenMarkers: ['api/v2/widget/chat', 'data:image', 'Context7WidgetElement'],
-    maxGzipBytes: 900,
-    name: 'core root Markdown-only consumer',
+    maxGzipBytes: 3_000,
+    name: 'core /core Markdown-only consumer',
     resolveDir: corePackageRoot
   },
   {
@@ -52,7 +54,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
   },
   {
     contents: "export { mountContext7Widget } from '@desource/context7-widget';",
-    maxGzipBytes: 17_000,
+    maxGzipBytes: 23_000,
     name: 'core custom-element runtime consumer',
     resolveDir: corePackageRoot
   },
@@ -62,8 +64,18 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { Context7Widget } from './packages/vue/dist/index.js';",
     external: ['vue'],
-    maxGzipBytes: 11_300,
+    maxGzipBytes: 16_500,
     name: 'Vue component with core /kit consumer',
+    resolveDir: workspaceRoot
+  },
+  {
+    alias: {
+      '@desource/context7-widget/kit': coreKit
+    },
+    contents: "export { Context7Widget } from './packages/react/dist/index.js';",
+    external: ['react', 'react-dom', 'react-dom/client'],
+    maxGzipBytes: 15_500,
+    name: 'React component with core /kit consumer',
     resolveDir: workspaceRoot
   }
 ];
@@ -120,8 +132,10 @@ for (const budget of consumerBudgets) {
 
 for (const [name, url] of [
   ['core root', new URL('../packages/core/dist/index.js', import.meta.url)],
+  ['core /core', new URL('../packages/core/dist/core.js', import.meta.url)],
   ['core /kit', new URL('../packages/core/dist/kit.js', import.meta.url)],
-  ['Vue root', new URL('../packages/vue/dist/index.js', import.meta.url)]
+  ['Vue root', new URL('../packages/vue/dist/index.js', import.meta.url)],
+  ['React root', new URL('../packages/react/dist/index.js', import.meta.url)]
 ] as const) {
   try {
     await import(url.href);

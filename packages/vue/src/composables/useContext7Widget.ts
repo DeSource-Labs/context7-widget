@@ -50,6 +50,7 @@ export interface UseContext7WidgetReturn {
   mount: (overrides?: Partial<Context7WidgetProps>) => HTMLElement;
   open: () => void;
   reset: () => void;
+  retry: () => Promise<Context7WidgetSendResult | undefined>;
   send: (message: string) => Promise<Context7WidgetSendResult | undefined>;
   toggle: () => void;
   unmount: () => void;
@@ -202,6 +203,14 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
     syncState();
   }
 
+  async function retry(): Promise<Context7WidgetSendResult | undefined> {
+    const pending = resolveController()?.retry();
+    syncState();
+    const result = await pending;
+    syncState();
+    return result;
+  }
+
   function getMessages(): readonly Context7Message[] {
     return resolveController()?.getMessages() ?? [];
   }
@@ -247,6 +256,7 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
     mount,
     open,
     reset,
+    retry,
     send,
     toggle,
     unmount,

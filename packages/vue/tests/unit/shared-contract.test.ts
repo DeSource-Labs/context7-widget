@@ -12,7 +12,9 @@ const adapter: Context7WidgetContractAdapter = {
         h(Context7Widget, {
           customTrigger: props.customTrigger,
           initialMessage: props.initialMessage,
+          labels: props.labels,
           library: props.library,
+          position: props.position,
           ref: widget
         })
     });

@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "noEmit": true,
+    "paths": {
+      "@common/*": ["../../common/*"],
+      "@desource/context7-widget/kit": ["../core/src/kit.ts"]
+    },
+    "types": ["react", "react-dom", "node"]
+  },
+  "include": ["src", "tests", "../../common/tests/**/*.ts", "vite.config.ts", "vitest.config.ts"]
+}

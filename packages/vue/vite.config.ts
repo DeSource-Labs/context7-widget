@@ -21,7 +21,7 @@ export default defineConfig({
       bundleTypes: true,
       entryRoot: 'src',
       include: ['src'],
-      outDir: 'dist',
+      outDirs: 'dist',
       pathsToAliases: false,
       tsconfigPath: 'tsconfig.json'
     })
