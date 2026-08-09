@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { copyContext7Text } from '../../src/kit';
+import { copyText } from '../../src/kit';
 
 describe('clipboard helper', () => {
   afterEach(() => {
@@ -12,23 +12,39 @@ describe('clipboard helper', () => {
     const writeText = vi.fn(async () => undefined);
     vi.stubGlobal('navigator', { clipboard: { writeText } });
 
-    await expect(copyContext7Text('answer')).resolves.toBe(true);
+    await expect(copyText('answer')).resolves.toBe(true);
     expect(writeText).toHaveBeenCalledWith('answer');
   });
 
-  it('falls back to a temporary textarea and reports copy failures', async () => {
-    const execCommand = vi.fn(() => true);
-    Object.defineProperty(document, 'execCommand', { configurable: true, value: execCommand });
-    vi.stubGlobal('navigator', {});
+  it('returns false when Clipboard API not available', async () => {
+    vi.stubGlobal('navigator', { clipboard: undefined });
 
-    await expect(copyContext7Text('fallback')).resolves.toBe(true);
-    expect(execCommand).toHaveBeenCalledWith('copy');
-    expect(document.querySelector('textarea')).toBeNull();
+    await expect(copyText('answer')).resolves.toBe(false);
+  });
 
-    execCommand.mockImplementation(() => {
-      throw new Error('blocked');
+  it('returns false when Clipboard API throws an error', async () => {
+    const writeText = vi.fn(async () => {
+      throw new Error('Clipboard API error');
     });
-    await expect(copyContext7Text('blocked')).resolves.toBe(false);
-    await expect(copyContext7Text('')).resolves.toBe(false);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+
+    await expect(copyText('answer')).resolves.toBe(false);
+  });
+
+  it('trims whitespace from the text before copying', async () => {
+    const writeText = vi.fn(async () => undefined);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+
+    await expect(copyText('  answer  ')).resolves.toBe(true);
+    expect(writeText).toHaveBeenCalledWith('answer');
+  });
+
+  it('returns false when the text is empty or whitespace only', async () => {
+    const writeText = vi.fn(async () => undefined);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+
+    await expect(copyText('')).resolves.toBe(false);
+    await expect(copyText('   ')).resolves.toBe(false);
+    expect(writeText).not.toHaveBeenCalled();
   });
 });

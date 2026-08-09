@@ -5,7 +5,7 @@ import {
   type Context7WidgetSendResult
 } from '../../src/index.js';
 import {
-  copyContext7Text,
+  copyText,
   createContext7ConversationEngine,
   createContext7ConversationRenderBridge,
   formatContext7ToolResult,
@@ -30,7 +30,7 @@ expectType<number>(
     viewportWidth: 800
   }).left
 );
-expectType<Promise<boolean>>(copyContext7Text('copy me'));
+expectType<Promise<boolean>>(copyText('copy me'));
 
 const widget: Context7WidgetInstance | undefined = getContext7Widget('docs');
 widget?.cancel();

@@ -1,5 +1,5 @@
 /** Framework-neutral building blocks for custom Context7 chat experiences. */
-export { copyContext7Text } from './clipboard.js';
+export { copyText } from './clipboard.js';
 export { context7WidgetDefaults, normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from './config.js';
 export type { Context7WidgetConfigInput } from './config.js';
 export { resolveContext7AnchorLayout } from './dom.js';

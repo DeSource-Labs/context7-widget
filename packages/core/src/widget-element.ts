@@ -1,5 +1,5 @@
 import { renderWidgetBranding } from './branding.js';
-import { copyContext7Text } from './clipboard.js';
+import { copyText } from './clipboard.js';
 import { resolveContext7WidgetConfig } from './config.js';
 import {
   cancelRenderFrame,
@@ -647,7 +647,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
   }
 
   private async copy(button: HTMLButtonElement, value: string): Promise<void> {
-    if (!(await copyContext7Text(value))) return;
+    if (!(await copyText(value))) return;
     const originalText = button.textContent ?? '';
     const originalLabel = button.getAttribute('aria-label');
     button.textContent = this.config.labels.copied;

@@ -7,7 +7,7 @@ import {
   captureTriggerAccessibility,
   compactContext7WidgetOptions,
   context7LogoSvg,
-  copyContext7Text,
+  copyText,
   createContext7ConversationEngine,
   createContext7ConversationRenderBridge,
   deSourceLabsLogoUrl,
@@ -658,7 +658,7 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
     }
 
     async function showCopied(button: HTMLButtonElement, value: string): Promise<void> {
-      if (!(await copyContext7Text(value))) return;
+      if (!(await copyText(value))) return;
       const originalText = button.textContent ?? '';
       const originalLabel = button.getAttribute('aria-label');
       button.textContent = configRef.current.labels.copied;

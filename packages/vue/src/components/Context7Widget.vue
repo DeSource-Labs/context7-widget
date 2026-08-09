@@ -251,7 +251,7 @@ import {
   cancelRenderFrame,
   captureTriggerAccessibility,
   compactContext7WidgetOptions,
-  copyContext7Text,
+  copyText,
   context7LogoSvg,
   createContext7ConversationEngine,
   createContext7ConversationRenderBridge,
@@ -718,7 +718,7 @@ const showCopied = (target: EventTarget | null) => {
 };
 
 const copyAnswer = (item: MessageDisplayItem, target: EventTarget | null) => {
-  void copyContext7Text(item.content).then((copied) => {
+  void copyText(item.content).then((copied) => {
     if (copied) showCopied(target);
   });
 };
@@ -729,7 +729,7 @@ const onMessagesClick = (event: Event) => {
   const button = target.closest<HTMLButtonElement>('[data-c7-copy-code]');
   if (!button) return;
   const code = button.closest('.c7-code-block')?.querySelector('code')?.textContent ?? '';
-  void copyContext7Text(code).then((copied) => {
+  void copyText(code).then((copied) => {
     if (copied) showCopied(button);
   });
 };
