@@ -6,7 +6,6 @@ import {
   cancelRenderFrame,
   captureTriggerAccessibility,
   compactContext7WidgetOptions,
-  context7CopyIconHtml,
   createContext7CopyActionController,
   createContext7ConversationEngine,
   createContext7ConversationRenderBridge,
@@ -837,7 +836,21 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
                           void copyActions.copy(item.id, item.content);
                         }}
                       >
-                        <span dangerouslySetInnerHTML={{ __html: context7CopyIconHtml }} />
+                        <svg
+                          className="c7-copy-icon"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path className="c7-copy-icon--copy" d="M5 5h9v9H5zM2 11V2h9"></path>
+                          <path className="c7-copy-icon--copied" d="m3 8 3 3 7-7"></path>
+                        </svg>
                         <span aria-live="polite" className="c7-copy-status">
                           {copied ? config.labels.copied : ''}
                         </span>
