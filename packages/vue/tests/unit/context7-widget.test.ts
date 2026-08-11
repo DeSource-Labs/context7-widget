@@ -428,37 +428,6 @@ describe('@desource/context7-widget-vue', () => {
     expect(root.querySelector('.c7-tool-toggle')).toBeNull();
   });
 
-  it('keeps delegated copy interactions safe for unrelated and disconnected targets', async () => {
-    vi.useFakeTimers();
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal('navigator', { clipboard: { writeText } });
-    const root = mount(() => h(Context7Widget, { library: '/desource-labs/context7-widget' }));
-    await nextTick();
-
-    const messages = root.querySelector<HTMLElement>('.c7-messages')!;
-    messages.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    const text = document.createTextNode('not a copy action');
-    messages.append(text);
-    text.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-
-    const copy = root.querySelector<HTMLButtonElement>('.c7-copy-answer')!;
-    copy.removeAttribute('aria-label');
-    copy.click();
-    await Promise.resolve();
-    await Promise.resolve();
-    vi.advanceTimersByTime(1600);
-    expect(copy.textContent).toBe('Copy answer');
-
-    copy.setAttribute('aria-label', 'Copy answer');
-    copy.click();
-    await Promise.resolve();
-    await Promise.resolve();
-    copy.remove();
-    vi.advanceTimersByTime(1600);
-    expect(writeText).toHaveBeenCalledTimes(2);
-    vi.useRealTimers();
-  });
-
   it('exposes native imperative widget methods through component refs', async () => {
     const widgetRef = ref<Context7WidgetExpose | null>(null);
     const root = mount(() =>

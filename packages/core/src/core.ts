@@ -1,5 +1,13 @@
 /** Framework-neutral building blocks for custom Context7 chat experiences. */
 export { copyText } from './clipboard.js';
+export {
+  CONTEXT7_COPY_FEEDBACK_DELAY,
+  Context7CopyActionController,
+  context7CopyIconHtml,
+  createContext7CopyActionController,
+  syncContext7CopyButton
+} from './copy-action.js';
+export type { Context7CopyActionControllerOptions } from './copy-action.js';
 export { context7WidgetDefaults, normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from './config.js';
 export type { Context7WidgetConfigInput } from './config.js';
 export { resolveContext7AnchorLayout } from './dom.js';

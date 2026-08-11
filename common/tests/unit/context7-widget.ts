@@ -37,6 +37,7 @@ export interface Context7WidgetContractProps {
     branding: string;
     close: string;
     context7Attribution: string;
+    copied: string;
     copyAnswer: string;
     copyCode: string;
     deSourceLabsAttribution: string;
@@ -101,6 +102,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       }
       vi.unstubAllGlobals();
       vi.restoreAllMocks();
+      vi.useRealTimers();
       document.body.replaceChildren();
     });
 
@@ -331,24 +333,58 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       expect(input.readOnly).toBe(false);
     });
 
-    it('copies complete answers and fenced code through the same UI contract', async () => {
+    it('copies only explicit answer/code actions and suppresses repeats until feedback resets', async () => {
+      vi.useFakeTimers();
       const answer = 'Use this:\n\n```ts\nconst ready = true;\n```';
       const writeText = vi.fn(async () => undefined);
       vi.stubGlobal('navigator', { clipboard: { writeText } });
       stubSseResponse([jsonFrame({ delta: answer, type: 'text-delta' }), doneFrame()]);
-      const { controller, flush, view } = await mount();
+      const harness = await mount();
+      const { controller, flush, view } = harness;
 
       await controller.send('Show code');
       await flush();
 
       const assistantMessages = view.querySelectorAll<HTMLElement>('.c7-message--assistant');
       const answerMessage = lastRequired(assistantMessages);
-      required<HTMLButtonElement>(answerMessage, '.c7-copy-answer').click();
-      required<HTMLButtonElement>(answerMessage, '[data-c7-copy-code]').click();
-      await vi.waitFor(() => expect(writeText).toHaveBeenCalledTimes(2));
+      const answerCopy = (): HTMLButtonElement => required(answerMessage, '.c7-copy-answer');
+      const codeCopy = (): HTMLButtonElement => required(answerMessage, '[data-c7-copy-code]');
+
+      await interact(harness, () => answerMessage.click());
+      await interact(harness, () => required<HTMLElement>(answerMessage, 'p').click());
+      expect(writeText).not.toHaveBeenCalled();
+
+      await interact(harness, () => required<SVGElement>(answerCopy(), '.c7-copy-icon--copy').dispatchEvent(click()));
+      await flush();
+      await interact(harness, () => answerCopy().click());
+      await flush();
+      expect(writeText).toHaveBeenCalledOnce();
+
+      await interact(harness, () => required<SVGElement>(codeCopy(), '.c7-copy-icon--copy').dispatchEvent(click()));
+      await flush();
+      await interact(harness, () => codeCopy().click());
+      await flush();
+      expect(writeText).toHaveBeenCalledTimes(2);
 
       expect(writeText).toHaveBeenNthCalledWith(1, answer);
       expect(writeText).toHaveBeenNthCalledWith(2, 'const ready = true;');
+      for (const button of [answerCopy(), codeCopy()]) {
+        expect(button.hasAttribute('data-c7-copied')).toBe(true);
+        expect(button.getAttribute('aria-disabled')).toBe('true');
+        expect(button.getAttribute('aria-label')).toBe('Copied');
+        expect(required(button, '.c7-copy-status').getAttribute('aria-live')).toBe('polite');
+        expect(required(button, '.c7-copy-status').textContent).toBe('Copied');
+      }
+
+      await interact(harness, () => vi.advanceTimersByTime(1599));
+      await flush();
+      expect(answerCopy().hasAttribute('data-c7-copied')).toBe(true);
+      await interact(harness, () => vi.advanceTimersByTime(1));
+      await flush();
+      expect(answerCopy().hasAttribute('data-c7-copied')).toBe(false);
+      expect(answerCopy().getAttribute('aria-label')).toBe('Copy answer');
+      expect(codeCopy().hasAttribute('data-c7-copied')).toBe(false);
+      expect(codeCopy().getAttribute('aria-label')).toBe('Copy code');
     });
 
     it('localizes controls and isolates centered dialogs from the host page', async () => {
@@ -378,7 +414,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       expect(required(view, '.c7-close').getAttribute('aria-label')).toBe('Fermer');
       expect(required(view, '.c7-input').getAttribute('aria-label')).toBe('Question de documentation');
       expect(required(view, '.c7-send').textContent).toContain('Envoyer');
-      expect(required(view, '.c7-copy-answer').textContent).toContain('Copier la réponse');
+      expect(required(view, '.c7-copy-answer').getAttribute('aria-label')).toBe('Copier la réponse');
       expect(required(view, '.c7-message--assistant').textContent).toContain('cette bibliothèque');
 
       const branding = required(view, '.c7-branding');
@@ -641,6 +677,10 @@ function jsonFrame(value: Readonly<Record<string, unknown>>): string {
 
 function doneFrame(): string {
   return 'data: [DONE]\n';
+}
+
+function click(): MouseEvent {
+  return new MouseEvent('click', { bubbles: true, cancelable: true });
 }
 
 function required<ElementType extends Element = HTMLElement>(view: ParentNode, selector: string): ElementType {

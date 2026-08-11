@@ -7,7 +7,8 @@ import {
   captureTriggerAccessibility,
   compactContext7WidgetOptions,
   context7LogoSvg,
-  copyText,
+  context7CopyIconHtml,
+  createContext7CopyActionController,
   createContext7ConversationEngine,
   createContext7ConversationRenderBridge,
   deSourceLabsLogoUrl,
@@ -22,10 +23,12 @@ import {
   resolveContext7MarkdownBaseUrl,
   resolveContext7WidgetConfig,
   restoreTriggerAccessibility,
+  syncContext7CopyButton,
   trapFocus,
   updateAnchorPosition,
   type Context7ConversationEvent,
   type Context7ConversationState,
+  type Context7CopyActionController,
   type Context7Message,
   type Context7ToolCall,
   type Context7ToolResult,
@@ -71,6 +74,8 @@ interface WidgetActions {
   send(message?: string): Promise<Context7WidgetSendResult>;
   toggle(): void;
 }
+
+type CopyActionKey = HTMLButtonElement | string;
 
 const CLOSE_ICON = (
   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
@@ -160,12 +165,30 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
     const conversationRef = useRef(conversation);
     conversationRef.current = conversation;
     const [displayItems, setDisplayItems] = useState<DisplayItem[]>([]);
+    const [copiedAnswerIds, setCopiedAnswerIds] = useState<ReadonlySet<string>>(new Set());
     const [draft, setDraft] = useState('');
     const [showTyping, setShowTyping] = useState(false);
     const [hasBoundExternalTrigger, setHasBoundExternalTrigger] = useState(false);
     const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '-');
     const managedTriggerId = `context7-widget-trigger-${instanceId}`;
     const panelId = `context7-widget-panel-${instanceId}`;
+
+    const copyActionsRef = useRef<Context7CopyActionController<CopyActionKey> | null>(null);
+    copyActionsRef.current ??= createContext7CopyActionController<CopyActionKey>({
+      onChange(key, copied) {
+        if (typeof key === 'string') {
+          setCopiedAnswerIds((current) => {
+            const next = new Set(current);
+            if (copied) next.add(key);
+            else next.delete(key);
+            return next;
+          });
+          return;
+        }
+        syncContext7CopyButton(key, copied, configRef.current.labels.copyCode, configRef.current.labels.copied);
+      }
+    });
+    const copyActions = copyActionsRef.current;
 
     const getAnchorElement = useCallback((): Element | null => {
       return (
@@ -374,6 +397,8 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
     function reset(): void {
       engine.reset();
       renderBridge.clearActiveAnswer();
+      copyActions.reset(false);
+      setCopiedAnswerIds(new Set());
       const current = configRef.current;
       const intro = current.initialMessage.replace(/\{library\}/g, current.library || current.labels.libraryFallback);
       setDisplayItems([{ content: intro, id: nextMessageId(), kind: 'message', role: 'assistant' }]);
@@ -442,20 +467,23 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       const unsubscribeEvents = engine.subscribeEvents((event) => renderBridge.handleEvent(event));
       return () => {
         engine.cancel();
+        copyActions.reset(false);
         unsubscribeEvents();
         unsubscribeState();
         renderBridge.clearActiveAnswer();
       };
-    }, [engine, renderBridge]);
+    }, [copyActions, engine, renderBridge]);
 
     useEffect(() => {
       engine.reset();
       renderBridge.clearActiveAnswer();
+      copyActions.reset(false);
+      setCopiedAnswerIds(new Set());
       const intro = config.initialMessage.replace(/\{library\}/g, initialMessageLibrary);
       setDisplayItems([{ content: intro, id: nextMessageId(), kind: 'message', role: 'assistant' }]);
       setConversation([]);
       setShowTyping(false);
-    }, [config.initialMessage, engine, initialMessageLibrary, renderBridge]);
+    }, [config.initialMessage, copyActions, engine, initialMessageLibrary, renderBridge]);
 
     useEffect(() => {
       const state = { busy, messages: conversation, open: actualOpen } as const;
@@ -657,26 +685,14 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       toggle();
     }
 
-    async function showCopied(button: HTMLButtonElement, value: string): Promise<void> {
-      if (!(await copyText(value))) return;
-      const originalText = button.textContent ?? '';
-      const originalLabel = button.getAttribute('aria-label');
-      button.textContent = configRef.current.labels.copied;
-      button.setAttribute('aria-label', configRef.current.labels.copied);
-      window.setTimeout(() => {
-        if (!button.isConnected) return;
-        button.textContent = originalText;
-        if (originalLabel) button.setAttribute('aria-label', originalLabel);
-      }, 1600);
-    }
-
-    function onMessagesClick(event: ReactMouseEvent<HTMLDivElement>): void {
+    function onDelegatedCopyClick(event: ReactMouseEvent<HTMLDivElement>): void {
       const target = event.target;
       if (!(target instanceof Element)) return;
       const button = target.closest<HTMLButtonElement>('[data-c7-copy-code]');
-      if (!button) return;
+      if (!button || !messagesRef.current?.contains(button)) return;
+      event.stopPropagation();
       const code = button.closest('.c7-code-block')?.querySelector('code')?.textContent ?? '';
-      void showCopied(button, code);
+      void copyActions.copy(button, code);
     }
 
     function renderMessage(item: MessageDisplayItem): string {
@@ -796,10 +812,11 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
             className="c7-messages"
             part="messages"
             role="log"
-            onClick={onMessagesClick}
+            onClick={onDelegatedCopyClick}
           >
             {displayItems.map((item) => {
               if (item.kind === 'message') {
+                const copied = item.role === 'assistant' && copiedAnswerIds.has(item.id);
                 return (
                   <div
                     key={item.id}
@@ -809,13 +826,22 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
                     <div dangerouslySetInnerHTML={{ __html: renderMessage(item) }} />
                     {item.role === 'assistant' && !item.streaming ? (
                       <button
-                        aria-label={config.labels.copyAnswer}
+                        aria-disabled={copied || undefined}
+                        aria-label={copied ? config.labels.copied : config.labels.copyAnswer}
                         className="c7-copy-answer"
                         data-c7-copy-answer
+                        data-c7-copied={copied ? '' : undefined}
+                        title={copied ? config.labels.copied : config.labels.copyAnswer}
                         type="button"
-                        onClick={(event) => void showCopied(event.currentTarget, item.content)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void copyActions.copy(item.id, item.content);
+                        }}
                       >
-                        {config.labels.copyAnswer}
+                        <span dangerouslySetInnerHTML={{ __html: context7CopyIconHtml }} />
+                        <span aria-live="polite" className="c7-copy-status">
+                          {copied ? config.labels.copied : ''}
+                        </span>
                       </button>
                     ) : null}
                   </div>

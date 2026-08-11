@@ -1,6 +1,6 @@
 import { renderWidgetBranding } from './branding.js';
-import { copyText } from './clipboard.js';
 import { resolveContext7WidgetConfig } from './config.js';
+import { context7CopyIconsHtml, createContext7CopyActionController, syncContext7CopyButton } from './copy-action.js';
 import {
   cancelRenderFrame,
   captureTriggerAccessibility,
@@ -114,6 +114,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
   private activeAnchorElement: Element | null = null;
   private config: Context7WidgetConfig = readConfig(this);
   private conversationInitialized = false;
+  private readonly copyActions = createContext7CopyActionController<HTMLButtonElement>({
+    onChange: (button, copied) => this.syncCopyButton(button, copied)
+  });
   private readonly copyValues = new WeakMap<HTMLButtonElement, string>();
   private customTriggerElement: Element | null = null;
   private labelsInput: Partial<Context7WidgetLabels> | undefined;
@@ -212,16 +215,17 @@ export class Context7WidgetElement extends BaseHTMLElement {
 
   private readonly onInput = () => this.resizeInput();
 
-  private readonly onMessagesClick = (event: Event) => {
+  private readonly onDelegatedCopyClick = (event: Event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
     const button = target.closest<HTMLButtonElement>('[data-c7-copy-answer], [data-c7-copy-code]');
     if (!button || !this.messagesElement.contains(button)) return;
+    event.stopPropagation();
 
     const value = button.hasAttribute('data-c7-copy-code')
       ? (button.closest('.c7-code-block')?.querySelector('code')?.textContent ?? '')
       : (this.copyValues.get(button) ?? '');
-    void this.copy(button, value);
+    void this.copyActions.copy(button, value);
   };
 
   private readonly onCloseClick = () => {
@@ -310,6 +314,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
 
   disconnectedCallback(): void {
     this.cancel();
+    this.copyActions.reset(false);
     this.releaseModalState();
     this.unbindFloatingListeners();
     this.unbindCustomTrigger();
@@ -398,6 +403,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
   reset(): void {
     this.engine.reset();
     this.renderBridge.clearActiveAnswer();
+    this.copyActions.reset(false);
     this.toolCalls.clear();
     this.messagesElement.innerHTML = '';
     const intro = this.config.initialMessage.replace(
@@ -510,7 +516,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.closeButton?.addEventListener('click', this.onCloseClick);
     this.form?.addEventListener('submit', this.onFormSubmit);
     this.input?.addEventListener('input', this.onInput);
-    this.messagesElement?.addEventListener('click', this.onMessagesClick);
+    this.messagesElement?.addEventListener('click', this.onDelegatedCopyClick);
     this.root.addEventListener('keydown', this.onKeyDown as (event: Event) => void);
   }
 
@@ -555,6 +561,11 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.elements.deSourceLabsAttribution.setAttribute('aria-label', labels.deSourceLabsAttribution);
     this.elements.deSourceLabsAttribution.setAttribute('title', labels.deSourceLabsAttribution);
     this.elements.enhancedBy.textContent = labels.enhancedBy;
+    for (const button of this.messagesElement.querySelectorAll<HTMLButtonElement>(
+      '[data-c7-copy-answer], [data-c7-copy-code]'
+    )) {
+      this.syncCopyButton(button, this.copyActions.isCopied(button));
+    }
     this.setBusy(this.isBusy());
   }
 
@@ -640,23 +651,17 @@ export class Context7WidgetElement extends BaseHTMLElement {
     button.className = 'c7-copy-answer';
     button.type = 'button';
     button.setAttribute('data-c7-copy-answer', '');
-    button.setAttribute('aria-label', this.config.labels.copyAnswer);
-    button.textContent = this.config.labels.copyAnswer;
+    button.innerHTML = context7CopyIconsHtml;
+    this.syncCopyButton(button, false);
     this.copyValues.set(button, answer);
     message.append(button);
   }
 
-  private async copy(button: HTMLButtonElement, value: string): Promise<void> {
-    if (!(await copyText(value))) return;
-    const originalText = button.textContent ?? '';
-    const originalLabel = button.getAttribute('aria-label');
-    button.textContent = this.config.labels.copied;
-    button.setAttribute('aria-label', this.config.labels.copied);
-    window.setTimeout(() => {
-      if (!button.isConnected) return;
-      button.textContent = originalText;
-      if (originalLabel) button.setAttribute('aria-label', originalLabel);
-    }, 1600);
+  private syncCopyButton(button: HTMLButtonElement, copied: boolean): void {
+    const copyLabel = button.hasAttribute('data-c7-copy-code')
+      ? this.config.labels.copyCode
+      : this.config.labels.copyAnswer;
+    syncContext7CopyButton(button, copied, copyLabel, this.config.labels.copied);
   }
 
   private appendError(message: string, _question: string): void {

@@ -250,18 +250,20 @@ status result such as `complete`, `cancelled`, `error`, `busy`, or `empty`.
 `retry()` resends the last failed question without duplicating the user message.
 
 The composer is multiline: Enter sends and Shift+Enter inserts a newline.
-Answers and fenced code blocks have copy actions. Markdown escapes raw HTML,
-allows safe HTTP(S) and relative links, and supports headings, fenced code with
-lightweight highlighting, nested lists, tasks, blockquotes, tables, and inline
-formatting. Streaming text stays escaped plain text and is parsed once when the
-answer completes, avoiding quadratic work on long responses.
+Answers and fenced code blocks have copy actions.
+Markdown escapes raw HTML, allows safe HTTP(S) and relative links, and supports
+headings, fenced code with lightweight highlighting, nested lists, tasks,
+blockquotes, tables, and inline formatting. Streaming text stays escaped plain
+text and is parsed once when the answer completes, avoiding quadratic work on
+long responses.
 
 ## Exports
 
 - `@desource/context7-widget`
 - `@desource/context7-widget/core` — useful framework-neutral primitives for a
   custom experience: engine, renderer bridge, transport, Markdown, layout,
-  clipboard, modal isolation, defaults, contracts, and labels
+  clipboard and copy-action coordination, modal isolation, defaults, contracts,
+  and labels
 - `@desource/context7-widget/kit` — rendering-independent conversation engine,
   renderer bridge, transport, markdown, floating-layout calculation, contracts,
   defaults, and brand assets for framework packages

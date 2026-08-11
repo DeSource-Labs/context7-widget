@@ -107,6 +107,8 @@ is what makes replacing only `https://context7.com/widget.js` with
   lifecycle, and shared tool-frame formatting;
 - Context7 API transport and stream compatibility;
 - markdown and HTML safety helpers;
+- copy-action coordination for trimming, pending-write deduplication, feedback
+  timing, repeat suppression, and stale async invalidation;
 - pure anchored-panel layout calculation;
 - option, message, event, and tool-call contracts;
 - shared defaults and brand assets.
@@ -190,14 +192,14 @@ security-sensitive parsing, and observable behavior maintained once.
 
 ### Maintenance Change Map
 
-| Change                                                        | Source of truth                                      | Required parity proof                                  |
-| ------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------ |
-| Request state, cancellation, retry, history, or events        | `packages/core/src/engine.ts` and `renderer.ts`      | Core unit tests plus the shared unit contract          |
-| Context7 HTTP or stream compatibility                         | `packages/core/src/transport.ts`                     | Core transport tests; no renderer edits                |
-| Markdown, clipboard, modal, layout, localization, or defaults | The focused core primitive under `packages/core/src` | Primitive unit tests plus the relevant shared behavior |
-| Widget visual tokens and responsive UX                        | `common/styles/_widget.scss`                         | Style tests and the shared browser contract            |
-| Native DOM or lifecycle behavior                              | Core custom element, Vue SFC, and React component    | The same common contract through each thin adapter     |
-| Framework-only API behavior                                   | The owning package                                   | A focused package test and public declaration test     |
+| Change                                                                    | Source of truth                                      | Required parity proof                                  |
+| ------------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------ |
+| Request state, cancellation, retry, history, or events                    | `packages/core/src/engine.ts` and `renderer.ts`      | Core unit tests plus the shared unit contract          |
+| Context7 HTTP or stream compatibility                                     | `packages/core/src/transport.ts`                     | Core transport tests; no renderer edits                |
+| Markdown, clipboard/copy action, modal, layout, localization, or defaults | The focused core primitive under `packages/core/src` | Primitive unit tests plus the relevant shared behavior |
+| Widget visual tokens and responsive UX                                    | `common/styles/_widget.scss`                         | Style tests and the shared browser contract            |
+| Native DOM or lifecycle behavior                                          | Core custom element, Vue SFC, and React component    | The same common contract through each thin adapter     |
+| Framework-only API behavior                                               | The owning package                                   | A focused package test and public declaration test     |
 
 When adding another framework package, keep its renderer native, import only
 the required `/kit` primitives, implement the common unit and browser adapters,

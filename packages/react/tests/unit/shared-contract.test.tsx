@@ -74,11 +74,16 @@ const adapter: Context7WidgetContractAdapter = {
       controller: controllerProxy,
       flush: async () => {
         await act(async () => {
-          await new Promise<void>((resolve) => queueMicrotask(resolve));
+          await Promise.resolve();
         });
       },
       interact: async (action) => {
-        await act(async () => action());
+        await act(async () => {
+          action();
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+        });
       },
       unmount: () => {
         act(() => root.unmount());

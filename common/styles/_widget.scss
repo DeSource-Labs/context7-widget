@@ -773,6 +773,44 @@
     padding: 4px 6px;
   }
 
+  .c7-code-copy,
+  .c7-copy-answer {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    line-height: 0;
+    min-height: 28px;
+    min-width: 28px;
+  }
+
+  .c7-copy-icon {
+    display: block;
+    flex: 0 0 auto;
+  }
+
+  .c7-copy-icon--copied,
+  [data-c7-copied] .c7-copy-icon--copy {
+    display: none;
+  }
+
+  [data-c7-copied] .c7-copy-icon--copied {
+    display: initial;
+  }
+
+  [data-c7-copied] {
+    cursor: default;
+  }
+
+  .c7-copy-status {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+
   .c7-code-copy:hover,
   .c7-copy-answer:hover,
   .c7-retry:hover {
@@ -786,7 +824,7 @@
 
   .c7-copy-answer {
     color: var(--c7-muted-color);
-    display: block;
+    display: flex;
     margin: 7px -6px -5px auto;
   }
 

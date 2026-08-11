@@ -61,6 +61,14 @@ export function isContext7WidgetEventName(value: string): value is Context7Widge
 
 export { CONTEXT7_URL, DESOURCE_LABS_URL, context7LogoSvg, deSourceLabsLogoUrl } from './branding.js';
 export { copyText } from './clipboard.js';
+export {
+  CONTEXT7_COPY_FEEDBACK_DELAY,
+  Context7CopyActionController,
+  context7CopyIconHtml,
+  createContext7CopyActionController,
+  syncContext7CopyButton
+} from './copy-action.js';
+export type { Context7CopyActionControllerOptions } from './copy-action.js';
 export { context7WidgetLabels, resolveContext7WidgetLabels } from './labels.js';
 export { context7WidgetDefaults, normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from './config.js';
 export type { Context7WidgetConfigInput } from './config.js';

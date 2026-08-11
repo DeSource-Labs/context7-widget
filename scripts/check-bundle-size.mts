@@ -54,7 +54,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
   },
   {
     contents: "export { mountContext7Widget } from '@desource/context7-widget';",
-    maxGzipBytes: 23_000,
+    maxGzipBytes: 23_500,
     name: 'core custom-element runtime consumer',
     resolveDir: corePackageRoot
   },
@@ -64,7 +64,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { Context7Widget } from './packages/vue/dist/index.js';",
     external: ['vue'],
-    maxGzipBytes: 16_500,
+    maxGzipBytes: 16_900,
     name: 'Vue component with core /kit consumer',
     resolveDir: workspaceRoot
   },
@@ -74,7 +74,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { Context7Widget } from './packages/react/dist/index.js';",
     external: ['react', 'react-dom', 'react-dom/client'],
-    maxGzipBytes: 15_500,
+    maxGzipBytes: 16_000,
     name: 'React component with core /kit consumer',
     resolveDir: workspaceRoot
   }

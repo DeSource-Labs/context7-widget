@@ -1,3 +1,5 @@
+import { context7CopyIconsHtml } from './copy-action.js';
+
 export interface Context7MarkdownOptions {
   /** Base URL used to resolve relative documentation links. */
   readonly baseUrl?: string;
@@ -171,7 +173,7 @@ function renderCodeFence(
   const languageClass = language ? ` class="language-${escapeHtml(language)}"` : '';
   const languageLabel = language ? `<span class="c7-code-language">${escapeHtml(language)}</span>` : '';
   const copyLabel = escapeHtml(options.copyCodeLabel?.trim() || 'Copy code');
-  const header = `<div class="c7-code-header">${languageLabel}<button aria-label="${copyLabel}" class="c7-code-copy" data-c7-copy-code type="button">${copyLabel}</button></div>`;
+  const header = `<div class="c7-code-header">${languageLabel}<button aria-label="${copyLabel}" class="c7-code-copy" data-c7-copy-code title="${copyLabel}" type="button">${context7CopyIconsHtml}</button></div>`;
   const highlighted = highlightCode(code.join('\n'), language);
 
   return {

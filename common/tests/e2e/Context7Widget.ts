@@ -99,6 +99,47 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await expect(container.locator(selectors.eventLog)).toContainText('toolResult:1');
     });
 
+    test('copies only explicit actions and suppresses repeated writes until feedback resets', async ({ page }) => {
+      await page.evaluate(() => {
+        const context = window as Window & { __context7Copies?: string[] };
+        context.__context7Copies = [];
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          value: {
+            writeText(value: string) {
+              context.__context7Copies?.push(value);
+              return Promise.resolve();
+            }
+          }
+        });
+      });
+      await container.locator(selectors.programmaticSend).click();
+
+      const answer = widget.locator('.c7-message--assistant').last();
+      const answerCopy = answer.locator('.c7-copy-answer');
+      const codeCopy = answer.locator('[data-c7-copy-code]');
+
+      await answer.locator('p').click();
+      await expect.poll(() => copiedValues(page)).toEqual([]);
+
+      await answerCopy.click();
+      await expect(answerCopy).toHaveAttribute('aria-label', 'Copied');
+      await answerCopy.click({ force: true });
+      await expect
+        .poll(() => copiedValues(page))
+        .toEqual(['Mocked Context7 answer.\n\n```ts\nconst ready = true;\n```']);
+
+      await codeCopy.click();
+      await expect(codeCopy).toHaveAttribute('aria-label', 'Copied');
+      await codeCopy.click({ force: true });
+      await expect
+        .poll(() => copiedValues(page))
+        .toEqual(['Mocked Context7 answer.\n\n```ts\nconst ready = true;\n```', 'const ready = true;']);
+
+      await expect(answerCopy).toHaveAttribute('aria-label', 'Copy answer');
+      await expect(codeCopy).toHaveAttribute('aria-label', 'Copy code');
+    });
+
     test('offers an enabled Stop action that aborts without an error event', async ({ page }) => {
       await page.evaluate((endpoint) => {
         const originalFetch = window.fetch;
@@ -196,13 +237,17 @@ async function mockContext7Chat(page: Page): Promise<void> {
         'data: {"type":"tool-input-available","toolCallId":"tool-1","toolName":"search","input":{"query":"demo"}}\n',
         'data: {"type":"tool-output-available","toolCallId":"tool-1","output":{"ok":true}}\n',
         'data: {"type":"text-delta","delta":"Mocked "}\n',
-        'data: {"type":"text-delta","delta":"Context7 answer."}\n',
+        'data: {"type":"text-delta","delta":"Context7 answer.\\n\\n```ts\\nconst ready = true;\\n```"}\n',
         'data: [DONE]\n'
       ].join(''),
       contentType: 'text/event-stream',
       status: 200
     });
   });
+}
+
+async function copiedValues(page: Page): Promise<string[]> {
+  return page.evaluate(() => [...((window as Window & { __context7Copies?: string[] }).__context7Copies ?? [])]);
 }
 
 function panel(widget: Locator): Locator {

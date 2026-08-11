@@ -69,7 +69,7 @@
         class="c7-messages"
         part="messages"
         role="log"
-        @click="onMessagesClick"
+        @click="onDelegatedCopyClick"
       >
         <template v-for="item in displayItems" :key="item.id">
           <div
@@ -80,13 +80,19 @@
             <div v-safe-html="renderMessage(item)" />
             <button
               v-if="item.role === 'assistant' && !item.streaming"
-              :aria-label="resolvedLabels.copyAnswer"
+              :aria-disabled="copiedAnswerIds.has(item.id) ? 'true' : undefined"
+              :aria-label="copiedAnswerIds.has(item.id) ? resolvedLabels.copied : resolvedLabels.copyAnswer"
               class="c7-copy-answer"
               data-c7-copy-answer
+              :data-c7-copied="copiedAnswerIds.has(item.id) ? '' : undefined"
+              :title="copiedAnswerIds.has(item.id) ? resolvedLabels.copied : resolvedLabels.copyAnswer"
               type="button"
-              @click="copyAnswer(item, $event.currentTarget)"
+              @click.stop="copyAnswer(item)"
             >
-              {{ resolvedLabels.copyAnswer }}
+              <span v-safe-html="context7CopyIconHtml" />
+              <span aria-live="polite" class="c7-copy-status">
+                {{ copiedAnswerIds.has(item.id) ? resolvedLabels.copied : '' }}
+              </span>
             </button>
           </div>
 
@@ -251,8 +257,9 @@ import {
   cancelRenderFrame,
   captureTriggerAccessibility,
   compactContext7WidgetOptions,
-  copyText,
+  context7CopyIconHtml,
   context7LogoSvg,
+  createContext7CopyActionController,
   createContext7ConversationEngine,
   createContext7ConversationRenderBridge,
   deSourceLabsLogoUrl,
@@ -267,6 +274,7 @@ import {
   resolveContext7CustomTrigger,
   resolveContext7WidgetConfig,
   restoreTriggerAccessibility,
+  syncContext7CopyButton,
   trapFocus,
   updateAnchorPosition as _updateAnchorPosition,
   type Context7ConversationEvent,
@@ -336,6 +344,7 @@ const isOpen = ref(false);
 const busy = ref(false);
 const draft = ref('');
 const displayItems = ref<DisplayItem[]>([]);
+const copiedAnswerIds = ref<ReadonlySet<string>>(new Set());
 const conversation = ref<Context7Message[]>([]);
 const showTyping = ref(false);
 const activeAnchor = ref<Element | null>(null);
@@ -411,6 +420,21 @@ const widgetStyle = computed(() => ({
   '--c7-panel-width': resolvedPanelWidth.value || undefined
 }));
 
+type CopyActionKey = HTMLButtonElement | string;
+
+const copyActions = createContext7CopyActionController<CopyActionKey>({
+  onChange(key, copied) {
+    if (typeof key === 'string') {
+      const next = new Set(copiedAnswerIds.value);
+      if (copied) next.add(key);
+      else next.delete(key);
+      copiedAnswerIds.value = next;
+      return;
+    }
+    syncContext7CopyButton(key, copied, resolvedLabels.value.copyCode, resolvedLabels.value.copied);
+  }
+});
+
 const detail = (): Context7WidgetLifecycleEventDetail => ({
   library: resolvedLibrary.value,
   widget: root.value as HTMLElement,
@@ -447,6 +471,8 @@ const engine = createContext7ConversationEngine({
 const reset = () => {
   engine.reset();
   renderBridge.clearActiveAnswer();
+  copyActions.reset(false);
+  copiedAnswerIds.value = new Set();
   const intro = resolvedInitialMessage.value.replace(
     /\{library\}/g,
     resolvedLibrary.value || resolvedLabels.value.libraryFallback
@@ -704,34 +730,16 @@ const resizeInput = () => {
   element.style.height = `${Math.min(element.scrollHeight, 84)}px`;
 };
 
-const showCopied = (target: EventTarget | null) => {
-  if (!(target instanceof HTMLButtonElement)) return;
-  const originalText = target.textContent ?? '';
-  const originalLabel = target.getAttribute('aria-label');
-  target.textContent = resolvedLabels.value.copied;
-  target.setAttribute('aria-label', resolvedLabels.value.copied);
-  window.setTimeout(() => {
-    if (!target.isConnected) return;
-    target.textContent = originalText;
-    if (originalLabel) target.setAttribute('aria-label', originalLabel);
-  }, 1600);
-};
+const copyAnswer = (item: MessageDisplayItem) => void copyActions.copy(item.id, item.content);
 
-const copyAnswer = (item: MessageDisplayItem, target: EventTarget | null) => {
-  void copyText(item.content).then((copied) => {
-    if (copied) showCopied(target);
-  });
-};
-
-const onMessagesClick = (event: Event) => {
+const onDelegatedCopyClick = (event: Event) => {
   const target = event.target;
   if (!(target instanceof Element)) return;
   const button = target.closest<HTMLButtonElement>('[data-c7-copy-code]');
-  if (!button) return;
+  if (!button || !messagesElement.value?.contains(button)) return;
+  event.stopPropagation();
   const code = button.closest('.c7-code-block')?.querySelector('code')?.textContent ?? '';
-  void copyText(code).then((copied) => {
-    if (copied) showCopied(button);
-  });
+  void copyActions.copy(button, code);
 };
 
 const onBackdropClick = () => {
@@ -997,6 +1005,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   cancel();
+  copyActions.reset(false);
   unsubscribeEngineState();
   unsubscribeEngineEvents();
   unbindFloatingListeners();

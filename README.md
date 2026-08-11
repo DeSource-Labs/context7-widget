@@ -159,8 +159,9 @@ export function DocsAssistant() {
   lifecycle state.
 - Race-safe cancellation with a visible Stop action and imperative
   `cancel`/`retry`/`reset` controls.
-- Multiline input, answer/code copying, error retry, complete UI localization, safe
-  relative links, tables, task/nested lists, blockquotes, and highlighted code.
+- Multiline input, answer/code copying with repeat-click
+  protection, error retry, complete UI localization, safe relative links,
+  tables, task/nested lists, blockquotes, and highlighted code.
 - Frame-throttled plain-text streaming with a single final Markdown parse,
   avoiding quadratic reparsing for long answers.
 - Centered-dialog background isolation and scroll locking, focus containment,

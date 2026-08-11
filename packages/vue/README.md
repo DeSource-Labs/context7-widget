@@ -15,7 +15,8 @@ triggers, and a framework-native implementation.
 - managed trigger slot for product-specific buttons
 - complete widget styles in `styles.css`
 - shared conversation engine, renderer bridge, transport, markdown, types,
-  defaults, and brand assets from `@desource/context7-widget/kit`
+  copy-action coordination, defaults, and brand assets from
+  `@desource/context7-widget/kit`
 
 ## Install
 

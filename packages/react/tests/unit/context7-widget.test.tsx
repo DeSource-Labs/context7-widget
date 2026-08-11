@@ -154,45 +154,6 @@ describe('@desource/context7-widget-react', () => {
     expect(container.querySelector('.context7-widget')?.hasAttribute('open')).toBe(false);
   });
 
-  it('keeps delegated copy actions safe across failure, unrelated targets, and removal', async () => {
-    vi.useFakeTimers();
-    const writeText = vi.fn().mockRejectedValueOnce(new Error('denied')).mockResolvedValue(undefined);
-    vi.stubGlobal('navigator', { clipboard: { writeText } });
-    const container = mount(
-      <Context7Widget
-        initialMessage={'\x60\x60\x60js\nconst value = 1;\n\x60\x60\x60'}
-        library="/desource-labs/context7-widget"
-      />
-    );
-    const messages = container.querySelector<HTMLElement>('.c7-messages')!;
-    const copy = container.querySelector<HTMLButtonElement>('.c7-copy-answer')!;
-
-    await act(async () => copy.click());
-    expect(copy.textContent).toBe('Copy answer');
-    expect(writeText).toHaveBeenCalledOnce();
-
-    await act(async () => messages.click());
-    const text = document.createTextNode('plain text');
-    messages.append(text);
-    await act(async () => text.dispatchEvent(new MouseEvent('click', { bubbles: true })));
-
-    const codeCopy = container.querySelector<HTMLButtonElement>('[data-c7-copy-code]')!;
-    await act(async () => codeCopy.click());
-    await Promise.resolve();
-    expect(writeText).toHaveBeenCalledTimes(2);
-    codeCopy.closest('.c7-code-block')?.remove();
-    vi.advanceTimersByTime(1600);
-
-    const liveCopy = container.querySelector<HTMLButtonElement>('.c7-copy-answer')!;
-    liveCopy.removeAttribute('aria-label');
-    await act(async () => liveCopy.click());
-    await Promise.resolve();
-    vi.advanceTimersByTime(1600);
-    expect(liveCopy.textContent).toBe('Copy answer');
-    expect(writeText).toHaveBeenCalledTimes(3);
-    vi.useRealTimers();
-  });
-
   it('programmatically mounts and controls a widget through the hook', async () => {
     vi.stubGlobal(
       'fetch',
