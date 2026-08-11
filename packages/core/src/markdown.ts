@@ -1,5 +1,12 @@
 import { context7CopyIconsHtml } from './copy-action.js';
 
+declare const context7RenderedMarkdown: unique symbol;
+
+/** HTML produced by the escaping Context7 Markdown renderer. */
+export type Context7RenderedMarkdown = string & {
+  readonly [context7RenderedMarkdown]: true;
+};
+
 export interface Context7MarkdownOptions {
   /** Base URL used to resolve relative documentation links. */
   readonly baseUrl?: string;
@@ -55,7 +62,7 @@ export function escapeHtml(value: string): string {
  * Render the deliberately small, safe Markdown subset used by Context7.
  * Raw HTML is always escaped and links are restricted to HTTP(S).
  */
-export function renderMarkdown(markdown: string, options: Context7MarkdownOptions = {}): string {
+export function renderMarkdown(markdown: string, options: Context7MarkdownOptions = {}): Context7RenderedMarkdown {
   const state: MarkdownState = {
     lines: markdown.replace(/\r\n?/g, '\n').split('\n'),
     options,
@@ -128,7 +135,7 @@ export function renderMarkdown(markdown: string, options: Context7MarkdownOption
   }
 
   flushParagraph(state);
-  return state.output.join('');
+  return state.output.join('') as Context7RenderedMarkdown;
 }
 
 /** Resolve a safe base for relative answer links, falling back to the configured Context7 library page. */

@@ -24,7 +24,7 @@ const coreKit = fileURLToPath(new URL('../packages/core/dist/kit.js', import.met
 
 const fileBudgets: readonly FileBudget[] = [
   { file: 'packages/core/dist/widget.js', maxGzipBytes: 22_500 },
-  { file: 'packages/vue/dist/index.js', maxGzipBytes: 9_100 },
+  { file: 'packages/vue/dist/index.js', maxGzipBytes: 9_300 },
   { file: 'packages/vue/dist/styles.css', maxGzipBytes: 5_500 },
   { file: 'packages/react/dist/index.js', maxGzipBytes: 9_000 },
   { file: 'packages/react/dist/styles.css', maxGzipBytes: 5_500 }

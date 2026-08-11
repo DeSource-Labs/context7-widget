@@ -238,19 +238,20 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
         expect(view.textContent).toContain('Uncommitted partial');
       });
 
-      stream?.error(new Error('Transport broke'));
+      stream?.error(new Error('Transport <img src=x onerror=alert(1)> broke'));
       const result = await pending;
       await flush();
 
       expect(result).toMatchObject({
         answer: 'Uncommitted partial',
-        error: 'Transport broke',
+        error: 'Transport <img src=x onerror=alert(1)> broke',
         question: 'Break after a token',
         status: 'error'
       });
       expect(controller.getMessages().map((message) => message.content)).toEqual(['Break after a token']);
       expect(view.textContent).not.toContain('Uncommitted partial');
-      expect(view.textContent).toContain('Transport broke');
+      expect(view.textContent).toContain('Transport <img src=x onerror=alert(1)> broke');
+      expect(view.querySelector('.c7-message--error img')).toBeNull();
     });
 
     it('retries a failed request without duplicating the user message', async () => {

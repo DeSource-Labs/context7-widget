@@ -159,8 +159,8 @@ in Chromium against real Shadow DOM.
 - Transport history can be capped by the engine without trimming public
   conversation state returned by `getMessages()`.
 - Stream callbacks still emit every chunk, while escaped plain-text DOM work is
-  limited to one render per animation frame and Markdown is parsed once at
-  completion/cancellation.
+  limited to one render per animation frame and Markdown parsing is deferred
+  until completion/cancellation.
 - Changing libraries cancels the active request and starts a fresh
   conversation, preventing cross-library history leakage.
 - Core shares a constructable stylesheet across widget instances where
@@ -189,6 +189,24 @@ share behavior, not a lowest-common-denominator renderer.
 This permits small renderer duplication where Vue or React gains lifecycle,
 DOM, or performance benefits, while keeping the state machine, protocol,
 security-sensitive parsing, and observable behavior maintained once.
+
+## HTML Rendering Boundary
+
+Framework renderers create user messages and in-progress assistant text as
+native text nodes. Only two kinds of content cross an HTML sink:
+
+- completed assistant answers returned by `renderMarkdown` as
+  `Context7RenderedMarkdown`;
+- error guidance returned by `buildContext7ErrorHtml` as
+  `Context7RenderedErrorHtml`.
+
+The core renderer escapes raw Markdown HTML, restricts links, and owns the
+small trusted fragments used for code actions. The error renderer escapes the
+transport message and every localized label. Vue uses`v-html`,
+React uses `dangerouslySetInnerHTML`, and the custom element assigns
+the same branded values to DOM HTML. None of those sinks is a sanitizer; the
+shared core producers are the security boundary, and the branded string types
+make that provenance explicit to framework packages.
 
 ### Maintenance Change Map
 

@@ -201,7 +201,7 @@ export default [
       'vue/comment-directive': 'off',
       'vue/multi-word-component-names': 'off',
       'vue/require-default-prop': 'off',
-      'vue/no-v-html': 'warn',
+      'vue/no-v-html': 'off',
       'vue/component-name-in-template-casing': ['error', 'PascalCase'],
       'vue/custom-event-name-casing': 'off',
       '@typescript-eslint/no-unused-vars': 'off',

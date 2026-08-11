@@ -10,7 +10,6 @@ import {
   createContext7ConversationEngine,
   createContext7ConversationRenderBridge,
   deSourceLabsLogoUrl,
-  escapeHtml,
   formatContext7ToolResult,
   getContext7ToolQuery,
   isContext7WidgetTriggerElement,
@@ -28,6 +27,7 @@ import {
   type Context7ConversationState,
   type Context7CopyActionController,
   type Context7Message,
+  type Context7RenderedMarkdown,
   type Context7ToolCall,
   type Context7ToolResult,
   type Context7TriggerA11yState,
@@ -693,8 +693,7 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       void copyActions.copy(button, code);
     }
 
-    function renderMessage(item: MessageDisplayItem): string {
-      if (item.role !== 'assistant' || item.streaming) return escapeHtml(item.content);
+    function renderCompletedMarkdown(item: MessageDisplayItem): Context7RenderedMarkdown {
       return renderMarkdown(item.content, {
         baseUrl: resolveContext7MarkdownBaseUrl(config.library, config.linkBaseUrl),
         copyCodeLabel: config.labels.copyCode
@@ -821,7 +820,12 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
                     className={`c7-message c7-message--${item.role}`}
                     part={`message ${item.role}-message`}
                   >
-                    <div dangerouslySetInnerHTML={{ __html: renderMessage(item) }} />
+                    {item.role === 'assistant' && !item.streaming ? (
+                      // This sink only receives branded output from the escaping core renderer.
+                      <div dangerouslySetInnerHTML={{ __html: renderCompletedMarkdown(item) }} />
+                    ) : (
+                      <div>{item.content}</div>
+                    )}
                     {item.role === 'assistant' && !item.streaming ? (
                       <button
                         aria-disabled={copied || undefined}
@@ -843,9 +847,9 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
                           viewBox="0 0 16 16"
                           fill="none"
                           stroke="currentColor"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                           aria-hidden="true"
                         >
                           <path className="c7-copy-icon--copy" d="M5 5h9v9H5zM2 11V2h9"></path>
@@ -863,6 +867,7 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
               if (item.kind === 'error') {
                 return (
                   <div key={item.id} className="c7-message c7-message--error" part="message error-message" role="alert">
+                    {/* This sink only receives escaped output from buildContext7ErrorHtml. */}
                     <div dangerouslySetInnerHTML={{ __html: item.html }} />
                     <button className="c7-retry" type="button" onClick={() => retryError(item.id)}>
                       {config.labels.retry}

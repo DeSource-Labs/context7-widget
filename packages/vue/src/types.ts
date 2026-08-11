@@ -1,5 +1,6 @@
 import type {
   Context7Message,
+  Context7RenderedErrorHtml,
   Context7Role,
   Context7WidgetController,
   Context7WidgetOptions,
@@ -116,7 +117,7 @@ export interface Context7WidgetState {
 export type Context7WidgetStateListener = (state: Context7WidgetState) => void;
 
 type ErrorDisplayItem = {
-  html: string;
+  html: Context7RenderedErrorHtml;
   id: string;
   kind: 'error';
   question: string;

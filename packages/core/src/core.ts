@@ -15,7 +15,7 @@ export type { Context7AnchorLayout, Context7AnchorLayoutOptions, Context7AnchorR
 export { Context7ConversationEngine, createContext7ConversationEngine } from './engine.js';
 export { context7WidgetLabels, resolveContext7WidgetLabels } from './labels.js';
 export { escapeHtml, renderMarkdown, resolveContext7MarkdownBaseUrl } from './markdown.js';
-export type { Context7MarkdownOptions } from './markdown.js';
+export type { Context7MarkdownOptions, Context7RenderedMarkdown } from './markdown.js';
 export { acquireContext7Modal } from './modal.js';
 export {
   Context7ConversationRenderBridge,
@@ -25,6 +25,7 @@ export {
 } from './renderer.js';
 export type { Context7ConversationRenderBridgeOptions } from './renderer.js';
 export { buildContext7ErrorHtml, DEFAULT_CONTEXT7_INITIAL_MESSAGE, isAbortError } from './runtime.js';
+export type { Context7RenderedErrorHtml } from './runtime.js';
 export { Context7TransportError, streamContext7Response } from './transport.js';
 export type {
   Context7ActiveRequest,

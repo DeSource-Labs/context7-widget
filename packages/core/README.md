@@ -254,8 +254,8 @@ Answers and fenced code blocks have copy actions.
 Markdown escapes raw HTML, allows safe HTTP(S) and relative links, and supports
 headings, fenced code with lightweight highlighting, nested lists, tasks,
 blockquotes, tables, and inline formatting. Streaming text stays escaped plain
-text and is parsed once when the answer completes, avoiding quadratic work on
-long responses.
+text and Markdown parsing is deferred until the answer completes, avoiding
+quadratic work while long responses stream.
 
 ## Exports
 

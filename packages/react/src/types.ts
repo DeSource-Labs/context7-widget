@@ -1,5 +1,6 @@
 import type {
   Context7Message,
+  Context7RenderedErrorHtml,
   Context7Role,
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
@@ -51,7 +52,7 @@ export interface Context7WidgetProps extends Omit<Context7WidgetOptions, 'custom
   trigger?: ReactNode | ((options: { readonly label: string; readonly triggerId: string }) => ReactNode);
 }
 
-export type ErrorDisplayItem = { html: string; id: string; kind: 'error'; question: string };
+export type ErrorDisplayItem = { html: Context7RenderedErrorHtml; id: string; kind: 'error'; question: string };
 export type MessageDisplayItem = {
   content: string;
   id: string;

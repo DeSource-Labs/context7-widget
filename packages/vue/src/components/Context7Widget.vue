@@ -77,7 +77,8 @@
             :class="['c7-message', `c7-message--${item.role}`]"
             :part="`message ${item.role}-message`"
           >
-            <div v-safe-html="renderMessage(item)" />
+            <div v-if="item.role === 'assistant' && !item.streaming" v-html="renderCompletedMarkdown(item)" />
+            <div v-else>{{ item.content }}</div>
             <button
               v-if="item.role === 'assistant' && !item.streaming"
               :aria-disabled="copiedAnswerIds.has(item.id) ? 'true' : undefined"
@@ -116,7 +117,7 @@
             part="message error-message"
             role="alert"
           >
-            <div v-safe-html="item.html" />
+            <div v-html="item.html" />
             <button class="c7-retry" type="button" @click="retryError(item.id)">
               {{ resolvedLabels.retry }}
             </button>
@@ -290,8 +291,8 @@
 import {
   CONTEXT7_URL,
   DESOURCE_LABS_URL,
-  buildContext7ErrorHtml,
   acquireContext7Modal,
+  buildContext7ErrorHtml,
   cancelRenderFrame,
   captureTriggerAccessibility,
   compactContext7WidgetOptions,
@@ -299,7 +300,6 @@ import {
   createContext7ConversationEngine,
   createContext7ConversationRenderBridge,
   deSourceLabsLogoUrl,
-  escapeHtml,
   formatContext7ToolResult,
   getContext7ToolQuery,
   isContext7WidgetTriggerElement,
@@ -316,6 +316,7 @@ import {
   type Context7ConversationEvent,
   type Context7ConversationState,
   type Context7Message,
+  type Context7RenderedMarkdown,
   type Context7ToolCall,
   type Context7ToolResult,
   type Context7TriggerA11yState,
@@ -336,7 +337,6 @@ import {
   useId,
   useTemplateRef,
   watch,
-  type Directive,
   type MaybeRefOrGetter
 } from 'vue';
 import { context7WidgetDefaultsKey } from '../internal/injection';
@@ -364,7 +364,7 @@ const props = withDefaults(defineProps<Context7WidgetProps>(), {
   defaultOpen: undefined,
   open: undefined
 });
-defineSlots<Context7WidgetSlots>();
+const slots = defineSlots<Context7WidgetSlots>();
 const emit = defineEmits<Context7WidgetEmits>();
 
 const attrs = useAttrs();
@@ -406,15 +406,6 @@ type VueAnswerRender = {
   answer: string;
   answerItem: MessageDisplayItem | undefined;
   renderFrame: number | null;
-};
-
-const vSafeHtml: Directive<HTMLElement, string> = {
-  beforeMount(element, binding) {
-    element.innerHTML = binding.value;
-  },
-  updated(element, binding) {
-    if (binding.value !== binding.oldValue) element.innerHTML = binding.value;
-  }
 };
 
 const options = computed<Partial<Context7WidgetOptions>>(() => {
@@ -477,13 +468,11 @@ const detail = (): Context7WidgetLifecycleEventDetail => ({
   widgetId: resolvedWidgetId.value
 });
 
-const renderMessage = (item: MessageDisplayItem): string =>
-  item.role === 'assistant' && !item.streaming
-    ? renderMarkdown(item.content, {
-        baseUrl: resolveContext7MarkdownBaseUrl(resolvedLibrary.value, resolvedConfig.value.linkBaseUrl),
-        copyCodeLabel: resolvedConfig.value.labels.copyCode
-      })
-    : escapeHtml(item.content);
+const renderCompletedMarkdown = (item: MessageDisplayItem): Context7RenderedMarkdown =>
+  renderMarkdown(item.content, {
+    baseUrl: resolveContext7MarkdownBaseUrl(resolvedLibrary.value, resolvedConfig.value.linkBaseUrl),
+    copyCodeLabel: resolvedConfig.value.labels.copyCode
+  });
 
 const resolveVueCustomTrigger = (
   value: Context7WidgetCustomTrigger | undefined

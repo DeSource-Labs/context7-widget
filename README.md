@@ -162,8 +162,8 @@ export function DocsAssistant() {
 - Multiline input, answer/code copying with repeat-click
   protection, error retry, complete UI localization, safe relative links,
   tables, task/nested lists, blockquotes, and highlighted code.
-- Frame-throttled plain-text streaming with a single final Markdown parse,
-  avoiding quadratic reparsing for long answers.
+- Frame-throttled plain-text streaming that defers Markdown parsing until an
+  answer completes, avoiding quadratic reparsing while long answers stream.
 - Centered-dialog background isolation and scroll locking, focus containment,
   safe-area padding, and contained message scrolling.
 - Public CSS variables and stable shadow parts for product-grade styling.
