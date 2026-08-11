@@ -1,4 +1,3 @@
-import { renderWidgetBranding } from './branding.js';
 import { resolveContext7WidgetConfig } from './config.js';
 import { context7CopyIconsHtml, createContext7CopyActionController, syncContext7CopyButton } from './copy-action.js';
 import {
@@ -12,6 +11,7 @@ import {
   updateAnchorPosition
 } from './dom.js';
 import { createContext7ConversationEngine } from './engine.js';
+import { renderWidgetFooter } from './footer.js';
 import { escapeHtml, renderMarkdown, resolveContext7MarkdownBaseUrl } from './markdown.js';
 import { acquireContext7Modal } from './modal.js';
 import { createContext7ConversationRenderBridge, formatContext7ToolResult, getContext7ToolQuery } from './renderer.js';
@@ -484,11 +484,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
             Send
           </button>
         </form>
-        <footer class="c7-footer" data-c7-footer part="footer">
-          <span class="c7-branding" data-c7-branding part="powered-by">
-            ${renderWidgetBranding()}
-          </span>
-        </footer>
+        ${renderWidgetFooter()}
       </section>
       <button
         aria-controls="${this.panelId}"

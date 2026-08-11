@@ -19,9 +19,8 @@ export default defineConfig({
         preserveModulesRoot: 'src'
       }
     },
-    // Keep preserved ESM modules and export identifiers readable. Nuxt
-    // auto-import analysis can otherwise mistake one-letter bindings for Vue
-    // helpers, while downstream application bundlers still minify normally.
+    // Keep preserved ESM modules and export identifiers readable,
+    // downstream application bundlers still minify normally.
     minify: false,
     sourcemap: true,
     target: 'es2020'

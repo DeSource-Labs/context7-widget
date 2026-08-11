@@ -25,7 +25,7 @@
     },
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
-    "types": ["node", "vitest/globals"]
+    "types": ["vite/client", "node", "vitest/globals"]
   },
   "include": [
     "src/**/*.ts",

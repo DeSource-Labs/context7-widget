@@ -59,7 +59,6 @@ export function isContext7WidgetEventName(value: string): value is Context7Widge
   return (context7WidgetEvents as readonly string[]).includes(value);
 }
 
-export { CONTEXT7_URL, DESOURCE_LABS_URL, context7LogoSvg, deSourceLabsLogoUrl } from './branding.js';
 export { copyText } from './clipboard.js';
 export {
   CONTEXT7_COPY_FEEDBACK_DELAY,
@@ -70,8 +69,15 @@ export {
 } from './copy-action.js';
 export type { Context7CopyActionControllerOptions } from './copy-action.js';
 export { context7WidgetLabels, resolveContext7WidgetLabels } from './labels.js';
-export { context7WidgetDefaults, normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from './config.js';
-export type { Context7WidgetConfigInput } from './config.js';
+export {
+  CONTEXT7_URL,
+  DESOURCE_LABS_URL,
+  context7WidgetDefaults,
+  deSourceLabsLogoUrl,
+  normalizeContext7WidgetTrigger,
+  resolveContext7WidgetConfig,
+  type Context7WidgetConfigInput
+} from './config.js';
 export {
   assertBrowser,
   cancelRenderFrame,

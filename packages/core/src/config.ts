@@ -1,3 +1,4 @@
+import deSourceLabsLogoSource from './assets/desourcelabs.png?inline';
 import { DEFAULT_CONTEXT7_INITIAL_MESSAGE } from './runtime.js';
 import { context7WidgetLabels, resolveContext7WidgetLabels } from './labels.js';
 import type {
@@ -12,6 +13,11 @@ import type {
 export type Context7WidgetConfigInput = {
   readonly [Key in keyof Context7WidgetOptions]?: unknown;
 };
+
+export const CONTEXT7_URL = 'https://context7.com';
+export const DESOURCE_LABS_URL = 'https://desource-labs.org';
+
+export const deSourceLabsLogoUrl = deSourceLabsLogoSource;
 
 export const context7WidgetDefaults = /* @__PURE__ */ Object.freeze({
   backdrop: false,
