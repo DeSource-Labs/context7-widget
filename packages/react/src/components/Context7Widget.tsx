@@ -3,6 +3,7 @@ import {
   DESOURCE_LABS_URL,
   acquireContext7Modal,
   buildContext7ErrorHtml,
+  callContext7ListenerSafely,
   cancelRenderFrame,
   captureTriggerAccessibility,
   compactContext7WidgetOptions,
@@ -36,16 +37,19 @@ import {
 } from '@desource/context7-widget/kit';
 import {
   forwardRef,
+  memo,
   useCallback,
   useEffect,
   useId,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
-  type SubmitEvent as ReactSubmitEvent
+  type SubmitEvent as ReactSubmitEvent,
+  type UIEvent as ReactUIEvent
 } from 'react';
 import { registerReactContext7Widget, unregisterReactContext7Widget } from '../internal/registry';
 import type {
@@ -74,6 +78,15 @@ interface WidgetActions {
 }
 
 type CopyActionKey = HTMLButtonElement | string;
+
+interface CompletedMarkdownProps {
+  readonly content: string;
+  readonly copyCodeLabel: string;
+  readonly library: string;
+  readonly linkBaseUrl: string;
+}
+
+const STICKY_SCROLL_THRESHOLD = 48;
 
 const CLOSE_ICON = (
   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
@@ -106,29 +119,71 @@ const LAUNCHER_ICON = (
   </svg>
 );
 
+const CompletedMarkdown = memo(function CompletedMarkdown({
+  content,
+  copyCodeLabel,
+  library,
+  linkBaseUrl
+}: CompletedMarkdownProps) {
+  const html = useMemo<Context7RenderedMarkdown>(
+    () =>
+      renderMarkdown(content, {
+        baseUrl: resolveContext7MarkdownBaseUrl(library, linkBaseUrl),
+        copyCodeLabel
+      }),
+    [content, copyCodeLabel, library, linkBaseUrl]
+  );
+
+  // This sink only receives branded output from the escaping core renderer.
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+});
+
 export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetProps>(
   function Context7Widget(props, forwardedRef) {
-    const config = resolveContext7WidgetConfig(
-      compactContext7WidgetOptions({
-        backdrop: props.backdrop,
-        closeOnOutsideClick: props.closeOnOutsideClick,
-        color: props.color,
-        defaultOpen: props.defaultOpen,
-        initialMessage: props.initialMessage,
-        labels: props.labels,
-        launcherLabel: props.launcherLabel,
-        launcherVariant: props.launcherVariant,
-        library: props.library,
-        linkBaseUrl: props.linkBaseUrl,
-        panelHeight: props.panelHeight,
-        panelWidth: props.panelWidth,
-        placeholder: props.placeholder,
-        position: props.position,
-        preset: props.preset,
-        theme: props.theme,
-        title: props.title,
-        widgetId: props.widgetId
-      })
+    const config = useMemo(
+      () =>
+        resolveContext7WidgetConfig(
+          compactContext7WidgetOptions({
+            backdrop: props.backdrop,
+            closeOnOutsideClick: props.closeOnOutsideClick,
+            color: props.color,
+            defaultOpen: props.defaultOpen,
+            initialMessage: props.initialMessage,
+            labels: props.labels,
+            launcherLabel: props.launcherLabel,
+            launcherVariant: props.launcherVariant,
+            library: props.library,
+            linkBaseUrl: props.linkBaseUrl,
+            panelHeight: props.panelHeight,
+            panelWidth: props.panelWidth,
+            placeholder: props.placeholder,
+            position: props.position,
+            preset: props.preset,
+            theme: props.theme,
+            title: props.title,
+            widgetId: props.widgetId
+          })
+        ),
+      [
+        props.backdrop,
+        props.closeOnOutsideClick,
+        props.color,
+        props.defaultOpen,
+        props.initialMessage,
+        props.labels,
+        props.launcherLabel,
+        props.launcherVariant,
+        props.library,
+        props.linkBaseUrl,
+        props.panelHeight,
+        props.panelWidth,
+        props.placeholder,
+        props.position,
+        props.preset,
+        props.theme,
+        props.title,
+        props.widgetId
+      ]
     );
     const configRef = useRef(config);
     configRef.current = config;
@@ -150,6 +205,7 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
     const mountedRef = useRef(false);
     const previousOpenRef = useRef(false);
     const shouldFocusStopRef = useRef(false);
+    const stickToBottomRef = useRef(true);
     const stateListenersRef = useRef(new Set<Context7WidgetStateListener>());
 
     const [internalOpen, setInternalOpen] = useState(() => Boolean(props.defaultOpen));
@@ -278,7 +334,6 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       render.renderFrame ??= requestRenderFrame(() => {
         render.renderFrame = null;
         updateMessage(itemId, (item) => ({ ...item, content: render.answer }));
-        scrollToBottom();
       });
     }
 
@@ -295,7 +350,6 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       } else if (render.itemId) {
         updateMessage(render.itemId, (item) => ({ ...item, content: answer, streaming: false }));
       }
-      scrollToBottom();
     }
 
     function appendToolCall(toolCall: Context7ToolCall): void {
@@ -313,7 +367,6 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
           toolCallId: toolCall.toolCallId
         }
       ]);
-      scrollToBottom();
     }
 
     function updateToolResult(toolResult: Context7ToolResult): void {
@@ -326,7 +379,6 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
             : item
         )
       );
-      scrollToBottom();
     }
 
     const renderBridgeRef = useRef<ReturnType<typeof createContext7ConversationRenderBridge<ReactAnswerRender>> | null>(
@@ -356,7 +408,6 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
             question: event.detail.question
           }
         ]);
-        scrollToBottom();
       },
       onQuestion: renderQuestion,
       onToolCall(event) {
@@ -393,6 +444,7 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
     }
 
     function reset(): void {
+      stickToBottomRef.current = true;
       engine.reset();
       renderBridge.clearActiveAnswer();
       copyActions.reset(false);
@@ -444,7 +496,11 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
         send: async (message) => await actionsRef.current?.send(message),
         subscribe(listener) {
           stateListenersRef.current.add(listener);
-          listener({ busy: busyRef.current, messages: conversationRef.current, open: openRef.current });
+          callContext7ListenerSafely(listener, {
+            busy: busyRef.current,
+            messages: conversationRef.current,
+            open: openRef.current
+          });
           return () => stateListenersRef.current.delete(listener);
         },
         toggle: () => actionsRef.current?.toggle()
@@ -454,14 +510,24 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
     useImperativeHandle(forwardedRef, () => handle, [handle]);
 
     useEffect(() => {
-      const unsubscribeState = engine.subscribe((state: Context7ConversationState) => {
-        setBusy(state.busy);
-        setConversation([...state.messages]);
-        if (!state.busy) {
-          setShowTyping(false);
-          renderBridge.clearActiveAnswer();
-        }
-      });
+      const unsubscribeState = engine.subscribe(
+        (state: Context7ConversationState) => {
+          if (busyRef.current !== state.busy) {
+            busyRef.current = state.busy;
+            setBusy(state.busy);
+          }
+          if (!areContext7MessagesEqual(conversationRef.current, state.messages)) {
+            const messages = [...state.messages];
+            conversationRef.current = messages;
+            setConversation(messages);
+          }
+          if (!state.busy) {
+            setShowTyping(false);
+            renderBridge.clearActiveAnswer();
+          }
+        },
+        { includeTransient: false }
+      );
       const unsubscribeEvents = engine.subscribeEvents((event) => renderBridge.handleEvent(event));
       return () => {
         engine.cancel();
@@ -473,6 +539,7 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
     }, [copyActions, engine, renderBridge]);
 
     useEffect(() => {
+      stickToBottomRef.current = true;
       engine.reset();
       renderBridge.clearActiveAnswer();
       copyActions.reset(false);
@@ -483,9 +550,15 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       setShowTyping(false);
     }, [config.initialMessage, copyActions, engine, initialMessageLibrary, renderBridge]);
 
+    useLayoutEffect(() => {
+      const messages = messagesRef.current;
+      if (!messages || !stickToBottomRef.current) return;
+      messages.scrollTop = messages.scrollHeight;
+    }, [displayItems, showTyping]);
+
     useEffect(() => {
       const state = { busy, messages: conversation, open: actualOpen } as const;
-      for (const listener of stateListenersRef.current) listener(state);
+      for (const listener of stateListenersRef.current) callContext7ListenerSafely(listener, state);
     }, [actualOpen, busy, conversation]);
 
     useEffect(() => {
@@ -538,6 +611,9 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       let trigger: Element | null = null;
       let accessibility: Context7TriggerA11yState | null = null;
       let observer: MutationObserver | null = null;
+      let invalidSelector = false;
+
+      if (!shouldObserveReactCustomTrigger(props.customTrigger)) return;
 
       const unbind = () => {
         trigger?.removeEventListener('click', onTriggerClick);
@@ -554,7 +630,14 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
         const candidate = resolveReactCustomTrigger(propsRef.current.customTrigger);
         if (!candidate || candidate === true) return;
         const triggerTarget = typeof candidate === 'string' ? normalizeContext7WidgetTrigger(candidate) : candidate;
+        if (!triggerTarget) return;
         const resolution = resolveContext7CustomTrigger(triggerTarget, false);
+        invalidSelector = resolution.invalidSelector;
+        if (invalidSelector) {
+          observer?.disconnect();
+          observer = null;
+          return;
+        }
         if (!resolution.element?.isConnected) return;
         trigger = resolution.element;
         accessibility = captureTriggerAccessibility(trigger);
@@ -572,7 +655,7 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       }
 
       bind();
-      if (typeof MutationObserver === 'function') {
+      if (!invalidSelector && typeof MutationObserver === 'function') {
         observer = new MutationObserver(bind);
         observer.observe(document.documentElement, { childList: true, subtree: true });
       }
@@ -639,12 +722,6 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       updateAnchor
     ]);
 
-    function scrollToBottom(): void {
-      requestRenderFrame(() => {
-        if (messagesRef.current) messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-      });
-    }
-
     function resizeInput(): void {
       const input = inputRef.current;
       if (!input) return;
@@ -693,11 +770,8 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       void copyActions.copy(button, code);
     }
 
-    function renderCompletedMarkdown(item: MessageDisplayItem): Context7RenderedMarkdown {
-      return renderMarkdown(item.content, {
-        baseUrl: resolveContext7MarkdownBaseUrl(config.library, config.linkBaseUrl),
-        copyCodeLabel: config.labels.copyCode
-      });
+    function onMessagesScroll(event: ReactUIEvent<HTMLDivElement>): void {
+      stickToBottomRef.current = isNearBottom(event.currentTarget);
     }
 
     function retryError(id: string): void {
@@ -763,6 +837,7 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
             ref={managedTriggerRef}
             className="context7-widget-trigger"
             type="button"
+            aria-label={config.launcherLabel}
             aria-controls={panelId}
             aria-expanded={actualOpen}
             aria-haspopup="dialog"
@@ -810,6 +885,7 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
             part="messages"
             role="log"
             onClick={onDelegatedCopyClick}
+            onScroll={onMessagesScroll}
           >
             {displayItems.map((item) => {
               if (item.kind === 'message') {
@@ -821,8 +897,12 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
                     part={`message ${item.role}-message`}
                   >
                     {item.role === 'assistant' && !item.streaming ? (
-                      // This sink only receives branded output from the escaping core renderer.
-                      <div dangerouslySetInnerHTML={{ __html: renderCompletedMarkdown(item) }} />
+                      <CompletedMarkdown
+                        content={item.content}
+                        copyCodeLabel={config.labels.copyCode}
+                        library={config.library}
+                        linkBaseUrl={config.linkBaseUrl}
+                      />
                     ) : (
                       <div>{item.content}</div>
                     )}
@@ -1044,4 +1124,20 @@ function resolveReactCustomTrigger(value: Context7ReactCustomTrigger | undefined
   if (value === true || typeof value === 'string' || isContext7WidgetTriggerElement(value)) return value;
   const current = value && typeof value === 'object' && 'current' in value ? value.current : null;
   return isContext7WidgetTriggerElement(current) ? current : undefined;
+}
+
+function shouldObserveReactCustomTrigger(value: Context7ReactCustomTrigger | undefined): boolean {
+  if (typeof value === 'string') return Boolean(normalizeContext7WidgetTrigger(value));
+  if (isContext7WidgetTriggerElement(value)) return true;
+  return Boolean(value && value !== true && typeof value === 'object' && 'current' in value);
+}
+
+function areContext7MessagesEqual(current: readonly Context7Message[], next: readonly Context7Message[]): boolean {
+  if (current === next) return true;
+  if (current.length !== next.length) return false;
+  return current.every((message, index) => message === next[index]);
+}
+
+function isNearBottom(element: HTMLElement): boolean {
+  return element.scrollHeight - element.scrollTop - element.clientHeight <= STICKY_SCROLL_THRESHOLD;
 }

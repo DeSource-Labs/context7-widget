@@ -15,7 +15,7 @@ export default defineNuxtConfig({
         {
           name: 'description',
           content:
-            'Customizable Context7 documentation chat widget for product sites, docs portals, dashboards, and developer tools. Script, TypeScript core, and Vue integrations.'
+            'Customizable Context7 documentation chat widget for product sites, docs portals, dashboards, and developer tools. Hosted script, TypeScript core, Vue, Nuxt, and React integrations.'
         },
         { property: 'og:title', content: 'Context7 Widget by DeSource Labs' },
         {
@@ -32,7 +32,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     prerender: {
-      routes: ['/']
+      routes: ['/', '/customization', '/examples', '/live']
     }
   },
   vite: {

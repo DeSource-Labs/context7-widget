@@ -69,6 +69,20 @@ For a branded widget:
 The widget still calls `https://context7.com/api/v2/widget/chat`. This package
 does not proxy, fork, or replace Context7; it improves the client experience.
 
+## Data Flow And Privacy
+
+Chat requests travel directly from the visitor's browser to Context7. The JSON
+request contains the configured library id and the current conversation
+messages, including each message's id, role, and content. DeSource Labs serves
+the optional hosted `widget.js` file but does not proxy chat requests.
+
+The client adds no analytics, cookies, or persistent browser storage;
+conversation state is held only in the live widget's memory, and `reset()`
+clears it. Host applications can listen to events containing questions and
+answers, so only forward those payloads to analytics under your own privacy
+policy. Do not put secrets or sensitive personal data into chat, and review
+Context7's terms for backend processing and retention.
+
 ## Choose A Path
 
 ### Existing Context7 widget user
@@ -139,7 +153,7 @@ npm install @desource/context7-widget-react
 ```
 
 ```tsx
-import { Context7Widget } from '@desource/context7-widget-react';
+import { Context7Widget } from '@desource/context7-widget-react/component';
 import '@desource/context7-widget-react/styles.css';
 
 export function DocsAssistant() {
@@ -198,8 +212,8 @@ context7-widget::part(send-button) {
 }
 ```
 
-See the live customization guide at `/customization` and the integration
-examples at `/examples`.
+See the [live customization guide](https://context7.desource-labs.org/customization)
+and [integration examples](https://context7.desource-labs.org/examples).
 
 ## Public Options
 
@@ -283,11 +297,12 @@ Core and framework package builds use Vite 8. The demo site builds packages,
 copies `packages/core/dist/widget.js` into `demo/public/widget.js`, then runs
 Nuxt.
 
-CI enforces coverage floors, production dependency and peer checks, package
-metadata/type validation, SSR imports, and gzip budgets for the hosted widget
-and real tree-shaken consumers of core, `/core`, `/kit`, every framework
-package, and their stylesheets. Core, Vue, and React also run the same
-real-Chromium behavior suite.
+The manually dispatched CI workflow and mandatory release gate enforce coverage
+floors, production dependency and peer checks, package metadata/type
+validation, SSR imports, and gzip budgets for the hosted widget and real
+tree-shaken consumers of core, `/core`, `/kit`, every framework package, and
+their stylesheets. Core, Vue, and React also run the same behavior suite in
+desktop Chromium, Firefox, WebKit, and mobile WebKit profiles.
 
 ## Maintenance
 

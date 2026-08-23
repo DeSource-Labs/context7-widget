@@ -40,6 +40,7 @@ const BaseHTMLElement = typeof HTMLElement === 'undefined' ? (class {} as typeof
 const INITIAL_MESSAGE_ATTRIBUTES = new Set(['data-initial-message', 'data-welcome-message', 'initial-message']);
 const LIBRARY_ATTRIBUTES = new Set(['data-library', 'library']);
 const REFLECTED_CONFIG_ATTRIBUTES = new Set(['launcher-variant', 'position', 'preset', 'theme']);
+const STICKY_SCROLL_THRESHOLD = 48;
 
 let globalApiInstalled = false;
 let instanceCounter = 0;
@@ -129,9 +130,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
     resolveConfig: () => this.config
   });
   private readonly elements: WidgetElements;
-  private floatingLayoutFrame: number | null = null;
-  private floatingResizeObserver: ResizeObserver | null = null;
-  private floatingViewport: VisualViewport | null = null;
+  private layoutFrame: number | null = null;
+  private resizeObserver: ResizeObserver | null = null;
+  private viewport: VisualViewport | null = null;
   private lastFocus: Element | null = null;
   private messageCounter = 0;
   private releaseModal: (() => void) | null = null;
@@ -139,6 +140,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
   private readonly reflectedConfigAttributes = new Set<string>();
   private readonly reflectingConfigAttributes = new Set<string>();
   private registeredId = '';
+  private renderedBusy: boolean | undefined;
   private readonly root: ShadowRoot;
   private readonly renderBridge = createContext7ConversationRenderBridge<WidgetAnswerRender>({
     clearAnswer: (render) => this.clearAnswerRender(render),
@@ -156,6 +158,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     onToolResult: (event) => this.updateToolResult(event.detail.toolResult)
   });
   private toolCalls = new Map<string, HTMLElement>();
+  private autoScroll = true;
   private triggerAccessibilityState: Context7TriggerA11yState | null = null;
   private triggerElement: Element | null = null;
 
@@ -186,9 +189,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.close();
   };
 
-  private readonly onFloatingLayout = (event: Event) => {
+  private readonly onLayout = (event: Event) => {
     if (event.type === 'scroll' && event.composedPath().includes(this)) return;
-    this.scheduleAnchorPositionUpdate();
+    this.scheduleAnchorUpdate();
   };
 
   private readonly onKeyDown = (event: KeyboardEvent) => {
@@ -214,6 +217,11 @@ export class Context7WidgetElement extends BaseHTMLElement {
   };
 
   private readonly onInput = () => this.resizeInput();
+
+  private readonly onScroll = (event: Event) => {
+    const messages = event.currentTarget as HTMLElement;
+    this.autoScroll = messages.scrollHeight - messages.scrollTop - messages.clientHeight <= STICKY_SCROLL_THRESHOLD;
+  };
 
   private readonly onDelegatedCopyClick = (event: Event) => {
     const target = event.target;
@@ -257,7 +265,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.elements = collectWidgetElements(this.root);
     this.updateStaticText();
     this.bindEvents();
-    this.engine.subscribe(this.onConversationState);
+    this.engine.subscribe(this.onConversationState, { includeTransient: false });
     this.engine.subscribeEvents(this.onConversationEvent);
   }
 
@@ -405,6 +413,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.renderBridge.clearActiveAnswer();
     this.copyActions.reset(false);
     this.toolCalls.clear();
+    this.autoScroll = true;
     this.messagesElement.innerHTML = '';
     const intro = this.config.initialMessage.replace(
       /\{library\}/g,
@@ -418,24 +427,24 @@ export class Context7WidgetElement extends BaseHTMLElement {
   async retry(): Promise<Context7WidgetSendResult> {
     this.open();
     const result = await this.engine.retry();
-    if (!this.isBusy()) this.input?.focus();
+    if (!this.isBusy()) this.input.focus();
     return result;
   }
 
   cancel(): void {
     this.engine.cancel();
-    this.input?.focus();
+    this.input.focus();
   }
 
   async send(rawQuestion?: string): Promise<Context7WidgetSendResult> {
-    const question = (rawQuestion ?? this.input?.value ?? '').trim();
+    const question = (rawQuestion ?? this.input.value).trim();
     if (question && !this.isBusy() && this.config.library) {
       this.open();
       this.input.value = '';
       this.resizeInput();
     }
     const result = await this.engine.send(question);
-    if (!this.isBusy()) this.input?.focus();
+    if (!this.isBusy()) this.input.focus();
     return result;
   }
 
@@ -507,12 +516,13 @@ export class Context7WidgetElement extends BaseHTMLElement {
   }
 
   private bindEvents(): void {
-    this.backdrop?.addEventListener('click', this.onBackdropClick);
-    this.launcher?.addEventListener('click', this.onLauncherClick);
-    this.closeButton?.addEventListener('click', this.onCloseClick);
-    this.form?.addEventListener('submit', this.onFormSubmit);
-    this.input?.addEventListener('input', this.onInput);
-    this.messagesElement?.addEventListener('click', this.onDelegatedCopyClick);
+    this.backdrop.addEventListener('click', this.onBackdropClick);
+    this.launcher.addEventListener('click', this.onLauncherClick);
+    this.closeButton.addEventListener('click', this.onCloseClick);
+    this.form.addEventListener('submit', this.onFormSubmit);
+    this.input.addEventListener('input', this.onInput);
+    this.messagesElement.addEventListener('click', this.onDelegatedCopyClick);
+    this.messagesElement.addEventListener('scroll', this.onScroll);
     this.root.addEventListener('keydown', this.onKeyDown as (event: Event) => void);
   }
 
@@ -537,19 +547,15 @@ export class Context7WidgetElement extends BaseHTMLElement {
 
   private updateStaticText(): void {
     const labels = this.config.labels;
-    if (this.titleElement) this.titleElement.textContent = this.config.title;
-    if (this.input) {
-      this.input.placeholder = this.config.placeholder;
-      this.input.setAttribute('aria-label', labels.input);
-    }
-    this.closeButton?.setAttribute('aria-label', labels.close);
-    this.messagesElement?.setAttribute('aria-label', labels.conversation);
-    if (this.launcherLabelElement) this.launcherLabelElement.textContent = this.config.launcherLabel;
-    if (this.launcher) this.launcher.setAttribute('aria-label', this.config.launcherLabel);
-    if (this.panel) {
-      this.panel.setAttribute('aria-label', this.config.title);
-      this.panel.setAttribute('aria-modal', String(this.config.position === 'center'));
-    }
+    this.titleElement.textContent = this.config.title;
+    this.input.placeholder = this.config.placeholder;
+    this.input.setAttribute('aria-label', labels.input);
+    this.closeButton.setAttribute('aria-label', labels.close);
+    this.messagesElement.setAttribute('aria-label', labels.conversation);
+    this.launcherLabelElement.textContent = this.config.launcherLabel;
+    this.launcher.setAttribute('aria-label', this.config.launcherLabel);
+    this.panel.setAttribute('aria-label', this.config.title);
+    this.panel.setAttribute('aria-modal', String(this.config.position === 'center'));
     this.elements.branding.setAttribute('aria-label', labels.branding);
     this.elements.context7Attribution.setAttribute('aria-label', labels.context7Attribution);
     this.elements.context7Attribution.setAttribute('title', labels.context7Attribution);
@@ -562,7 +568,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     )) {
       this.syncCopyButton(button, this.copyActions.isCopied(button));
     }
-    this.setBusy(this.isBusy());
+    this.setBusy(this.isBusy(), true);
   }
 
   private reflectConfigAttribute(name: string, value: string): void {
@@ -761,22 +767,21 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.scrollToBottom();
   }
 
-  private setBusy(isBusy: boolean): void {
+  private setBusy(isBusy: boolean, force = false): void {
+    if (!force && this.renderedBusy === isBusy) return;
+    this.renderedBusy = isBusy;
     const moveFocus = isBusy && this.root.activeElement === this.input;
-    if (this.input) this.input.readOnly = isBusy;
-    if (this.panel) this.panel.setAttribute('aria-busy', String(isBusy));
-    if (this.sendButton) {
-      this.sendButton.textContent = isBusy ? this.config.labels.stop : this.config.labels.send;
-      this.sendButton.setAttribute(
-        'aria-label',
-        isBusy ? this.config.labels.stopResponse : this.config.labels.sendQuestion
-      );
-      if (moveFocus) this.sendButton.focus({ preventScroll: true });
-    }
+    this.input.readOnly = isBusy;
+    this.panel.setAttribute('aria-busy', String(isBusy));
+    this.sendButton.textContent = isBusy ? this.config.labels.stop : this.config.labels.send;
+    this.sendButton.setAttribute(
+      'aria-label',
+      isBusy ? this.config.labels.stopResponse : this.config.labels.sendQuestion
+    );
+    if (moveFocus) this.sendButton.focus({ preventScroll: true });
   }
 
   private resizeInput(): void {
-    if (!this.input) return;
     this.input.style.height = 'auto';
     this.input.style.height = `${Math.min(this.input.scrollHeight, 84)}px`;
   }
@@ -794,6 +799,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
   }
 
   private scrollToBottom(): void {
+    if (!this.autoScroll) return;
     this.messagesElement.scrollTop = this.messagesElement.scrollHeight;
   }
 
@@ -804,39 +810,39 @@ export class Context7WidgetElement extends BaseHTMLElement {
     }
 
     if (this.config.position === 'anchor') {
-      window.addEventListener('resize', this.onFloatingLayout);
-      window.addEventListener('scroll', this.onFloatingLayout, true);
-      this.floatingViewport = window.visualViewport;
-      this.floatingViewport?.addEventListener('resize', this.onFloatingLayout);
-      this.floatingViewport?.addEventListener('scroll', this.onFloatingLayout);
+      window.addEventListener('resize', this.onLayout);
+      window.addEventListener('scroll', this.onLayout, true);
+      this.viewport = window.visualViewport;
+      this.viewport?.addEventListener('resize', this.onLayout);
+      this.viewport?.addEventListener('scroll', this.onLayout);
 
       if (typeof ResizeObserver === 'function') {
-        this.floatingResizeObserver = new ResizeObserver(() => this.scheduleAnchorPositionUpdate());
+        this.resizeObserver = new ResizeObserver(() => this.scheduleAnchorUpdate());
         const anchor = this.getAnchorElement();
-        if (anchor) this.floatingResizeObserver.observe(anchor);
-        this.floatingResizeObserver.observe(this.panel);
+        if (anchor) this.resizeObserver.observe(anchor);
+        this.resizeObserver.observe(this.panel);
       }
     }
   }
 
   private unbindFloatingListeners(): void {
     document.removeEventListener('pointerdown', this.onDocumentPointerDown, true);
-    window.removeEventListener('resize', this.onFloatingLayout);
-    window.removeEventListener('scroll', this.onFloatingLayout, true);
-    this.floatingViewport?.removeEventListener('resize', this.onFloatingLayout);
-    this.floatingViewport?.removeEventListener('scroll', this.onFloatingLayout);
-    this.floatingViewport = null;
-    this.floatingResizeObserver?.disconnect();
-    this.floatingResizeObserver = null;
-    cancelRenderFrame(this.floatingLayoutFrame);
-    this.floatingLayoutFrame = null;
+    window.removeEventListener('resize', this.onLayout);
+    window.removeEventListener('scroll', this.onLayout, true);
+    this.viewport?.removeEventListener('resize', this.onLayout);
+    this.viewport?.removeEventListener('scroll', this.onLayout);
+    this.viewport = null;
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    cancelRenderFrame(this.layoutFrame);
+    this.layoutFrame = null;
   }
 
-  private scheduleAnchorPositionUpdate(): void {
-    if (!this.isOpen() || this.floatingLayoutFrame !== null) return;
+  private scheduleAnchorUpdate(): void {
+    if (!this.isOpen() || this.layoutFrame !== null) return;
 
-    this.floatingLayoutFrame = requestRenderFrame(() => {
-      this.floatingLayoutFrame = null;
+    this.layoutFrame = requestRenderFrame(() => {
+      this.layoutFrame = null;
       if (this.isOpen()) this.updateAnchorPosition();
     });
   }

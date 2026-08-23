@@ -101,10 +101,10 @@ context7-widget::part(send-button) {
     <section id="paths" class="paths-section">
       <div class="section-heading">
         <p class="eyebrow">Choose an entry point</p>
-        <h2>One widget contract, three ways to ship it.</h2>
+        <h2>One widget contract, four ways to ship it.</h2>
         <p>
-          Start with a script tag. Move to TypeScript helpers or Vue when the widget becomes part of your application
-          code.
+          Start with a script tag. Move to TypeScript helpers, Vue, or React when the widget becomes part of your
+          application code.
         </p>
       </div>
 
@@ -122,6 +122,7 @@ context7-widget::part(send-button) {
         <CodeBlock id="script-install" label="Drop-in script" :code="scriptInstall" />
         <CodeBlock id="core-install" label="Core package" :code="coreInstall" />
         <CodeBlock id="vue-install" label="Vue package" :code="vueInstall" />
+        <CodeBlock id="react-install" label="React package" :code="reactInstall" />
       </div>
     </section>
 
@@ -173,6 +174,17 @@ const vueInstall = `npm install @desource/context7-widget-vue
   @question="trackQuestion"
 />`;
 
+const reactInstall = `npm install @desource/context7-widget-react
+
+import { Context7Widget } from "@desource/context7-widget-react/component";
+import "@desource/context7-widget-react/styles.css";
+
+<Context7Widget
+  library="/owner/repo"
+  color="#10b981"
+  onQuestion={trackQuestion}
+/>`;
+
 const heroMarqueeItems = librariesArray.map(({ key, href, label, logo }) => ({ key, href, label, logo }));
 
 const paths = [
@@ -199,6 +211,14 @@ const paths = [
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue',
     icon: Package,
     title: 'Vue package'
+  },
+  {
+    class: '',
+    copy: 'For React apps that want a native component, controlled state, typed callbacks, a hook, and managed triggers.',
+    cta: 'View React package',
+    href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/react',
+    icon: Package,
+    title: 'React package'
   }
 ];
 
@@ -214,7 +234,7 @@ const audiences = [
     title: 'Add docs help without building support chat.'
   },
   {
-    copy: 'Start with the script. Developers can move to Vue or TypeScript later without changing the visitor experience.',
+    copy: 'Start with the script. Developers can move to Vue, React, or TypeScript later without changing the visitor experience.',
     kicker: 'Product owner',
     title: 'Ship a helpful assistant before a long roadmap.'
   }
@@ -239,7 +259,7 @@ const useCases = [
     title: 'Custom help entry points'
   },
   {
-    copy: 'Use script, TypeScript, or Vue today. React, Nuxt, Svelte, and Angular packages are next on the same core.',
+    copy: 'Use script, TypeScript, Vue, React, or the Vue binding in Nuxt today. Dedicated Svelte and Angular packages are planned on the same core.',
     number: '04',
     title: 'Framework-ready apps'
   }

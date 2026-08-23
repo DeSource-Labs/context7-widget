@@ -77,6 +77,57 @@ describe('Context7WidgetElement', () => {
     expect(widget.hasAttribute('open')).toBe(false);
   });
 
+  it('keeps streaming pinned only while the reader remains near the latest message', async () => {
+    defineContext7Widget();
+    const encoder = new TextEncoder();
+    let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            new ReadableStream<Uint8Array>({
+              start(controller) {
+                stream = controller;
+              }
+            })
+          )
+      )
+    );
+
+    const widget = document.createElement('context7-widget') as Context7WidgetElement;
+    widget.setAttribute('library', '/vercel/next.js');
+    document.body.append(widget);
+    const messages = widget.shadowRoot?.querySelector<HTMLElement>('[data-c7-messages]');
+    const panel = widget.shadowRoot?.querySelector<HTMLElement>('.c7-panel');
+    if (!messages || !panel) throw new Error('Expected the widget message viewport and panel.');
+    Object.defineProperties(messages, {
+      clientHeight: { configurable: true, value: 200 },
+      scrollHeight: { configurable: true, value: 1_000 }
+    });
+    const setPanelAttribute = vi.spyOn(panel, 'setAttribute');
+
+    const pending = widget.send('Stream a long answer');
+    await vi.waitFor(() => expect(stream).toBeDefined());
+    messages.scrollTop = 100;
+    messages.dispatchEvent(new Event('scroll'));
+    stream?.enqueue(encoder.encode('data: {"type":"text-delta","delta":"First"}\n'));
+    await vi.waitFor(() => expect(widget.shadowRoot?.textContent).toContain('First'));
+    expect(messages.scrollTop).toBe(100);
+
+    messages.scrollTop = 790;
+    messages.dispatchEvent(new Event('scroll'));
+    stream?.enqueue(encoder.encode('data: {"type":"text-delta","delta":" second"}\n'));
+    await vi.waitFor(() => expect(widget.shadowRoot?.textContent).toContain('First second'));
+    expect(messages.scrollTop).toBe(1_000);
+
+    stream?.close();
+    await pending;
+    expect(
+      setPanelAttribute.mock.calls.filter(([name, value]) => name === 'aria-busy' && value === 'true')
+    ).toHaveLength(1);
+  });
+
   it('fails open again when a bound selector trigger is removed', async () => {
     defineContext7Widget();
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);

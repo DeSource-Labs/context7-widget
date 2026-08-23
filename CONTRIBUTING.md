@@ -1,7 +1,7 @@
 # Contributing to Context7 Widget
 
 Thanks for considering a contribution. This project is a monorepo for a Context7-compatible browser widget, a core
-TypeScript package, Vue bindings, and the Nuxt documentation site.
+TypeScript package, native Vue and React bindings, and the Nuxt documentation site.
 
 ## Code of Conduct
 
@@ -11,7 +11,7 @@ By participating, you agree to follow the [Code of Conduct](./CODE_OF_CONDUCT.md
 
 Requirements:
 
-- Node.js >= 25
+- Node.js >= 22.18.0 (Node.js 24 is used in GitHub Actions)
 - pnpm 11.10.0
 
 ```bash
@@ -27,6 +27,7 @@ pnpm dev:demo
 context7-widget/
 ├── packages/
 │   ├── core/        # @desource/context7-widget
+│   ├── react/       # @desource/context7-widget-react
 │   └── vue/         # @desource/context7-widget-vue
 ├── common/
 │   └── tests/       # shared unit/e2e test helpers
@@ -55,7 +56,7 @@ Playwright e2e tests start local Vite demos for the core custom element and
 framework packages. If browsers are not installed locally, run:
 
 ```bash
-pnpm exec playwright install chromium
+pnpm exec playwright install chromium firefox webkit
 ```
 
 ## Coding Standards
@@ -87,6 +88,7 @@ chore(ci): add release workflow
 Recommended scopes:
 
 - `core`
+- `react`
 - `vue`
 - `site`
 - `docs`
@@ -104,7 +106,12 @@ Before opening a PR:
 - Run `pnpm validate:packages`
 - Run `pnpm test:all`
 - Update docs for public API changes
-- Add a changeset for publishable package changes
+- Add a changeset for publishable package changes. Select core, React, and Vue together so the user-facing summary is
+  copied to every package changelog; their fixed Changesets group keeps the versions synchronized.
+
+The general CI workflow is intentionally manual-dispatch only. Run the checks
+above locally before requesting review; a maintainer can dispatch the same
+release-quality gate for the branch when needed.
 
 Create a changeset with:
 
@@ -112,11 +119,14 @@ Create a changeset with:
 pnpm changeset
 ```
 
-Do not add changesets for site-only or internal-only documentation changes unless they should appear in npm changelogs.
+Do not add changesets for site-only or internal-only documentation changes unless they should appear in npm
+changelogs.
 
 ## Release Process
 
-Maintainers publish through Changesets. See [RELEASE.md](./RELEASE.md).
+Maintainers publish the fixed package group through a reviewed release pull request. The release workflow runs the full
+quality gate, publishes without package-specific Git tags, and creates one shared version tag and GitHub release. See
+[RELEASE.md](./RELEASE.md).
 
 ## Security
 

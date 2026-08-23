@@ -35,6 +35,7 @@ export type {
   Context7ConversationEventName,
   Context7ConversationState,
   Context7ConversationStateListener,
+  Context7ConversationStateSubscriptionOptions,
   Context7ConversationTransport,
   Context7Message,
   Context7MessageStatus,

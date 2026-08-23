@@ -18,13 +18,12 @@ export function registerVueContext7Widget(widgetId: string, widget: Context7Widg
 export function unregisterVueContext7Widget(widgetId: string, widget: Context7WidgetExpose): void {
   const registrations = registryStacks.get(widgetId);
   const index = registrations?.indexOf(widget) ?? -1;
-  if (registrations && index >= 0) registrations.splice(index, 1);
+  if (index >= 0) registrations!.splice(index, 1);
 
   if (!registrations?.length) {
     registryStacks.delete(widgetId);
     registry.delete(widgetId);
   } else {
-    const previous = registrations[registrations.length - 1];
-    if (previous) registry.set(widgetId, previous);
+    registry.set(widgetId, registrations[registrations.length - 1]!);
   }
 }

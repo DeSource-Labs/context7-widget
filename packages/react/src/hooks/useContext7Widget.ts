@@ -60,16 +60,20 @@ export function useContext7Widget(options: UseContext7WidgetOptions = {}): UseCo
       subscribedControllerRef.current = controller;
       unsubscribeRef.current =
         controller?.subscribe((state) => {
-          setIsBusy(state.busy);
-          setIsOpen(state.open);
-          setMessages(state.messages);
-          setWidget(controller.element);
+          setIsBusy((current) => (current === state.busy ? current : state.busy));
+          setIsOpen((current) => (current === state.open ? current : state.open));
+          setMessages((current) => (areMessagesEqual(current, state.messages) ? current : state.messages));
+          setWidget((current) => (current === controller.element ? current : controller.element));
         }) ?? null;
     }
-    setWidget(controller?.element ?? null);
-    setIsBusy(controller?.isBusy() ?? false);
-    setIsOpen(controller?.isOpen() ?? false);
-    setMessages(controller?.getMessages() ?? []);
+    const element = controller?.element ?? null;
+    const busy = controller?.isBusy() ?? false;
+    const open = controller?.isOpen() ?? false;
+    const nextMessages = controller?.getMessages() ?? [];
+    setWidget((current) => (current === element ? current : element));
+    setIsBusy((current) => (current === busy ? current : busy));
+    setIsOpen((current) => (current === open ? current : open));
+    setMessages((current) => (areMessagesEqual(current, nextMessages) ? current : nextMessages));
   }, [resolveController]);
 
   const renderOwned = useCallback(
@@ -163,7 +167,10 @@ export function useContext7Widget(options: UseContext7WidgetOptions = {}): UseCo
   }, [mount, options.autoMount, syncState]);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      syncState();
+      return;
+    }
     const currentOptions = optionsRef.current;
     const target = resolveTarget(currentOptions.target ?? document.body);
     if (containerRef.current.parentNode !== target) target.append(containerRef.current);
@@ -172,6 +179,7 @@ export function useContext7Widget(options: UseContext7WidgetOptions = {}): UseCo
     options.backdrop,
     options.closeOnOutsideClick,
     options.color,
+    options.children,
     options.customTrigger,
     options.defaultOpen,
     options.initialMessage,
@@ -181,16 +189,32 @@ export function useContext7Widget(options: UseContext7WidgetOptions = {}): UseCo
     options.library,
     options.linkBaseUrl,
     options.open,
+    options.onAnswer,
+    options.onAnswerComplete,
+    options.onCancel,
+    options.onClose,
+    options.onError,
+    options.onFirstToken,
+    options.onOpen,
+    options.onOpenChange,
+    options.onQuestion,
+    options.onReady,
+    options.onToolCall,
+    options.onToolResult,
     options.panelHeight,
     options.panelWidth,
     options.placeholder,
     options.position,
     options.preset,
+    options.removeOnUnmount,
+    options.rootProps,
     options.target,
     options.theme,
     options.title,
+    options.trigger,
     options.widgetId,
-    renderOwned
+    renderOwned,
+    syncState
   ]);
 
   const withController = useCallback(
@@ -241,4 +265,10 @@ export function useContext7Widget(options: UseContext7WidgetOptions = {}): UseCo
     unmount,
     widget
   };
+}
+
+function areMessagesEqual(current: readonly Context7Message[], next: readonly Context7Message[]): boolean {
+  if (current === next) return true;
+  if (current.length !== next.length) return false;
+  return current.every((message, index) => message === next[index]);
 }

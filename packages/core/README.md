@@ -5,7 +5,7 @@ Core TypeScript package for a customizable Context7 documentation chat widget.
 Use this package when you want the Context7 widget runtime without committing to
 a framework binding. Its root exports only custom-element/script/helper use
 cases and useful public types. Custom-solution primitives live at `./core`,
-framework internals live at `./kit`, and the hosted browser build is
+framework-author primitives live at `./kit`, and the hosted browser build is
 `./widget.js`.
 
 All ESM entries are side-effect free and tree-shakeable. Importing them does not
@@ -163,6 +163,17 @@ and bind automatically when the target appears.
 The script still sends chat requests to `https://context7.com`. This package
 does not run a Context7 proxy; it supplies the customizable client layer.
 
+## Data Flow
+
+The browser posts the configured library id and current conversation messages
+directly to `https://context7.com/api/v2/widget/chat`. DeSource Labs does not
+proxy chat content. This client adds no analytics, cookies, or persistent
+browser storage; state remains in the live widget's memory and `reset()` clears
+it. Public events expose questions and answers to the host application, so
+integrators control any additional analytics or persistence. Avoid sending
+secrets or sensitive personal data and review Context7's policies for backend
+processing and retention.
+
 ## Supported Visual Modes
 
 - Positions: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `center`,
@@ -256,6 +267,20 @@ headings, fenced code with lightweight highlighting, nested lists, tasks,
 blockquotes, tables, and inline formatting. Streaming text stays escaped plain
 text and Markdown parsing is deferred until the answer completes, avoiding
 quadratic work while long responses stream.
+
+## Headless Engine Subscriptions
+
+`Context7ConversationEngine.subscribe(listener)` includes every state snapshot
+by default. Framework or custom renderers that consume the event stream can use
+`subscribe(listener, { includeTransient: false })` to skip snapshots caused
+only by partial-answer or tool-frame streaming. Request start, committed
+messages, cancellation, errors, reset, and final busy state are still delivered;
+`subscribeEvents` continues to emit every stream event.
+
+State and event listeners are invoked independently. If consumer code throws,
+the error is logged and the engine continues the request and invokes the
+remaining listeners. Both subscription methods return idempotent unsubscribe
+callbacks.
 
 ## Exports
 

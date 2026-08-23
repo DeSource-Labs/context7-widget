@@ -5,8 +5,6 @@ export type SocialMediaItem = {
   href: string;
 };
 
-export type SocialMedia = Record<SocialMediaKey, string>;
-
 export type LibraryKey = 'js' | 'ts' | 'vue' | 'nuxt' | 'react' | 'svelte' | 'angular';
 
 export type LibraryItem = {

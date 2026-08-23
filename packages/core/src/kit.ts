@@ -59,25 +59,11 @@ export function isContext7WidgetEventName(value: string): value is Context7Widge
   return (context7WidgetEvents as readonly string[]).includes(value);
 }
 
-export { copyText } from './clipboard.js';
-export {
-  CONTEXT7_COPY_FEEDBACK_DELAY,
-  Context7CopyActionController,
-  context7CopyIconHtml,
-  createContext7CopyActionController,
-  syncContext7CopyButton
-} from './copy-action.js';
-export type { Context7CopyActionControllerOptions } from './copy-action.js';
-export { context7WidgetLabels, resolveContext7WidgetLabels } from './labels.js';
-export {
-  CONTEXT7_URL,
-  DESOURCE_LABS_URL,
-  context7WidgetDefaults,
-  deSourceLabsLogoUrl,
-  normalizeContext7WidgetTrigger,
-  resolveContext7WidgetConfig,
-  type Context7WidgetConfigInput
-} from './config.js';
+// The framework-author surface is a strict superset of /core. Keeping the shared
+// exports here prevents the two public entry points from drifting as core evolves.
+export * from './core.js';
+export { callContext7ListenerSafely } from './listener.js';
+export { CONTEXT7_URL, DESOURCE_LABS_URL, deSourceLabsLogoUrl } from './config.js';
 export {
   assertBrowser,
   cancelRenderFrame,
@@ -86,56 +72,21 @@ export {
   querySelectorSafely,
   requestRenderFrame,
   resolveContext7CustomTrigger,
-  resolveContext7AnchorLayout,
   resolveTarget,
   restoreTriggerAccessibility,
   trapFocus,
   updateAnchorPosition
 } from './dom.js';
-export { Context7ConversationEngine, createContext7ConversationEngine } from './engine.js';
-export { escapeHtml, renderMarkdown, resolveContext7MarkdownBaseUrl } from './markdown.js';
-export type { Context7MarkdownOptions, Context7RenderedMarkdown } from './markdown.js';
-export { acquireContext7Modal } from './modal.js';
-export {
-  Context7ConversationRenderBridge,
-  createContext7ConversationRenderBridge,
-  formatContext7ToolResult,
-  getContext7ToolQuery
-} from './renderer.js';
-export type { Context7ConversationRenderBridgeOptions } from './renderer.js';
-export { buildContext7ErrorHtml, DEFAULT_CONTEXT7_INITIAL_MESSAGE, isAbortError } from './runtime.js';
-export type { Context7RenderedErrorHtml } from './runtime.js';
-export { Context7TransportError, streamContext7Response } from './transport.js';
+export type { Context7CustomTriggerResolution } from './dom.js';
 export type {
-  Context7AnchorLayout,
-  Context7AnchorLayoutOptions,
-  Context7AnchorRect,
-  Context7CustomTriggerResolution
-} from './dom.js';
-export type {
-  Context7ActiveRequest,
-  Context7ConversationEngineOptions,
-  Context7ConversationEvent,
-  Context7ConversationEventListener,
-  Context7ConversationEventName,
-  Context7ConversationState,
-  Context7ConversationStateListener,
-  Context7ConversationTransport,
   Context7LauncherVariant,
-  Context7Message,
   Context7Position,
-  Context7Role,
-  Context7StreamCallbacks,
   Context7Theme,
-  Context7ToolCall,
-  Context7ToolFrame,
-  Context7ToolResult,
   Context7TriggerA11yState,
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
   Context7WidgetBaseEventDetail,
   Context7WidgetCancelEventDetail,
-  Context7WidgetConfig,
   Context7WidgetController,
   Context7WidgetDomEvent,
   Context7WidgetDomEventMap,
@@ -146,14 +97,9 @@ export type {
   Context7WidgetEventName,
   Context7WidgetEventPayload,
   Context7WidgetLifecycleEventDetail,
-  Context7WidgetLabels,
   Context7WidgetInstance,
-  Context7MessageStatus,
-  Context7WidgetOptions,
   Context7WidgetPreset,
   Context7WidgetQuestionEventDetail,
-  Context7WidgetSendResult,
-  Context7WidgetSendStatus,
   Context7WidgetTarget,
   Context7WidgetTrigger,
   Context7WidgetToolCallEventDetail,

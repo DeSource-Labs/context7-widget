@@ -8,7 +8,12 @@
     "react",
     "chat-widget",
     "ai-docs",
+    "docs-chat",
     "documentation",
+    "react-component",
+    "react-hook",
+    "customizable",
+    "themeable",
     "typescript"
   ],
   "author": "Stefan Popov <stefan@desource-labs.org>",
@@ -43,6 +48,16 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./component": {
+      "types": "./dist/component.d.ts",
+      "import": "./dist/component.js",
+      "default": "./dist/component.js"
+    },
+    "./hook": {
+      "types": "./dist/hook.d.ts",
+      "import": "./dist/hook.js",
+      "default": "./dist/hook.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
@@ -66,6 +81,11 @@
   "peerDependencies": {
     "react": "^18.3.0 || ^19.0.0",
     "react-dom": "^18.3.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/react": "^19.2.14",

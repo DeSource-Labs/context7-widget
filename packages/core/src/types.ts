@@ -106,6 +106,11 @@ export type Context7ConversationEventListener = (event: Context7ConversationEven
 
 export type Context7ConversationStateListener = (state: Context7ConversationState) => void;
 
+export interface Context7ConversationStateSubscriptionOptions {
+  /** Receive partial-answer and tool-frame snapshots in addition to committed message/busy changes. Defaults to true. */
+  readonly includeTransient?: boolean;
+}
+
 export type Context7ConversationTransport = (
   config: Pick<Context7WidgetConfig, 'library'>,
   messages: readonly Context7Message[],

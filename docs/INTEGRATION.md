@@ -4,9 +4,9 @@ This guide is for teams that want an AI documentation assistant on a site, but
 do not want a generic widget that clashes with the product.
 
 Context7 provides the hosted documentation backend and grounded answers. This
-repo provides the customizable client layer: script replacement, custom element,
-TypeScript helpers, native Vue and React bindings, styling contract, event stream, and
-positioning modes.
+repo provides the customizable client layer: script replacement, custom
+element, TypeScript helpers, native Vue and React bindings, styling contract,
+event stream, and positioning modes.
 
 ## Which Integration Should I Use?
 
@@ -19,6 +19,27 @@ positioning modes.
 | Vue 3 app                              | Use `@desource/context7-widget-vue`                   |
 | React app                              | Use `@desource/context7-widget-react`                 |
 | Svelte or Angular app                  | Use script/core today; dedicated packages are planned |
+
+## Data Flow And Privacy
+
+All package surfaces use the same browser transport. When a visitor sends a
+question, the browser posts the configured `libraryName` and the current
+conversation messages to `https://context7.com/api/v2/widget/chat`. Each
+message includes its id, role, content, and an equivalent text part. Theme,
+preset, position, `widgetId`, and other presentation options are not included
+in the chat request.
+
+The request does not pass through DeSource Labs. Loading the optional hosted
+script is a separate file request to `context7.desource-labs.org`; npm package
+users do not make that request. The widget itself adds no analytics, cookies,
+`localStorage`, or `sessionStorage`, and keeps the conversation in memory until
+the widget is released; `reset()` clears it explicitly.
+
+Questions and answers are exposed in public widget events. If the host
+application forwards those events to analytics, logging, or support systems,
+that is a separate application-controlled data flow. Avoid submitting secrets
+or sensitive personal data and consult Context7's terms and privacy practices
+for backend processing and retention.
 
 ## Drop-In Replacement
 
@@ -189,7 +210,7 @@ npm install @desource/context7-widget-react
 
 ```tsx
 import { useState } from 'react';
-import { Context7Widget } from '@desource/context7-widget-react';
+import { Context7Widget } from '@desource/context7-widget-react/component';
 import '@desource/context7-widget-react/styles.css';
 
 export function DocsAssistant() {
@@ -212,7 +233,7 @@ export function DocsAssistant() {
 Hook-owned programmatic widget:
 
 ```tsx
-import { useContext7Widget } from '@desource/context7-widget-react';
+import { useContext7Widget } from '@desource/context7-widget-react/hook';
 
 const docs = useContext7Widget({
   autoMount: true,
@@ -224,9 +245,18 @@ await docs.send('Show setup examples');
 await docs.retry();
 ```
 
+Without `autoMount`, the hook resolves the newest React registration for its
+`widgetId`; this is a package-level registry, not a DOM ancestry lookup. The id
+defaults to `default`, and if that registration is absent the default lookup
+falls back to the first available widget. If duplicate ids are intentional,
+unmounting the newest registration restores the previous one.
+
 ## Next.js App Router
 
-Add the script in `app/layout.tsx`:
+The native React entries preserve `"use client"`, so
+`@desource/context7-widget-react/component` can establish the client boundary
+when imported from an App Router tree. Alternatively, add the hosted custom
+element script in `app/layout.tsx`:
 
 ```tsx
 import Script from 'next/script';

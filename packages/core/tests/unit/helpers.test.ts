@@ -8,6 +8,50 @@ import {
   setContext7WidgetAttributes,
   toContext7WidgetAttributes
 } from '../../src';
+import type { Context7WidgetOptions } from '../../src';
+import { context7WidgetOptionKeys } from '../../src/kit';
+
+const everySerializableOption = {
+  backdrop: true,
+  closeOnOutsideClick: false,
+  color: '#111827',
+  customTrigger: '#docs-chat',
+  defaultOpen: true,
+  initialMessage: 'Welcome',
+  launcherLabel: 'Open docs',
+  launcherVariant: 'pill',
+  library: '/vercel/next.js',
+  linkBaseUrl: 'https://nextjs.org/docs/',
+  panelHeight: '36rem',
+  panelWidth: '24rem',
+  placeholder: 'Ask docs',
+  position: 'bottom-left',
+  preset: 'glass',
+  theme: 'dark',
+  title: 'Docs assistant',
+  widgetId: 'docs'
+} as const satisfies Context7WidgetOptions;
+
+const everyElementAttribute = {
+  backdrop: 'true',
+  'close-on-outside-click': 'false',
+  color: '#111827',
+  'custom-trigger': '#docs-chat',
+  'default-open': 'true',
+  'initial-message': 'Welcome',
+  'launcher-label': 'Open docs',
+  'launcher-variant': 'pill',
+  library: '/vercel/next.js',
+  'link-base-url': 'https://nextjs.org/docs/',
+  'panel-height': '36rem',
+  'panel-width': '24rem',
+  placeholder: 'Ask docs',
+  position: 'bottom-left',
+  preset: 'glass',
+  theme: 'dark',
+  'dialog-title': 'Docs assistant',
+  'widget-id': 'docs'
+} as const;
 
 describe('core helpers', () => {
   afterEach(() => {
@@ -29,6 +73,37 @@ describe('core helpers', () => {
       library: '/vercel/next.js',
       placeholder: 'Ask docs',
       theme: 'dark'
+    });
+  });
+
+  it('keeps every serializable option aligned across helpers and script tags', () => {
+    expectTypeOf<(typeof context7WidgetOptionKeys)[number]>().toEqualTypeOf<keyof Context7WidgetOptions>();
+    expect([...context7WidgetOptionKeys].sort()).toEqual([...Object.keys(everySerializableOption), 'labels'].sort());
+    expect(toContext7WidgetAttributes(everySerializableOption)).toEqual(everyElementAttribute);
+
+    const template = document.createElement('template');
+    template.innerHTML = buildContext7WidgetScriptTag({ async: false, ...everySerializableOption });
+    const script = template.content.firstElementChild as HTMLScriptElement;
+
+    expect(script.dataset).toMatchObject({
+      backdrop: 'true',
+      closeOnOutsideClick: 'false',
+      color: '#111827',
+      customTrigger: '#docs-chat',
+      defaultOpen: 'true',
+      initialMessage: 'Welcome',
+      launcherLabel: 'Open docs',
+      launcherVariant: 'pill',
+      library: '/vercel/next.js',
+      linkBaseUrl: 'https://nextjs.org/docs/',
+      panelHeight: '36rem',
+      panelWidth: '24rem',
+      placeholder: 'Ask docs',
+      position: 'bottom-left',
+      preset: 'glass',
+      theme: 'dark',
+      title: 'Docs assistant',
+      widgetId: 'docs'
     });
   });
 

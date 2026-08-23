@@ -86,6 +86,12 @@ Call the composable during component `setup`; imperative `mount()` is
 browser-only. Programmatically rendered widgets inherit the owner app context
 and defaults provided by `createContext7WidgetPlugin`.
 
+Without `autoMount`, the composable uses a package-level registry rather than
+Vue or DOM ancestry. It resolves the newest registration for `widgetId`, which
+defaults to `default`; if no default registration exists, that lookup falls back
+to the first available widget. Duplicate ids form a stack, so unmounting the
+newest registration restores the previous one.
+
 ## Plugin
 
 Register the native component under a custom name and provide app-wide defaults:
@@ -223,10 +229,14 @@ Vue events: `ready`, `open`, `close`, `cancel`, `question`, `first-token`,
 
 Each handler receives the typed event detail as its only argument.
 
-Component refs expose the same control surface as the composable:
-`open`, `close`, `toggle`, `send`, `cancel`, `retry`, `reset`, `isOpen`,
-`isBusy`, and `getMessages`. Cancelling after answer tokens arrive preserves the visible
-partial assistant message in `getMessages()` with `status: 'cancelled'`.
+Component refs expose `open`, `close`, `toggle`, `send`, `cancel`, `retry`,
+`reset`, `isOpen`, `isBusy`, `getMessages`, and `subscribe`. The composable adds
+owned `mount`/`unmount` operations and reactive `widget`, `isOpen`, `isBusy`,
+and `messages` refs. State listeners registered through `subscribe` are
+isolated: if one throws, the error is reported without corrupting the request
+or skipping the remaining listeners. Cancelling after answer tokens arrive
+preserves the visible partial assistant message in `getMessages()` with
+`status: 'cancelled'`.
 `send()` resolves with a status result such as `complete`, `cancelled`, `error`,
 `busy`, or `empty`.
 
@@ -243,14 +253,28 @@ corner and anchored panels do not.
 The component is SSR-safe. `useContext7Widget` can also be created during SSR,
 but its imperative `mount()` method requires a browser document.
 
+## Data Flow And Privacy
+
+The browser posts the configured library id and current conversation messages
+directly to `https://context7.com/api/v2/widget/chat`. DeSource Labs does not
+proxy chat content. The package adds no analytics, cookies, or persistent
+browser storage; conversation state remains in the mounted widget until
+`reset()` or unmount. Emitted event payloads expose questions and answers to the
+host application, so any logging, analytics, or persistence added there is the
+integrator's data flow. Do not send secrets or sensitive personal data, and
+review Context7's policies for backend processing and retention.
+
 ## Multiple Widgets And Packaging
 
 Use a unique `widgetId` for each independently controlled widget. When duplicate
 ids are mounted intentionally, the most recently mounted instance is resolved
 and the previous instance becomes active again if the newer one unmounts.
 
-The package publishes ESM plus a separate minified stylesheet. Vue and
-`@desource/context7-widget/kit` remain external module dependencies, allowing
-the consuming app to deduplicate Vue and tree-shake unused kit modules. The
-published entry and declarations are SSR-import safe and validated with modern
-Node ESM and TypeScript bundler resolution.
+The package exposes one JavaScript entry,
+`@desource/context7-widget-vue`, containing the component, composable, plugin,
+and public types. Styles are intentionally separate at
+`@desource/context7-widget-vue/styles.css`; there are no component or composable
+JavaScript subpaths. Vue and `@desource/context7-widget/kit` remain external
+module dependencies, allowing the consuming app to deduplicate Vue and
+tree-shake unused kit modules. The ESM entry and declarations are SSR-import
+safe and validated with modern Node ESM and TypeScript bundler resolution.

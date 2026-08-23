@@ -6,6 +6,10 @@ import type {
   Context7WidgetSendResult,
   UseContext7WidgetReturn
 } from '../src';
+import { Context7Widget as ComponentEntryWidget } from '../src/component';
+import type { Context7WidgetProps as ComponentEntryProps } from '../src/component';
+import { useContext7Widget as HookEntryHook } from '../src/hook';
+import type { UseContext7WidgetOptions as HookEntryOptions } from '../src/hook';
 
 declare function expectType<Type>(value: Type): void;
 
@@ -25,6 +29,10 @@ const props = {
   position: 'center'
 } satisfies Context7WidgetProps;
 expectType<string>(props.library);
+expectType<typeof import('../src').Context7Widget>(ComponentEntryWidget);
+expectType<Context7WidgetProps>({ library: '/owner/repo' } satisfies ComponentEntryProps);
+expectType<typeof import('../src').useContext7Widget>(HookEntryHook);
+expectType<HookEntryOptions>({ autoMount: true, library: '/owner/repo' });
 
 declare const handle: Context7WidgetHandle;
 expectType<Promise<Context7WidgetSendResult | undefined>>(handle.retry());

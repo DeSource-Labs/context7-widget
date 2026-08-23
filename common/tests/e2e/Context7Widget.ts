@@ -46,7 +46,8 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
 
       await expect(trigger).toHaveText(/Ask docs/);
       await expect(trigger).toHaveAttribute('aria-expanded', 'false');
-      await trigger.click();
+      await trigger.focus();
+      await trigger.press('Enter');
 
       await expect(panel(widget)).toBeVisible();
       await expect(trigger).toHaveAttribute('aria-expanded', 'true');

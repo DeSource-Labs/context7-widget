@@ -22,7 +22,7 @@ export default defineConfig({
     // Keep preserved ESM modules and export identifiers readable,
     // downstream application bundlers still minify normally.
     minify: false,
-    sourcemap: true,
+    sourcemap: false,
     target: 'es2020'
   },
   plugins: [

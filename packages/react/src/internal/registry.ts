@@ -18,5 +18,12 @@ export function unregisterReactContext7Widget(id: string, controller: Context7Wi
 
 export function getReactContext7Widget(id = 'default'): Context7WidgetHandle | undefined {
   const stack = registrations.get(id);
-  return stack?.[stack.length - 1];
+  const registered = stack?.[stack.length - 1];
+  if (registered || id !== 'default') return registered;
+
+  for (const fallbackStack of registrations.values()) {
+    const fallback = fallbackStack[fallbackStack.length - 1];
+    if (fallback) return fallback;
+  }
+  return undefined;
 }

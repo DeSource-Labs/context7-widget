@@ -1,5 +1,6 @@
 import { isAbortError } from './runtime.js';
 import { streamContext7Response } from './transport.js';
+import { callContext7ListenerSafely } from './listener.js';
 import type {
   Context7ActiveRequest,
   Context7ConversationEngineOptions,
@@ -8,6 +9,7 @@ import type {
   Context7ConversationEventName,
   Context7ConversationState,
   Context7ConversationStateListener,
+  Context7ConversationStateSubscriptionOptions,
   Context7ConversationTransport,
   Context7Message,
   Context7MessageStatus,
@@ -40,7 +42,7 @@ export class Context7ConversationEngine {
   private requestCounter = 0;
   private fallbackMessageCounter = 0;
   private readonly resolveConfig: () => Pick<Context7WidgetConfig, 'library'>;
-  private readonly stateListeners = new Set<Context7ConversationStateListener>();
+  private readonly stateListeners = new Map<Context7ConversationStateListener, boolean>();
   private readonly toolFrames = new Map<string, Context7ToolFrame>();
   private readonly transport: Context7ConversationTransport;
   private messages: Context7Message[] = [];
@@ -184,7 +186,7 @@ export class Context7ConversationEngine {
             if (this.activeRequest !== request) return;
             answer += delta;
             this.partialAnswer = answer;
-            this.notifyState();
+            this.notifyState(true);
 
             const detail = { answer, question } as const;
             if (!sawFirstToken) {
@@ -196,7 +198,7 @@ export class Context7ConversationEngine {
           onToolCall: (toolCall) => {
             if (this.activeRequest !== request) return;
             this.toolFrames.set(toolCall.toolCallId, { toolCall });
-            this.notifyState();
+            this.notifyState(true);
             this.emit('c7:tool-call', { question, toolCall }, request);
           },
           onToolResult: (toolResult) => {
@@ -204,7 +206,7 @@ export class Context7ConversationEngine {
             const frame = this.toolFrames.get(toolResult.toolCallId);
             if (frame) {
               this.toolFrames.set(toolResult.toolCallId, { ...frame, toolResult });
-              this.notifyState();
+              this.notifyState(true);
             }
             this.emit('c7:tool-result', { question, toolResult }, request);
           }
@@ -263,9 +265,12 @@ export class Context7ConversationEngine {
     return sendResult ?? this.createSendResult('cancelled', question, { answer });
   }
 
-  subscribe(listener: Context7ConversationStateListener): () => void {
-    this.stateListeners.add(listener);
-    listener(this.getState());
+  subscribe(
+    listener: Context7ConversationStateListener,
+    options: Context7ConversationStateSubscriptionOptions = {}
+  ): () => void {
+    this.stateListeners.set(listener, options.includeTransient ?? true);
+    callContext7ListenerSafely(listener, this.getState());
     return () => this.stateListeners.delete(listener);
   }
 
@@ -300,7 +305,8 @@ export class Context7ConversationEngine {
       request: request ? toPublicRequest(request) : null,
       type
     } as Context7ConversationEvent<EventName>;
-    for (const listener of this.eventListeners) listener(event as Context7ConversationEvent);
+    for (const listener of this.eventListeners)
+      callContext7ListenerSafely(listener, event as Context7ConversationEvent);
   }
 
   private getTransportMessages(): readonly Context7Message[] {
@@ -322,10 +328,12 @@ export class Context7ConversationEngine {
     return `c7m-${this.fallbackMessageCounter}`;
   }
 
-  private notifyState(): void {
-    if (this.stateListeners.size === 0) return;
-    const state = this.getState();
-    for (const listener of this.stateListeners) listener(state);
+  private notifyState(transient = false): void {
+    let state: Context7ConversationState | undefined;
+    for (const [listener, includeTransient] of this.stateListeners) {
+      if (transient && !includeTransient) continue;
+      callContext7ListenerSafely(listener, (state ??= this.getState()));
+    }
   }
 }
 

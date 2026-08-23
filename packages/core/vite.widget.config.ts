@@ -10,7 +10,12 @@ export default defineConfig({
       name: 'Context7WidgetLoader'
     },
     minify: 'terser',
-    sourcemap: true,
-    target: 'es2020'
+    sourcemap: false,
+    target: 'es2020',
+    terserOptions: {
+      compress: { passes: 3, pure_getters: true, toplevel: true },
+      format: { comments: false },
+      mangle: { toplevel: true }
+    }
   }
 });

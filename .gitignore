@@ -2,8 +2,11 @@ node_modules/
 .pnpm-store/
 dist/
 demo/dist
-coverage/
+coverage*/
 test-results/
+playwright-report/
+blob-report/
+*.tsbuildinfo
 .playwright-cli/
 output/playwright/
 .DS_Store

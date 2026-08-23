@@ -21,12 +21,12 @@ events, and compatibility monitoring.
   core TypeScript build for custom integrations.
 - `packages/core/dist/core.js`: framework-neutral public primitives for custom
   chat experiences.
-- `packages/core/dist/kit.js`: the broader internal contract used to implement
-  framework packages.
+- `packages/core/dist/kit.js`: the public framework-author contract used to
+  implement native bindings.
 - `context7-widget` custom element: the framework-agnostic core runtime surface.
 - `packages/vue`: Vue 3 component, composable, plugin helper, and SCSS output.
-- `packages/react`: native React component, controlled API, programmatic hook,
-  and SCSS output.
+- `packages/react`: native React component and controlled API at `/component`,
+  programmatic mounting at `/hook`, a compatibility root, and SCSS output.
 - planned framework packages: Svelte and Angular implementations built on the
   same boundary and shared contracts.
 - `demo`: Nuxt static site for `context7.desource-labs.org`.
@@ -128,6 +128,11 @@ Angular packages should follow the same boundary: own their framework UI and
 lifecycle, share backend/protocol code through `/kit`, and never wrap the core
 custom element.
 
+React separates its component and hook entries so component-only consumers do
+not retain `react-dom`; the package root remains a compatibility entry that
+exports both surfaces. Each emitted React entry and shared chunk preserves
+`"use client"` for React Server Component tooling.
+
 All implementations always show compact linked attribution for Context7 and
 DeSource Labs. Attribution is part of the product contract rather than a
 configurable display option.
@@ -139,7 +144,7 @@ managed button from `common/styles/_framework-trigger.scss`. This keeps the
 visual contract in one source of truth without making a framework package
 depend on the custom-element runtime. Core normalizes Sass's nested
 host-attribute output to selectors such as `:host([open])`, which are exercised
-in Chromium against real Shadow DOM.
+across the shared Playwright browser matrix against real Shadow DOM.
 
 ## Runtime Invariants
 
@@ -161,12 +166,23 @@ in Chromium against real Shadow DOM.
 - Stream callbacks still emit every chunk, while escaped plain-text DOM work is
   limited to one render per animation frame and Markdown parsing is deferred
   until completion/cancellation.
+- Engine state subscriptions include transient partial-answer and tool-frame
+  snapshots by default. Renderers use `{ includeTransient: false }` when their
+  event subscription already owns those updates, avoiding redundant public
+  state allocation without changing default consumer semantics.
+- State and event subscribers are invoked through an isolation boundary. A
+  throwing consumer is reported, but cannot abort the request or prevent later
+  subscribers from running.
 - Changing libraries cancels the active request and starts a fresh
   conversation, preventing cross-library history leakage.
 - Core shares a constructable stylesheet across widget instances where
   supported and retains an inline fallback.
 - External trigger ARIA attributes are restored when a widget disconnects or
   changes triggers.
+- Vue and React keep package-local registration stacks keyed by `widgetId` for
+  composable/hook lookup. Duplicate ids resolve to the newest registration and
+  reveal the previous registration when it unmounts; lookup is not based on DOM
+  proximity.
 - Centered modal focus is contained inside the panel, not the launcher or host
   page; outside branches are inert and page scroll state is reference-counted
   and restored.
@@ -202,7 +218,7 @@ native text nodes. Only two kinds of content cross an HTML sink:
 
 The core renderer escapes raw Markdown HTML, restricts links, and owns the
 small trusted fragments used for code actions. The error renderer escapes the
-transport message and every localized label. Vue uses`v-html`,
+transport message and every localized label. Vue uses `v-html`,
 React uses `dangerouslySetInnerHTML`, and the custom element assigns
 the same branded values to DOM HTML. None of those sinks is a sanitizer; the
 shared core producers are the security boundary, and the branded string types
@@ -279,11 +295,26 @@ The renderer-independent payloads for question, answer, cancel, tool, and error
 events are created by the shared conversation engine before each renderer adds
 its native `widget` reference.
 
+## Network And Data Boundary
+
+The only built-in chat request is a browser `POST` to
+`https://context7.com/api/v2/widget/chat`. Its JSON body contains the configured
+library id and current conversation messages with id, role, content, and text
+parts. Presentation options and DOM references are not sent. The core engine
+keeps conversation state in memory and does not use cookies or persistent
+browser storage.
+
+The hosted `widget.js` request and the Context7 chat request are independent:
+DeSource Labs can serve the client asset, but chat content is sent directly to
+Context7. Public events deliberately expose conversation data to the host
+application; any analytics or persistence added by an integrator is outside
+the library's transport boundary.
+
 ## Site Hosting
 
-`demo` is a Nuxt static app. Its build runs the core and Vue package builds,
-copies `packages/core/dist/widget.js` to `demo/public/widget.js`, then generates
-`.output/public`. `vercel.json` points Vercel at that output directory.
+`demo` is a Nuxt static app. Its build runs the core, Vue, and React package
+builds, copies `packages/core/dist/widget.js` to `demo/public/widget.js`, then
+generates `.output/public`. `vercel.json` points Vercel at that output directory.
 
 ## Maintenance Strategy
 

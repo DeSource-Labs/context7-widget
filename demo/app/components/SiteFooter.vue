@@ -29,7 +29,7 @@
         </a>
         <a
           class="external"
-          href="https://github.com/DeSource-Labs/browser-ai/blob/main/SECURITY.md"
+          href="https://github.com/DeSource-Labs/context7-widget/blob/main/SECURITY.md"
           target="_blank"
           rel="noopener noreferrer"
         >

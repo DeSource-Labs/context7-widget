@@ -4,9 +4,11 @@
 
 ### Minor Changes
 
+- Coordinated the core, native React, and native Vue packages under one shared version, release note, and Git tag.
 - Initial React release with a native component, controlled open state,
   imperative handle, programmatic hook, managed/external triggers, shared
   behavior contracts, complete UI localization, aligned event-detail exports,
+  sticky reader-aware streaming, isolated `/component` and `/hook` entrypoints,
   and optional `styles.css` entry.
 
 ### Patch Changes

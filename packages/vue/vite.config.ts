@@ -12,7 +12,8 @@ export default defineConfig({
     rollupOptions: {
       external: ['@desource/context7-widget/kit', 'vue']
     },
-    sourcemap: true,
+    minify: 'terser',
+    sourcemap: false,
     target: 'es2020'
   },
   plugins: [

@@ -58,6 +58,34 @@ describe('core conversation engine', () => {
     expect(finalState?.toolFrames).toHaveLength(1);
   });
 
+  it('allows renderers to skip transient snapshots while preserving default subscription semantics', async () => {
+    const everySnapshot: string[] = [];
+    const committedSnapshots: string[] = [];
+    const engine = createContext7ConversationEngine({
+      resolveConfig: () => ({ library: '/desource-labs/context7-widget' }),
+      transport: async (_config, _messages, callbacks) => {
+        callbacks.onToolCall?.({ args: { query: 'performance' }, toolCallId: 'tool-1', toolName: 'search' });
+        callbacks.onToolResult?.({ result: 'Found', toolCallId: 'tool-1' });
+        callbacks.onChunk('Efficient answer');
+      }
+    });
+    engine.subscribe((state) => everySnapshot.push(`${state.busy}:${state.partialAnswer}:${state.toolFrames.length}`));
+    engine.subscribe(
+      (state) => committedSnapshots.push(`${state.busy}:${state.partialAnswer}:${state.toolFrames.length}`),
+      { includeTransient: false }
+    );
+    everySnapshot.length = 0;
+    committedSnapshots.length = 0;
+
+    await engine.send('Avoid transient renderer work');
+
+    expect(everySnapshot).toHaveLength(6);
+    expect(everySnapshot).toContain('true:Efficient answer:1');
+    expect(committedSnapshots).toHaveLength(3);
+    expect(committedSnapshots.every((snapshot) => !snapshot.includes(':Efficient answer:'))).toBe(true);
+    expect(committedSnapshots[committedSnapshots.length - 1]).toBe('false::1');
+  });
+
   it('commits cancelled partial answers and resolves the pending send consistently', async () => {
     let callbacks: Context7StreamCallbacks | undefined;
     let signal: AbortSignal | undefined;
@@ -197,6 +225,34 @@ describe('core conversation engine', () => {
     ]);
   });
 
+  it('retries a missing-library failure after the integration supplies a library', async () => {
+    let library = '';
+    const transport = vi.fn<TestTransport>(async (_config, _messages, callbacks) => {
+      callbacks.onChunk('Recovered after configuration');
+    });
+    const engine = createContext7ConversationEngine({
+      nextMessageId: createIdFactory(),
+      resolveConfig: () => ({ library }),
+      transport
+    });
+    engine.reset([{ content: 'Configuration required', id: 'intro', role: 'assistant' }]);
+
+    await expect(engine.send('Configure me')).resolves.toMatchObject({ status: 'error' });
+    expect(engine.getMessages()).toHaveLength(1);
+
+    library = '/desource-labs/context7-widget';
+    await expect(engine.retry()).resolves.toMatchObject({
+      answer: 'Recovered after configuration',
+      status: 'complete'
+    });
+    expect(engine.getMessages().map((message) => message.content)).toEqual([
+      'Configuration required',
+      'Configure me',
+      'Recovered after configuration'
+    ]);
+    expect(transport).toHaveBeenCalledOnce();
+  });
+
   it('ignores retry when no request has failed and forgets failures after reset', async () => {
     const transport = vi.fn<TestTransport>().mockRejectedValueOnce(new Error('Fails once'));
     const engine = createContext7ConversationEngine({
@@ -274,6 +330,86 @@ describe('core conversation engine', () => {
       error: 'Something went wrong.',
       status: 'error'
     });
+  });
+
+  it('falls back to the default missing-library error when a resolver returns an empty message', async () => {
+    const engine = createContext7ConversationEngine({
+      missingLibraryMessage: () => '',
+      resolveConfig: () => ({ library: '' })
+    });
+
+    await expect(engine.send('Where are the docs?')).resolves.toMatchObject({
+      error: 'Missing library prop.',
+      question: 'Where are the docs?',
+      status: 'error'
+    });
+  });
+
+  it('normalizes a transport-originated abort into a settled cancelled result', async () => {
+    const engine = createContext7ConversationEngine({
+      resolveConfig: () => ({ library: '/desource-labs/context7-widget' }),
+      transport: async (_config, _messages, callbacks) => {
+        callbacks.onChunk('Uncommitted partial answer');
+        throw new DOMException('The transport stopped.', 'AbortError');
+      }
+    });
+
+    await expect(engine.send('Stop gracefully')).resolves.toMatchObject({
+      answer: 'Uncommitted partial answer',
+      question: 'Stop gracefully',
+      status: 'cancelled'
+    });
+    expect(engine.isBusy()).toBe(false);
+    expect(engine.getMessages()).toEqual([expect.objectContaining({ content: 'Stop gracefully', role: 'user' })]);
+  });
+
+  it('stops state and event delivery after consumers unsubscribe', async () => {
+    const states = vi.fn();
+    const events = vi.fn();
+    const engine = createContext7ConversationEngine({
+      resolveConfig: () => ({ library: '/desource-labs/context7-widget' }),
+      transport: async (_config, _messages, callbacks) => callbacks.onChunk('Complete')
+    });
+    const unsubscribeState = engine.subscribe(states);
+    const unsubscribeEvents = engine.subscribeEvents(events);
+    expect(states).toHaveBeenCalledOnce();
+
+    unsubscribeState();
+    unsubscribeEvents();
+    await engine.send('No more notifications');
+
+    expect(states).toHaveBeenCalledOnce();
+    expect(events).not.toHaveBeenCalled();
+  });
+
+  it('isolates throwing consumers without corrupting requests or skipping healthy listeners', async () => {
+    const reportError = vi.fn();
+    vi.stubGlobal('reportError', reportError);
+    const states: boolean[] = [];
+    const events: string[] = [];
+    const engine = createContext7ConversationEngine({
+      resolveConfig: () => ({ library: '/desource-labs/context7-widget' }),
+      transport: async (_config, _messages, callbacks) => callbacks.onChunk('Still completes')
+    });
+
+    engine.subscribe(() => {
+      throw new Error('state listener failed');
+    });
+    engine.subscribe((state) => states.push(state.busy));
+    engine.subscribeEvents(() => {
+      throw new Error('event listener failed');
+    });
+    engine.subscribeEvents((event) => events.push(event.type));
+
+    await expect(engine.send('Keep streaming')).resolves.toMatchObject({
+      answer: 'Still completes',
+      status: 'complete'
+    });
+
+    expect(states).toContain(true);
+    expect(states[states.length - 1]).toBe(false);
+    expect(events).toEqual(['c7:question', 'c7:first-token', 'c7:answer', 'c7:answer-complete']);
+    expect(reportError).toHaveBeenCalled();
   });
 });
 

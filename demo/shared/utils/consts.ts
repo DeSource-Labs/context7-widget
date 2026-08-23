@@ -1,6 +1,7 @@
 import type { SocialMediaItem, SocialMediaKey, LibraryItem, LibraryKey } from '../types';
 
 const repoUrlFull = 'https://github.com/DeSource-Labs/context7-widget/tree/main';
+const integrationGuideUrl = 'https://github.com/DeSource-Labs/context7-widget/blob/main/docs/INTEGRATION.md';
 
 export const socialMedia = {
   email: 'mailto:hello@desource-labs.org',
@@ -54,8 +55,8 @@ const librariesStates: Record<LibraryKey, boolean> = {
   js: true,
   ts: true,
   vue: true,
-  nuxt: false,
-  react: false,
+  nuxt: true,
+  react: true,
   svelte: false,
   angular: false
 };
@@ -67,6 +68,9 @@ const getLibHref = (key: LibraryKey, path?: string) => {
   }
   if (key === 'ts') {
     _key = 'core';
+  }
+  if (!librariesStates[key]) {
+    return `${integrationGuideUrl}#which-integration-should-i-use`;
   }
   return path ? `${repoUrlFull}/packages/${_key}#${path}` : `${repoUrlFull}/packages/${_key}`;
 };

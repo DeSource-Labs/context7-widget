@@ -4,12 +4,14 @@
 
 ### Minor Changes
 
+- Coordinated the core, native React, and native Vue packages under one shared version, release note, and Git tag.
 - Initial release of Vue 3 bindings for `@desource/context7-widget`.
 - Added the `Context7Widget` SFC, typed Vue events, `useContext7Widget` composable, plugin helper, managed custom trigger
   support, and optional `styles.css` entry.
-- Added `v-model:open`, retry, localization and link-base props, multiline/copy
-  UX, localized attribution and library fallbacks, modal isolation, aligned
-  public label types, and the shared cross-renderer behavior suite.
+- Added `v-model:open`, retry, localization and link-base props, reader-aware
+  streaming, multiline/copy UX, localized attribution and library fallbacks,
+  modal isolation, aligned public label types, and the shared cross-renderer
+  behavior suite.
 
 ### Patch Changes
 

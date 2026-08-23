@@ -6,8 +6,8 @@
 import { BloomEffect, ChromaticAberrationEffect, EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 import * as THREE from 'three';
 
-export type LineStyle = 'solid' | 'dashed' | 'dotted';
-export type ScanDirection = 'forward' | 'backward' | 'pingpong';
+type LineStyle = 'solid' | 'dashed' | 'dotted';
+type ScanDirection = 'forward' | 'backward' | 'pingpong';
 
 interface GridScanProps {
   sensitivity?: number;

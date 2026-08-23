@@ -27,6 +27,58 @@ describe('script loader', () => {
     expect(script.dataset.c7Mounted).toBe('true');
   });
 
+  it('keeps every supported script option aligned with custom-element attributes', () => {
+    const script = document.createElement('script');
+    const dataset = {
+      backdrop: 'true',
+      closeOnOutsideClick: 'false',
+      color: '#111827',
+      customTrigger: '#docs-chat',
+      defaultOpen: 'true',
+      initialMessage: 'Welcome',
+      launcherLabel: 'Open docs',
+      launcherVariant: 'pill',
+      library: '/vercel/next.js',
+      linkBaseUrl: 'https://nextjs.org/docs/',
+      panelHeight: '36rem',
+      panelWidth: '24rem',
+      placeholder: 'Ask docs',
+      position: 'bottom-left',
+      preset: 'glass',
+      theme: 'dark',
+      title: 'Docs assistant',
+      widgetId: 'docs'
+    };
+
+    Object.assign(script.dataset, dataset);
+    document.body.append(script);
+
+    const widget = mountContext7WidgetFromScript(script);
+
+    expect(
+      Object.fromEntries(widget?.getAttributeNames().map((name) => [name, widget.getAttribute(name)]) ?? [])
+    ).toMatchObject({
+      backdrop: 'true',
+      'close-on-outside-click': 'false',
+      color: '#111827',
+      'custom-trigger': '#docs-chat',
+      'default-open': 'true',
+      'initial-message': 'Welcome',
+      'launcher-label': 'Open docs',
+      'launcher-variant': 'pill',
+      library: '/vercel/next.js',
+      'link-base-url': 'https://nextjs.org/docs/',
+      'panel-height': '36rem',
+      'panel-width': '24rem',
+      placeholder: 'Ask docs',
+      position: 'bottom-left',
+      preset: 'glass',
+      theme: 'dark',
+      'dialog-title': 'Docs assistant',
+      'widget-id': 'docs'
+    });
+  });
+
   it('prefers the current initial-message attribute over the legacy welcome alias', () => {
     const script = document.createElement('script');
     script.setAttribute('data-library', '/vercel/next.js');

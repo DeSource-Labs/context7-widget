@@ -3,22 +3,22 @@
     ref="root"
     v-bind="attrs"
     class="context7-widget"
-    :backdrop-active="resolvedBackdrop ? '' : undefined"
+    :backdrop-active="resolvedConfig.backdrop ? '' : undefined"
     :close-on-outside-click="String(resolvedCloseOnOutsideClick)"
-    :color="resolvedColor || undefined"
+    :color="resolvedConfig.color || undefined"
     :custom-trigger="customTriggerSelector"
     :custom-trigger-active="hasCustomTrigger ? '' : undefined"
-    :default-open="String(resolvedDefaultOpen)"
-    :launcher-variant="resolvedLauncherVariant"
+    :default-open="String(resolvedConfig.defaultOpen)"
+    :launcher-variant="resolvedConfig.launcherVariant"
     :library="resolvedLibrary"
     :open="isOpen ? '' : undefined"
-    :panel-height="resolvedPanelHeight || undefined"
-    :panel-width="resolvedPanelWidth || undefined"
+    :panel-height="resolvedConfig.panelHeight || undefined"
+    :panel-width="resolvedConfig.panelWidth || undefined"
     :position="resolvedPosition"
-    :preset="resolvedPreset"
+    :preset="resolvedConfig.preset"
     :style="widgetStyle"
-    :theme="resolvedTheme"
-    :widget-id="resolvedWidgetId"
+    :theme="resolvedConfig.theme"
+    :widget-id="resolvedConfig.widgetId"
     @keydown="onKeyDown"
   >
     <div class="c7-backdrop" data-c7-backdrop part="backdrop" aria-hidden="true" @click="onBackdropClick" />
@@ -31,20 +31,21 @@
       type="button"
       :aria-controls="panelId"
       :aria-expanded="isOpen"
+      :aria-label="resolvedConfig.launcherLabel"
       aria-haspopup="dialog"
-      :data-preset="resolvedPreset"
-      :data-theme="resolvedTheme"
+      :data-preset="resolvedConfig.preset"
+      :data-theme="resolvedConfig.theme"
       @click="openFrom($event.currentTarget)"
     >
-      <slot name="trigger" :label="resolvedLauncherLabel" :trigger-id="managedTriggerId">
-        {{ resolvedLauncherLabel }}
+      <slot name="trigger" :label="resolvedConfig.launcherLabel" :trigger-id="managedTriggerId">
+        {{ resolvedConfig.launcherLabel }}
       </slot>
     </button>
 
     <section
       :id="panelId"
       ref="panel"
-      :aria-label="resolvedTitle"
+      :aria-label="resolvedConfig.title"
       :aria-busy="busy"
       :aria-modal="resolvedPosition === 'center'"
       class="c7-panel"
@@ -52,7 +53,7 @@
       role="dialog"
     >
       <header class="c7-header" part="header">
-        <div class="c7-title" part="title">{{ resolvedTitle }}</div>
+        <div class="c7-title" part="title">{{ resolvedConfig.title }}</div>
         <button class="c7-close" part="close-button" type="button" :aria-label="resolvedLabels.close" @click="close">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6 6 18" />
@@ -70,6 +71,7 @@
         part="messages"
         role="log"
         @click="onDelegatedCopyClick"
+        @scroll="onMessagesScroll"
       >
         <template v-for="item in displayItems" :key="item.id">
           <div
@@ -187,7 +189,7 @@
           autocomplete="off"
           :readonly="busy"
           rows="1"
-          :placeholder="resolvedPlaceholder"
+          :placeholder="resolvedConfig.placeholder"
           @input="resizeInput"
         />
         <button
@@ -262,7 +264,7 @@
       type="button"
       :aria-controls="panelId"
       :aria-expanded="isOpen"
-      :aria-label="resolvedLauncherLabel"
+      :aria-label="resolvedConfig.launcherLabel"
       aria-haspopup="dialog"
       @click="openFrom($event.currentTarget)"
     >
@@ -280,7 +282,7 @@
         <path d="M8 13h6" />
         <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-5l-5 3v-3H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h12" />
       </svg>
-      <span class="c7-launcher-label">{{ resolvedLauncherLabel }}</span>
+      <span class="c7-launcher-label">{{ resolvedConfig.launcherLabel }}</span>
     </button>
 
     <slot />
@@ -293,6 +295,7 @@ import {
   DESOURCE_LABS_URL,
   acquireContext7Modal,
   buildContext7ErrorHtml,
+  callContext7ListenerSafely,
   cancelRenderFrame,
   captureTriggerAccessibility,
   compactContext7WidgetOptions,
@@ -304,7 +307,6 @@ import {
   getContext7ToolQuery,
   isContext7WidgetTriggerElement,
   normalizeContext7WidgetTrigger,
-  renderMarkdown,
   requestRenderFrame,
   resolveContext7MarkdownBaseUrl,
   resolveContext7CustomTrigger,
@@ -321,7 +323,6 @@ import {
   type Context7ToolResult,
   type Context7TriggerA11yState,
   type Context7WidgetLifecycleEventDetail,
-  type Context7WidgetOptions,
   type Context7WidgetSendResult
 } from '@desource/context7-widget/kit';
 import {
@@ -340,6 +341,7 @@ import {
   type MaybeRefOrGetter
 } from 'vue';
 import { context7WidgetDefaultsKey } from '../internal/injection';
+import { createCompletedMarkdownRenderer } from '../internal/markdown';
 import { registerVueContext7Widget, unregisterVueContext7Widget } from '../internal/registry';
 import type {
   Context7WidgetEmits,
@@ -381,7 +383,6 @@ const busy = ref(false);
 const draft = ref('');
 const displayItems = ref<DisplayItem[]>([]);
 const copiedAnswerIds = ref<ReadonlySet<string>>(new Set());
-const conversation = ref<Context7Message[]>([]);
 const showTyping = ref(false);
 const activeAnchor = ref<Element | null>(null);
 const hasBoundExternalTrigger = ref(false);
@@ -401,6 +402,12 @@ let floatingViewport: VisualViewport | null = null;
 let lastFocus: Element | null = null;
 let releaseModal: (() => void) | null = null;
 let registeredWidgetId = '';
+let shouldStickToBottom = true;
+let scrollFrame: number | null = null;
+let scrollGeneration = 0;
+
+const STICKY_SCROLL_THRESHOLD = 48;
+const QUEUED_SCROLL_FRAME = -1;
 
 type VueAnswerRender = {
   answer: string;
@@ -408,30 +415,16 @@ type VueAnswerRender = {
   renderFrame: number | null;
 };
 
-const options = computed<Partial<Context7WidgetOptions>>(() => {
+const resolvedConfig = computed(() => {
   const { customTrigger: _customTrigger, open: _open, ...widgetProps } = props;
   const { customTrigger: _defaultCustomTrigger, ...defaultOptions } = defaults;
   const provided = compactContext7WidgetOptions(widgetProps);
-  return compactContext7WidgetOptions({ ...defaultOptions, ...provided });
+  return resolveContext7WidgetConfig({ ...defaultOptions, ...provided });
 });
-const resolvedConfig = computed(() => resolveContext7WidgetConfig(options.value));
 const resolvedLibrary = computed(() => resolvedConfig.value.library);
 const resolvedPosition = computed(() => resolvedConfig.value.position);
-const resolvedPreset = computed(() => resolvedConfig.value.preset);
-const resolvedTheme = computed(() => resolvedConfig.value.theme);
-const resolvedBackdrop = computed(() => resolvedConfig.value.backdrop);
 const resolvedCloseOnOutsideClick = computed(() => resolvedConfig.value.closeOnOutsideClick);
-const resolvedColor = computed(() => resolvedConfig.value.color);
-const resolvedDefaultOpen = computed(() => resolvedConfig.value.defaultOpen);
-const resolvedInitialMessage = computed(() => resolvedConfig.value.initialMessage);
 const resolvedLabels = computed(() => resolvedConfig.value.labels);
-const resolvedLauncherLabel = computed(() => resolvedConfig.value.launcherLabel);
-const resolvedLauncherVariant = computed(() => resolvedConfig.value.launcherVariant);
-const resolvedPanelHeight = computed(() => resolvedConfig.value.panelHeight);
-const resolvedPanelWidth = computed(() => resolvedConfig.value.panelWidth);
-const resolvedPlaceholder = computed(() => resolvedConfig.value.placeholder);
-const resolvedTitle = computed(() => resolvedConfig.value.title);
-const resolvedWidgetId = computed(() => resolvedConfig.value.widgetId);
 const resolvedCustomTrigger = computed(() => resolveVueCustomTrigger(props.customTrigger ?? defaults.customTrigger));
 const rendersManagedTrigger = computed(() => resolvedCustomTrigger.value === true);
 const hasCustomTrigger = computed(() => rendersManagedTrigger.value || hasBoundExternalTrigger.value);
@@ -442,9 +435,9 @@ const customTriggerSelector = computed(() => {
   return undefined;
 });
 const widgetStyle = computed(() => ({
-  '--c7-accent': resolvedColor.value || undefined,
-  '--c7-panel-height': resolvedPanelHeight.value || undefined,
-  '--c7-panel-width': resolvedPanelWidth.value || undefined
+  '--c7-accent': resolvedConfig.value.color || undefined,
+  '--c7-panel-height': resolvedConfig.value.panelHeight || undefined,
+  '--c7-panel-width': resolvedConfig.value.panelWidth || undefined
 }));
 
 type CopyActionKey = HTMLButtonElement | string;
@@ -465,11 +458,12 @@ const copyActions = createContext7CopyActionController<CopyActionKey>({
 const detail = (): Context7WidgetLifecycleEventDetail => ({
   library: resolvedLibrary.value,
   widget: root.value as HTMLElement,
-  widgetId: resolvedWidgetId.value
+  widgetId: resolvedConfig.value.widgetId
 });
 
+const renderCompletedMarkdownCached = createCompletedMarkdownRenderer();
 const renderCompletedMarkdown = (item: MessageDisplayItem): Context7RenderedMarkdown =>
-  renderMarkdown(item.content, {
+  renderCompletedMarkdownCached(item, {
     baseUrl: resolveContext7MarkdownBaseUrl(resolvedLibrary.value, resolvedConfig.value.linkBaseUrl),
     copyCodeLabel: resolvedConfig.value.labels.copyCode
   });
@@ -477,9 +471,10 @@ const renderCompletedMarkdown = (item: MessageDisplayItem): Context7RenderedMark
 const resolveVueCustomTrigger = (
   value: Context7WidgetCustomTrigger | undefined
 ): Element | string | true | undefined => {
-  if (value === true || typeof value === 'string' || isContext7WidgetTriggerElement(value)) return value;
-  const resolved = toValue(value as MaybeRefOrGetter<Element | null | undefined>);
-  return isContext7WidgetTriggerElement(resolved) ? resolved : undefined;
+  const resolved = toValue(value as MaybeRefOrGetter<Element | boolean | string | null | undefined>);
+  return resolved === true || typeof resolved === 'string' || isContext7WidgetTriggerElement(resolved)
+    ? resolved
+    : undefined;
 };
 
 const nextMessageId = (): string => {
@@ -498,14 +493,14 @@ const reset = () => {
   renderBridge.clearActiveAnswer();
   copyActions.reset(false);
   copiedAnswerIds.value = new Set();
-  const intro = resolvedInitialMessage.value.replace(
+  const intro = resolvedConfig.value.initialMessage.replace(
     /\{library\}/g,
     resolvedLibrary.value || resolvedLabels.value.libraryFallback
   );
   displayItems.value = [{ content: intro, id: nextMessageId(), kind: 'message', role: 'assistant' }];
-  conversation.value = [];
-  showTyping.value = false;
-  notifyState();
+  cancelScheduledScroll();
+  shouldStickToBottom = true;
+  scrollToBottom();
 };
 
 const openFrom = (target: EventTarget | null) => {
@@ -603,12 +598,11 @@ const send = async (rawQuestion?: string): Promise<Context7WidgetSendResult> => 
 const onConversationState = (state: Context7ConversationState) => {
   const moveFocus = state.busy && document.activeElement === input.value;
   busy.value = state.busy;
-  conversation.value = [...state.messages];
   if (!state.busy) {
     showTyping.value = false;
     renderBridge.clearActiveAnswer();
   }
-  notifyState();
+  notifyState(state.messages);
   if (moveFocus) void nextTick(() => sendButton.value?.focus({ preventScroll: true }));
 };
 
@@ -616,10 +610,11 @@ const onConversationEvent = (event: Context7ConversationEvent) => {
   renderBridge.handleEvent(event);
 };
 
-const renderQuestion = (event: Context7ConversationEvent<'c7:question'>): VueAnswerRender | null => {
+const renderQuestion = (event: Context7ConversationEvent<'c7:question'>): VueAnswerRender => {
   if (!event.detail.retry) displayItems.value.push({ ...event.detail.message, kind: 'message' });
-  showTyping.value = Boolean(event.request);
-  return event.request ? { answer: '', answerItem: undefined, renderFrame: null } : null;
+  showTyping.value = true;
+  scrollToBottom();
+  return { answer: '', answerItem: undefined, renderFrame: null };
 };
 
 const renderAnswer = (event: Context7ConversationEvent<'c7:answer'>, render: VueAnswerRender) => {
@@ -637,8 +632,7 @@ const renderAnswer = (event: Context7ConversationEvent<'c7:answer'>, render: Vue
   }
   render.renderFrame ??= requestRenderFrame(() => {
     render.renderFrame = null;
-    if (!render.answerItem) return;
-    render.answerItem.content = render.answer;
+    render.answerItem!.content = render.answer;
     void scrollToBottom();
   });
 };
@@ -646,17 +640,6 @@ const renderAnswer = (event: Context7ConversationEvent<'c7:answer'>, render: Vue
 const flushAnswerRender = (render: VueAnswerRender, answer: string) => {
   cancelRenderFrame(render.renderFrame);
   render.renderFrame = null;
-  render.answer = answer;
-  if (answer && !render.answerItem) {
-    render.answerItem = reactive<MessageDisplayItem>({
-      content: '',
-      id: nextMessageId(),
-      kind: 'message',
-      role: 'assistant',
-      streaming: true
-    });
-    displayItems.value.push(render.answerItem);
-  }
   if (render.answerItem) {
     render.answerItem.content = answer;
     render.answerItem.streaming = false;
@@ -673,27 +656,15 @@ const discardAnswerRender = (render: VueAnswerRender) => {
   if (render.answerItem) displayItems.value = displayItems.value.filter((item) => item !== render.answerItem);
 };
 
-const vueEventNameByEngineEvent = {
-  'c7:answer': 'answer',
-  'c7:answer-complete': 'answer-complete',
-  'c7:cancel': 'cancel',
-  'c7:error': 'error',
-  'c7:first-token': 'first-token',
-  'c7:question': 'question',
-  'c7:tool-call': 'tool-call',
-  'c7:tool-result': 'tool-result'
-} as const;
-
 const renderBridge = createContext7ConversationRenderBridge<VueAnswerRender>({
   clearAnswer: clearAnswerRender,
   discardAnswer: discardAnswerRender,
   emit(event) {
-    emit(vueEventNameByEngineEvent[event.type] as never, { ...detail(), ...event.detail });
+    emit(event.type.slice(3) as never, { ...detail(), ...event.detail });
   },
   flushAnswer: (render, event) => flushAnswerRender(render, event.detail.answer),
   onAnswer: renderAnswer,
   onError(event) {
-    showTyping.value = false;
     displayItems.value.push({
       html: buildContext7ErrorHtml(
         String(event.detail.error || resolvedLabels.value.errorFallback),
@@ -743,9 +714,34 @@ const updateToolResult = (toolResult: Context7ToolResult) => {
   void scrollToBottom();
 };
 
-const scrollToBottom = async () => {
-  await nextTick();
-  if (messagesElement.value) messagesElement.value.scrollTop = messagesElement.value.scrollHeight;
+const scrollToBottom = () => {
+  if (!shouldStickToBottom || scrollFrame !== null) return;
+  scrollFrame = QUEUED_SCROLL_FRAME;
+  const generation = scrollGeneration;
+
+  void nextTick(() => {
+    if (generation !== scrollGeneration) return;
+    scrollFrame = requestRenderFrame(() => {
+      if (generation !== scrollGeneration) return;
+      scrollFrame = null;
+      const element = messagesElement.value;
+      if (shouldStickToBottom && element) element.scrollTop = element.scrollHeight;
+    });
+  });
+};
+
+const cancelScheduledScroll = () => {
+  scrollGeneration += 1;
+  if (scrollFrame !== QUEUED_SCROLL_FRAME) cancelRenderFrame(scrollFrame);
+  scrollFrame = null;
+};
+
+const onMessagesScroll = () => {
+  const element = messagesElement.value;
+  if (!element) return;
+  const wasSticky = shouldStickToBottom;
+  shouldStickToBottom = element.scrollHeight - element.clientHeight - element.scrollTop <= STICKY_SCROLL_THRESHOLD;
+  if (!wasSticky && shouldStickToBottom) scrollToBottom();
 };
 
 const resizeInput = () => {
@@ -843,8 +839,6 @@ const observeExternalTrigger = () => {
   const trigger = normalizeExternalTrigger(resolvedCustomTrigger.value);
   if (!trigger || customTriggerSelectorInvalid || typeof MutationObserver !== 'function') return;
 
-  const observerTarget = document.documentElement;
-
   customTriggerObserver = new MutationObserver(() => {
     if (externalTrigger?.isConnected) return;
     bindExternalTrigger();
@@ -853,7 +847,7 @@ const observeExternalTrigger = () => {
       updateAnchorPosition();
     }
   });
-  customTriggerObserver.observe(observerTarget, { childList: true, subtree: true });
+  customTriggerObserver.observe(document.documentElement, { childList: true, subtree: true });
 };
 
 const warnExternalTriggerBindingFailure = (trigger: Element | string, invalidSelector: boolean) => {
@@ -878,7 +872,7 @@ const warnExternalTriggerBindingFailure = (trigger: Element | string, invalidSel
 
 const onExternalTriggerClick = (event: Event) => {
   event.preventDefault();
-  if (event.currentTarget instanceof Element) activeAnchor.value = event.currentTarget;
+  activeAnchor.value = event.currentTarget as Element;
   toggle();
 };
 
@@ -939,28 +933,29 @@ const updateAnchorPosition = () =>
   _updateAnchorPosition(resolvedPosition.value, getAnchorElement(), panel.value, root.value?.style);
 
 const register = () => {
-  if (registeredWidgetId && registeredWidgetId !== resolvedWidgetId.value) {
+  const widgetId = resolvedConfig.value.widgetId;
+  if (registeredWidgetId && registeredWidgetId !== widgetId) {
     unregisterVueContext7Widget(registeredWidgetId, exposed);
   }
-  registerVueContext7Widget(resolvedWidgetId.value, exposed);
-  registeredWidgetId = resolvedWidgetId.value;
+  registerVueContext7Widget(widgetId, exposed);
+  registeredWidgetId = widgetId;
 };
 
 const getMessages = (): readonly Context7Message[] => engine.getMessages();
 
-const notifyState = () => {
+const notifyState = (messages?: readonly Context7Message[]) => {
   if (stateListeners.size === 0) return;
   const state = {
     busy: busy.value,
-    messages: getMessages(),
+    messages: messages ?? getMessages(),
     open: isOpen.value
   } as const;
-  for (const listener of stateListeners) listener(state);
+  for (const listener of stateListeners) callContext7ListenerSafely(listener, state);
 };
 
 function subscribe(listener: Context7WidgetStateListener): () => void {
   stateListeners.add(listener);
-  listener({
+  callContext7ListenerSafely(listener, {
     busy: busy.value,
     messages: getMessages(),
     open: isOpen.value
@@ -968,7 +963,7 @@ function subscribe(listener: Context7WidgetStateListener): () => void {
   return () => stateListeners.delete(listener);
 }
 
-const unsubscribeEngineState = engine.subscribe(onConversationState);
+const unsubscribeEngineState = engine.subscribe(onConversationState, { includeTransient: false });
 const unsubscribeEngineEvents = engine.subscribeEvents(onConversationEvent);
 
 const exposed: Context7WidgetExpose = {
@@ -988,7 +983,7 @@ const exposed: Context7WidgetExpose = {
   toggle
 };
 
-watch([resolvedLibrary, resolvedInitialMessage], reset);
+watch([resolvedLibrary, () => resolvedConfig.value.initialMessage], reset);
 watch(
   resolvedCustomTrigger,
   () => {
@@ -997,9 +992,12 @@ watch(
   },
   { flush: 'post' }
 );
-watch(resolvedDefaultOpen, (value) => {
-  if (value && props.open === undefined) open();
-});
+watch(
+  () => resolvedConfig.value.defaultOpen,
+  (value) => {
+    if (value && props.open === undefined) open();
+  }
+);
 watch(resolvedPosition, () => {
   syncModalState();
   unbindFloatingListeners();
@@ -1011,7 +1009,7 @@ watch(resolvedPosition, () => {
 watch(resolvedCloseOnOutsideClick, () => {
   if (isOpen.value) bindFloatingListeners();
 });
-watch(resolvedWidgetId, register);
+watch(() => resolvedConfig.value.widgetId, register);
 watch(
   () => props.open,
   (value) => {
@@ -1025,11 +1023,12 @@ onMounted(() => {
   register();
   emit('ready', detail());
   if (props.open !== undefined) commitOpen(props.open);
-  else if (resolvedDefaultOpen.value) open();
+  else if (resolvedConfig.value.defaultOpen) open();
 });
 
 onBeforeUnmount(() => {
   cancel();
+  cancelScheduledScroll();
   copyActions.reset(false);
   unsubscribeEngineState();
   unsubscribeEngineEvents();

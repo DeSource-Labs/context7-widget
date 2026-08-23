@@ -5,7 +5,7 @@ upstream
 .nuxt
 .output
 .cache
-coverage
+coverage*
 test-results
 output
 demo/public/widget.js

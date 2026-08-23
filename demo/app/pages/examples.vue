@@ -30,10 +30,10 @@
               kind: 'assistant',
               text: 'Test position, preset, trigger mode, and panel size before touching your app.'
             },
-            { kind: 'user', text: 'Show the Vue setup.' },
+            { kind: 'user', text: 'Show the React setup.' },
             {
               kind: 'assistant',
-              text: 'Copy a component, composable, core helper, or hosted script from the same constructor.'
+              text: 'Copy a Vue or React component, core helper, or hosted script from the same constructor.'
             }
           ]"
         />
@@ -46,7 +46,7 @@
         <h2>Make decisions visually, then copy the integration.</h2>
         <p>
           The constructor renders a real widget instance. Try copy, position, preset, trigger mode, panel size, and
-          behavior first; then copy the script, Vue, or core TypeScript version.
+          behavior first; then copy the script, Vue, React, or core TypeScript version.
         </p>
       </div>
 
@@ -400,9 +400,11 @@
         <CodeBlock id="example-managed-trigger-code" label="Managed Vue trigger" :code="managedTriggerVue" />
         <CodeBlock id="example-slot-trigger-code" label="Trigger slot" :code="slotTriggerVue" />
         <CodeBlock id="example-external-trigger-code" label="External trigger id" :code="externalTriggerVue" />
+        <CodeBlock id="example-react-trigger-code" label="Managed React trigger" :code="managedTriggerReact" />
         <CodeBlock id="example-css-code" label="CSS overrides" :code="cssOverrides" />
         <CodeBlock id="example-core-code" label="Core helper" :code="coreHelper" />
         <CodeBlock id="example-composable-code" label="Vue composable" :code="vueComposable" />
+        <CodeBlock id="example-react-hook-code" label="React hook" :code="reactHook" />
       </div>
     </section>
 
@@ -479,7 +481,7 @@ const heroMarqueeItems = librariesArray.map(({ key, examplesHref, label, logo })
   logo
 }));
 const triggerModes = [
-  { copy: 'Renders the button and exposes a slot.', label: 'Slot trigger', value: 'slot' },
+  { copy: 'Renders a package button with custom content.', label: 'Custom content', value: 'slot' },
   { copy: 'Renders the default package button.', label: 'Managed button', value: 'managed' },
   { copy: 'Bind to a button anywhere by id.', label: 'External id', value: 'external' },
   { copy: 'Use the built-in floating launcher.', label: 'Built-in', value: 'none' }
@@ -499,6 +501,7 @@ const constructorControlPanels = [
 ] as const;
 const constructorCodeOptions = [
   { label: 'Vue', value: 'vue' },
+  { label: 'React', value: 'react' },
   { label: 'widget.js', value: 'script' },
   { label: 'Core', value: 'core' }
 ] as const;
@@ -613,6 +616,65 @@ ${component}`;
   return component;
 });
 
+const constructorReactCode = computed(() => {
+  const props = [
+    reactStringProp('library', constructorLibrary.value),
+    reactStringProp('title', constructorTitle.value),
+    reactStringProp('initialMessage', normalizeSnippetText(constructorInitialMessage.value)),
+    reactStringProp('placeholder', constructorPlaceholder.value),
+    reactStringProp('theme', constructorTheme.value),
+    reactStringProp('position', constructorPosition.value),
+    reactStringProp('preset', constructorPreset.value),
+    reactStringProp('launcherVariant', constructorLauncherVariant.value),
+    reactStringProp('launcherLabel', constructorLauncherLabel.value),
+    reactStringProp('panelWidth', constructorPanelWidth.value),
+    reactStringProp('panelHeight', constructorPanelHeight.value),
+    reactBooleanProp('backdrop', constructorBackdrop.value),
+    reactBooleanProp('closeOnOutsideClick', constructorCloseOnOutsideClick.value),
+    reactBooleanProp('defaultOpen', constructorDefaultOpen.value),
+    reactStringProp('widgetId', constructorWidgetId.value),
+    'onQuestion={trackQuestion}',
+    'onAnswerComplete={trackAnswer}'
+  ];
+
+  if (constructorColor.value) {
+    props.splice(7, 0, reactStringProp('color', constructorColor.value));
+  }
+
+  if (constructorTriggerMode.value === 'external') {
+    props.splice(7, 0, reactStringProp('customTrigger', '#docs-trigger'));
+  } else if (constructorTriggerMode.value !== 'none') {
+    props.splice(7, 0, 'customTrigger');
+  }
+
+  if (constructorTriggerMode.value === 'slot') {
+    props.splice(
+      8,
+      0,
+      `trigger={({ label }) => (
+    <>
+      <span className="docs-trigger-dot" />
+      {label}
+    </>
+  )}`
+    );
+  }
+
+  const component = `<Context7Widget
+${props.map((prop) => `  ${prop}`).join('\n')}
+/>`;
+
+  if (constructorTriggerMode.value === 'external') {
+    return `<button id="docs-trigger" type="button">
+  ${escapeText(constructorLauncherLabel.value)}
+</button>
+
+${component}`;
+  }
+
+  return component;
+});
+
 const constructorScriptCode = computed(() => {
   const scriptOptions: Context7WidgetScriptOptions = {
     async: true,
@@ -645,7 +707,7 @@ ${scriptTag}`;
   }
 
   if (constructorTriggerMode.value === 'managed' || constructorTriggerMode.value === 'slot') {
-    return `<!-- Managed buttons and slots are Vue-only.
+    return `<!-- Managed buttons and custom trigger content are framework-package features.
      With widget.js, provide your own trigger id if you want a custom trigger. -->
 
 ${scriptTag}`;
@@ -683,7 +745,7 @@ const constructorCoreCode = computed(() => {
   const prefix =
     constructorTriggerMode.value === 'none' || constructorTriggerMode.value === 'external'
       ? ''
-      : `// Core accepts selector-based custom triggers. Vue-only managed triggers stay in the Vue package.\n\n`;
+      : `// Core accepts selector-based custom triggers. Managed triggers stay in the Vue and React packages.\n\n`;
 
   return `import { mountContext7Widget } from "@desource/context7-widget";
 
@@ -708,6 +770,14 @@ const selectedConstructorCode = computed(() => {
     };
   }
 
+  if (constructorCodeTarget.value === 'react') {
+    return {
+      code: constructorReactCode.value,
+      id: 'constructor-react-code',
+      label: 'React component'
+    };
+  }
+
   return {
     code: constructorVueCode.value,
     id: 'constructor-vue-code',
@@ -721,6 +791,14 @@ function vueStringProp(name: string, value: string): string {
 
 function vueBooleanProp(name: string, value: boolean): string {
   return `:${name}="${value}"`;
+}
+
+function reactStringProp(name: string, value: string): string {
+  return `${name}="${escapeAttribute(value)}"`;
+}
+
+function reactBooleanProp(name: string, value: boolean): string {
+  return `${name}={${value}}`;
 }
 
 function normalizeSnippetText(value: string): string {
@@ -820,6 +898,15 @@ const externalTriggerVue = `<button id="docs-trigger">Ask docs</button>
   panel-width="420px"
 />`;
 
+const managedTriggerReact = `<Context7Widget
+  library="/owner/repo"
+  customTrigger
+  position="anchor"
+  preset="glass"
+  launcherLabel="Ask docs"
+  trigger={({ label }) => <span>{label}</span>}
+/>`;
+
 const cssOverrides = `context7-widget {
   --c7-accent: #ff6f91;
   --c7-panel-radius: 8px;
@@ -843,6 +930,17 @@ mountContext7Widget({
 });`;
 
 const vueComposable = `const docs = useContext7Widget({
+  autoMount: true,
+  library: "/owner/repo",
+  widgetId: "docs",
+  preset: "minimal"
+});
+
+await docs.send("Show installation examples");`;
+
+const reactHook = `import { useContext7Widget } from "@desource/context7-widget-react/hook";
+
+const docs = useContext7Widget({
   autoMount: true,
   library: "/owner/repo",
   widgetId: "docs",

@@ -7,7 +7,7 @@
     }
   ],
   "commit": false,
-  "fixed": [],
+  "fixed": [["@desource/context7-widget", "@desource/context7-widget-react", "@desource/context7-widget-vue"]],
   "linked": [],
   "access": "public",
   "baseBranch": "main",

@@ -91,6 +91,7 @@ describe('@desource/context7-widget-vue', () => {
     mode.value = 'managed';
     await nextTick();
     const trigger = root.querySelector<HTMLButtonElement>('.context7-widget-trigger');
+    expect(trigger?.getAttribute('aria-label')).toBe('Ask docs');
     expect(trigger?.querySelector('[data-testid="slot-trigger"]')?.textContent).toBe('Ask docs');
     trigger?.click();
     await nextTick();
@@ -184,6 +185,82 @@ describe('@desource/context7-widget-vue', () => {
     await nextTick();
     expect(updates).toHaveBeenLastCalledWith(true);
     expect(widget.hasAttribute('open')).toBe(true);
+  });
+
+  it('keeps inactive option changes inert while controlled closed and can relinquish control', async () => {
+    const controlledOpen = ref<boolean | undefined>(false);
+    const defaultOpen = ref(true);
+    const closeOnOutsideClick = ref(false);
+    const position = ref<'anchor' | 'center'>('center');
+    const root = mount(() =>
+      h(Context7Widget, {
+        closeOnOutsideClick: closeOnOutsideClick.value,
+        defaultOpen: defaultOpen.value,
+        library: '/desource-labs/context7-widget',
+        open: controlledOpen.value,
+        position: position.value
+      })
+    );
+    await nextTick();
+
+    const widget = root.querySelector<HTMLElement>('.context7-widget')!;
+    expect(widget.hasAttribute('open')).toBe(false);
+
+    defaultOpen.value = false;
+    position.value = 'anchor';
+    closeOnOutsideClick.value = true;
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(false);
+    expect(widget.style.getPropertyValue('--c7-anchor-top')).toBe('');
+
+    controlledOpen.value = undefined;
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(false);
+
+    root.querySelector<HTMLButtonElement>('.c7-launcher')!.click();
+    await nextTick();
+    expect(widget.hasAttribute('open')).toBe(true);
+  });
+
+  it('does not restore detached focus or run deferred input focus after an immediate close', async () => {
+    const opener = document.createElement('button');
+    document.body.append(opener);
+    opener.focus();
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    widgetRef.value!.open();
+    opener.remove();
+    widgetRef.value!.close();
+    await nextTick();
+
+    expect(widgetRef.value!.isOpen()).toBe(false);
+    expect(document.activeElement).not.toBe(root.querySelector('.c7-input'));
+  });
+
+  it('keeps a centered backdrop inert when outside-click dismissal is disabled', async () => {
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        closeOnOutsideClick: false,
+        defaultOpen: true,
+        library: '/desource-labs/context7-widget',
+        position: 'center',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    root.querySelector<HTMLDivElement>('.c7-backdrop')!.click();
+    await nextTick();
+
+    expect(widgetRef.value!.isOpen()).toBe(true);
   });
 
   it('submits a v-model draft through the Vue form', async () => {
@@ -493,6 +570,36 @@ describe('@desource/context7-widget-vue', () => {
     );
   });
 
+  it('renders the configured fallback when a transport error has no message', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            new ReadableStream<Uint8Array>({
+              start(controller) {
+                controller.error(new Error(''));
+              }
+            })
+          )
+      )
+    );
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        labels: { errorFallback: 'The documentation service is unavailable.' },
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    const result = await widgetRef.value!.send('Handle an empty error');
+
+    expect(result?.error).toBe('');
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain('The documentation service is unavailable.');
+  });
+
   it('programmatically mounts and controls the native Vue component', async () => {
     vi.stubGlobal(
       'fetch',
@@ -601,6 +708,43 @@ describe('@desource/context7-widget-vue', () => {
     await nextTick();
     expect(firstTarget.querySelector('.context7-widget')).toBeNull();
     expect(secondTarget.querySelector('.context7-widget')?.getAttribute('preset')).toBe('terminal');
+  });
+
+  it('honors and persists an initial composable mount target override', async () => {
+    const preset = ref<'glass' | 'terminal'>('glass');
+    const sourceTarget = document.createElement('div');
+    const overrideTarget = document.createElement('div');
+    const hostRoot = document.createElement('div');
+    document.body.append(sourceTarget, overrideTarget, hostRoot);
+
+    const Host = defineComponent({
+      setup() {
+        return {
+          controller: useContext7Widget(() => ({
+            library: '/desource-labs/context7-widget',
+            preset: preset.value,
+            target: sourceTarget
+          }))
+        };
+      },
+      render: () => h('div')
+    });
+    const hostApp = createApp(Host);
+    mountedApps.push(hostApp);
+    const vm = hostApp.mount(hostRoot) as unknown as {
+      controller: ReturnType<typeof useContext7Widget>;
+    };
+    await nextTick();
+
+    const element = vm.controller.mount({ target: overrideTarget });
+
+    expect(sourceTarget.querySelector('.context7-widget')).toBeNull();
+    expect(overrideTarget.querySelector('.context7-widget')).toBe(element);
+
+    preset.value = 'terminal';
+    await nextTick();
+    expect(overrideTarget.querySelector('.context7-widget')).toBe(element);
+    expect(element.getAttribute('preset')).toBe('terminal');
   });
 
   it('controls a declaratively rendered widget through the composable registry', async () => {
@@ -908,6 +1052,272 @@ describe('@desource/context7-widget-vue', () => {
     expect(stop?.textContent?.trim()).toBe('Send');
   });
 
+  it('keeps a replacement request busy when an aborted retry finishes later', async () => {
+    const activeSignals: AbortSignal[] = [];
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json({ message: 'Retry this request' }, { status: 500 }))
+      .mockImplementation(
+        async (_url, init?: RequestInit) =>
+          await new Promise<Response>((_resolve, reject) => {
+            const signal = init?.signal;
+            if (signal) activeSignals.push(signal);
+            signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+          })
+      );
+    vi.stubGlobal('fetch', fetch);
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    mount(() =>
+      h(Context7Widget, {
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    await widgetRef.value!.send('Fail first');
+    const retryPending = widgetRef.value!.retry();
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+
+    widgetRef.value!.cancel();
+    const replacementPending = widgetRef.value!.send('Replacement request');
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(3));
+    const retryResult = await retryPending;
+
+    expect(retryResult?.status).toBe('cancelled');
+    expect(widgetRef.value!.isBusy()).toBe(true);
+    expect(activeSignals[0]?.aborted).toBe(true);
+
+    widgetRef.value!.cancel();
+    await replacementPending;
+    expect(activeSignals[1]?.aborted).toBe(true);
+  });
+
+  it('safely ignores a queued input resize when the widget unmounts during send', async () => {
+    let signal: AbortSignal | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async (_url, init?: RequestInit) =>
+          await new Promise<Response>((_resolve, reject) => {
+            signal = init?.signal ?? undefined;
+            signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), {
+              once: true
+            });
+          })
+      )
+    );
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = document.createElement('div');
+    document.body.append(root);
+    const app = createApp({
+      render: () =>
+        h(Context7Widget, {
+          library: '/desource-labs/context7-widget',
+          ref: widgetRef
+        })
+    });
+    mountedApps.push(app);
+    app.mount(root);
+    await nextTick();
+
+    const pending = widgetRef.value!.send('Unmount immediately');
+    app.unmount();
+    mountedApps.splice(mountedApps.indexOf(app), 1);
+
+    await pending;
+    expect(signal?.aborted).toBe(true);
+    expect(root.childElementCount).toBe(0);
+  });
+
+  it('publishes public state only for meaningful changes while an answer streams', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            createSseStream([
+              'data: {"type":"text-delta","delta":"One "}\n',
+              'data: {"type":"text-delta","delta":"two "}\n',
+              'data: {"type":"text-delta","delta":"three "}\n',
+              'data: {"type":"text-delta","delta":"four"}\n',
+              'data: [DONE]\n'
+            ])
+          )
+      )
+    );
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        defaultOpen: true,
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    const listener = vi.fn();
+    const unsubscribe = widgetRef.value!.subscribe(listener);
+    listener.mockClear();
+
+    await widgetRef.value!.send('Stream this answer');
+
+    expect(root.textContent).toContain('One two three four');
+    expect(listener).toHaveBeenCalledTimes(3);
+    expect(listener.mock.calls.map(([state]) => [state.busy, state.messages.length])).toEqual([
+      [true, 1],
+      [true, 2],
+      [false, 2]
+    ]);
+    unsubscribe();
+  });
+
+  it('isolates throwing public state subscribers without skipping healthy listeners', async () => {
+    const reportError = vi.fn();
+    vi.stubGlobal('reportError', reportError);
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    mount(() =>
+      h(Context7Widget, {
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    const listenerError = new Error('consumer failed');
+    const unsubscribeThrowing = widgetRef.value!.subscribe(() => {
+      throw listenerError;
+    });
+    const healthyListener = vi.fn();
+    const unsubscribeHealthy = widgetRef.value!.subscribe(healthyListener);
+    healthyListener.mockClear();
+
+    widgetRef.value!.open();
+
+    expect(healthyListener).toHaveBeenCalledWith(expect.objectContaining({ open: true }));
+    expect(reportError).toHaveBeenCalledWith(listenerError);
+    unsubscribeThrowing();
+    unsubscribeHealthy();
+  });
+
+  it('keeps streaming autoscroll sticky only while the reader remains near the bottom', async () => {
+    const encoder = new TextEncoder();
+    let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            new ReadableStream<Uint8Array>({
+              start(controller) {
+                stream = controller;
+              }
+            })
+          )
+      )
+    );
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        defaultOpen: true,
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    const messages = root.querySelector<HTMLElement>('.c7-messages')!;
+    let scrollHeight = 600;
+    let scrollTop = 400;
+    const scrollWrites: number[] = [];
+    Object.defineProperties(messages, {
+      clientHeight: { configurable: true, get: () => 200 },
+      scrollHeight: { configurable: true, get: () => scrollHeight },
+      scrollTop: {
+        configurable: true,
+        get: () => scrollTop,
+        set(value: number) {
+          scrollTop = value;
+          scrollWrites.push(value);
+        }
+      }
+    });
+
+    const pending = widgetRef.value!.send('Keep the reader in place');
+    scrollHeight = 700;
+    stream?.enqueue(encoder.encode('data: {"type":"text-delta","delta":"First"}\n'));
+    await vi.waitFor(() => expect(root.textContent).toContain('First'));
+    await vi.waitFor(() => expect(scrollWrites.length).toBeGreaterThan(0));
+
+    scrollTop = 100;
+    messages.dispatchEvent(new Event('scroll'));
+    const writesWhileReading = scrollWrites.length;
+    scrollHeight = 800;
+    stream?.enqueue(encoder.encode('data: {"type":"text-delta","delta":" second"}\n'));
+    await vi.waitFor(() => expect(root.textContent).toContain('First second'));
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    expect(scrollTop).toBe(100);
+    expect(scrollWrites).toHaveLength(writesWhileReading);
+
+    scrollTop = scrollHeight - 200;
+    messages.dispatchEvent(new Event('scroll'));
+    await vi.waitFor(() => expect(scrollTop).toBe(scrollHeight));
+
+    scrollHeight = 900;
+    stream?.enqueue(encoder.encode('data: {"type":"text-delta","delta":" third"}\n'));
+    await vi.waitFor(() => expect(root.textContent).toContain('First second third'));
+    await vi.waitFor(() => expect(scrollTop).toBe(900));
+
+    stream?.close();
+    await pending;
+  });
+
+  it('coalesces rapid message scroll requests into one viewport write', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            createSseStream([
+              'data: {"type":"tool-input-available","toolCallId":"tool-1","toolName":"search","input":{}}\n',
+              'data: {"type":"tool-input-available","toolCallId":"tool-2","toolName":"search","input":{}}\n',
+              'data: {"type":"tool-input-available","toolCallId":"tool-3","toolName":"search","input":{}}\n',
+              'data: [DONE]\n'
+            ])
+          )
+      )
+    );
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        defaultOpen: true,
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    const messages = root.querySelector<HTMLElement>('.c7-messages')!;
+    const scrollWrites: number[] = [];
+    Object.defineProperties(messages, {
+      clientHeight: { configurable: true, value: 200 },
+      scrollHeight: { configurable: true, value: 600 },
+      scrollTop: {
+        configurable: true,
+        get: () => scrollWrites.at(-1) ?? 400,
+        set(value: number) {
+          scrollWrites.push(value);
+        }
+      }
+    });
+
+    await widgetRef.value!.send('Search three times');
+    await vi.waitFor(() => expect(root.querySelectorAll('.c7-tool-call')).toHaveLength(3));
+    await vi.waitFor(() => expect(scrollWrites).toHaveLength(1));
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    expect(scrollWrites).toHaveLength(1);
+  });
+
   it('persists composable mount overrides, updates them, and exposes conversation controls', async () => {
     vi.stubGlobal(
       'fetch',
@@ -950,6 +1360,185 @@ describe('@desource/context7-widget-vue', () => {
     vm.controller.reset();
     expect(vm.controller.messages.value).toEqual([]);
     expect(vm.controller.getMessages()).toEqual([]);
+  });
+
+  it('treats a whitespace-only external trigger as absent without warning', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const root = mount(() =>
+      h(Context7Widget, {
+        customTrigger: '   ',
+        library: '/desource-labs/context7-widget'
+      })
+    );
+    await nextTick();
+
+    expect(root.querySelector('.c7-launcher')).not.toBeNull();
+    expect(root.querySelector('.context7-widget-trigger')).toBeNull();
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('invalidates stale scheduled scroll work across consecutive resets', async () => {
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        initialMessage: 'Welcome once',
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 25));
+
+    widgetRef.value!.reset();
+    widgetRef.value!.reset();
+    await nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 25));
+
+    expect(root.querySelectorAll('.c7-message--assistant')).toHaveLength(1);
+    expect(root.querySelector('.c7-message--assistant')?.textContent).toContain('Welcome once');
+  });
+
+  it('ignores a render frame delivered after reset cancelled its scroll request', async () => {
+    const frames: FrameRequestCallback[] = [];
+    const cancelFrame = vi.fn();
+    vi.stubGlobal(
+      'requestAnimationFrame',
+      vi.fn((callback: FrameRequestCallback) => {
+        frames.push(callback);
+        return frames.length;
+      })
+    );
+    vi.stubGlobal('cancelAnimationFrame', cancelFrame);
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+
+    const messages = root.querySelector<HTMLElement>('.c7-messages')!;
+    const scrollWrites: number[] = [];
+    Object.defineProperties(messages, {
+      clientHeight: { configurable: true, value: 200 },
+      scrollHeight: { configurable: true, value: 600 },
+      scrollTop: {
+        configurable: true,
+        get: () => scrollWrites.at(-1) ?? 400,
+        set(value: number) {
+          scrollWrites.push(value);
+        }
+      }
+    });
+    expect(frames).toHaveLength(1);
+
+    widgetRef.value!.reset();
+    await nextTick();
+    expect(cancelFrame).toHaveBeenCalledWith(1);
+    expect(frames).toHaveLength(2);
+
+    frames[0]!(0);
+    expect(scrollWrites).toEqual([]);
+    frames[1]!(0);
+    expect(scrollWrites).toEqual([600]);
+  });
+
+  it('does not execute a queued bottom snap after the reader moves away', async () => {
+    let signal: AbortSignal | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async (_url, init?: RequestInit) =>
+          await new Promise<Response>((_resolve, reject) => {
+            signal = init?.signal ?? undefined;
+            signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), {
+              once: true
+            });
+          })
+      )
+    );
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 25));
+
+    const messages = root.querySelector<HTMLElement>('.c7-messages')!;
+    const scrollWrites: number[] = [];
+    let scrollTop = 100;
+    Object.defineProperties(messages, {
+      clientHeight: { configurable: true, value: 200 },
+      scrollHeight: { configurable: true, value: 800 },
+      scrollTop: {
+        configurable: true,
+        get: () => scrollTop,
+        set(value: number) {
+          scrollTop = value;
+          scrollWrites.push(value);
+        }
+      }
+    });
+
+    const pending = widgetRef.value!.send('Do not snap me back');
+    messages.dispatchEvent(new Event('scroll'));
+    await nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 25));
+
+    expect(scrollTop).toBe(100);
+    expect(scrollWrites).toEqual([]);
+
+    widgetRef.value!.cancel();
+    await pending;
+    expect(signal?.aborted).toBe(true);
+  });
+
+  it('delegates explicit code copies and ignores non-element or detached-code clicks', async () => {
+    const markdown = ['```ts', 'const one = 1;', '```', '', '```js', 'const two = 2;', '```'].join('\n');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            createSseStream([`data: ${JSON.stringify({ delta: markdown, type: 'text-delta' })}\n`, 'data: [DONE]\n'])
+          )
+      )
+    );
+    const writeText = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText }
+    });
+    const widgetRef = ref<Context7WidgetExpose | null>(null);
+    const root = mount(() =>
+      h(Context7Widget, {
+        library: '/desource-labs/context7-widget',
+        ref: widgetRef
+      })
+    );
+    await nextTick();
+    await widgetRef.value!.send('Show two snippets');
+
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-c7-copy-code]')];
+    expect(buttons).toHaveLength(2);
+
+    const feedbackText = document.createTextNode('feedback');
+    buttons[0]!.querySelector('.c7-copy-status')!.append(feedbackText);
+    feedbackText.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await Promise.resolve();
+    expect(writeText).not.toHaveBeenCalled();
+
+    buttons[0]!.querySelector('path')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith('const one = 1;'));
+
+    buttons[1]!.closest('.c7-code-block')!.querySelector('code')!.remove();
+    buttons[1]!.click();
+    await Promise.resolve();
+    expect(writeText).toHaveBeenCalledOnce();
   });
 
   it('supports CSS selectors for external triggers and restores their ARIA attributes', async () => {

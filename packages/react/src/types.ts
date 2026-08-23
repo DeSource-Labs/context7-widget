@@ -14,7 +14,7 @@ import type {
   Context7WidgetToolCallEventDetail,
   Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
-import type { CSSProperties, HTMLAttributes, ReactNode, RefObject } from 'react';
+import type { HTMLAttributes, ReactNode, RefObject } from 'react';
 
 export type Context7ReactCustomTrigger = boolean | Element | RefObject<Element | null> | string;
 
@@ -52,7 +52,7 @@ export interface Context7WidgetProps extends Omit<Context7WidgetOptions, 'custom
   trigger?: ReactNode | ((options: { readonly label: string; readonly triggerId: string }) => ReactNode);
 }
 
-export type ErrorDisplayItem = { html: Context7RenderedErrorHtml; id: string; kind: 'error'; question: string };
+type ErrorDisplayItem = { html: Context7RenderedErrorHtml; id: string; kind: 'error'; question: string };
 export type MessageDisplayItem = {
   content: string;
   id: string;
@@ -60,7 +60,7 @@ export type MessageDisplayItem = {
   role: Context7Role;
   streaming?: boolean;
 };
-export type ToolDisplayItem = {
+type ToolDisplayItem = {
   contentId: string;
   expanded: boolean;
   hasResult: boolean;
@@ -72,5 +72,4 @@ export type ToolDisplayItem = {
 };
 export type DisplayItem = ErrorDisplayItem | MessageDisplayItem | ToolDisplayItem;
 
-export type Context7WidgetStyle = CSSProperties & Record<string, string | number | undefined>;
 export type { Context7Message, Context7WidgetSendResult };
