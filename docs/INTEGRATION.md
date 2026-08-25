@@ -5,20 +5,22 @@ do not want a generic widget that clashes with the product.
 
 Context7 provides the hosted documentation backend and grounded answers. This
 repo provides the customizable client layer: script replacement, custom
-element, TypeScript helpers, native Vue and React bindings, styling contract,
-event stream, and positioning modes.
+element, TypeScript helpers, native Vue, React, Svelte, and Angular bindings, a
+Nuxt module, styling contract, event stream, and positioning modes.
 
 ## Which Integration Should I Use?
 
-| Project type                           | Recommended path                                      |
-| -------------------------------------- | ----------------------------------------------------- |
-| Existing Context7 script install       | Replace only the script URL                           |
-| Static docs or marketing page          | Use `/widget.js`                                      |
-| Docusaurus, Astro, Next.js, Nuxt, Vite | Use `/widget.js` in the root layout                   |
-| Product app with custom controls       | Use `@desource/context7-widget`                       |
-| Vue 3 app                              | Use `@desource/context7-widget-vue`                   |
-| React app                              | Use `@desource/context7-widget-react`                 |
-| Svelte or Angular app                  | Use script/core today; dedicated packages are planned |
+| Project type                     | Recommended path                        |
+| -------------------------------- | --------------------------------------- |
+| Existing Context7 script install | Replace only the script URL             |
+| Static docs or marketing page    | Use `/widget.js`                        |
+| Docusaurus, Astro, or plain Vite | Use `/widget.js` in the root layout     |
+| Product app with custom controls | Use `@desource/context7-widget`         |
+| Vue 3 app                        | Use `@desource/context7-widget-vue`     |
+| Nuxt 3 or 4 app                  | Use `@desource/context7-widget-nuxt`    |
+| React or Next.js app             | Use `@desource/context7-widget-react`   |
+| Svelte 5 or SvelteKit app        | Use `@desource/context7-widget-svelte`  |
+| Angular 22 app                   | Use `@desource/context7-widget-angular` |
 
 ## Data Flow And Privacy
 
@@ -202,6 +204,38 @@ For parent-owned visibility, use Vue's controlled API:
 <Context7Widget v-model:open="docsOpen" library="/owner/repo" />
 ```
 
+## Nuxt
+
+```bash
+npm install @desource/context7-widget-nuxt
+```
+
+Register the module once. Defaults apply to every auto-imported component and
+composable, while instance props still win:
+
+```ts
+export default defineNuxtConfig({
+  modules: ['@desource/context7-widget-nuxt'],
+  context7Widget: {
+    defaults: {
+      library: '/owner/repo',
+      preset: 'glass',
+      theme: 'auto'
+    }
+  }
+});
+```
+
+```vue
+<template>
+  <Context7Widget position="anchor" custom-trigger />
+</template>
+```
+
+The module adds the Vue stylesheet before application CSS and auto-imports
+`Context7Widget` and `useContext7Widget`. Set `component`, `composable`, or `css`
+to `false` when that integration is unused.
+
 ## React
 
 ```bash
@@ -250,6 +284,73 @@ Without `autoMount`, the hook resolves the newest React registration for its
 defaults to `default`, and if that registration is absent the default lookup
 falls back to the first available widget. If duplicate ids are intentional,
 unmounting the newest registration restores the previous one.
+
+## Svelte
+
+```bash
+npm install @desource/context7-widget-svelte
+```
+
+```svelte
+<script lang="ts">
+  import { Context7Widget } from '@desource/context7-widget-svelte';
+  import '@desource/context7-widget-svelte/styles.css';
+
+  let open = $state(false);
+</script>
+
+<Context7Widget
+  bind:open
+  library="/owner/repo"
+  position="anchor"
+  preset="glass"
+  customTrigger
+  onQuestion={(detail) => analytics.track('Docs question', detail)}
+/>
+```
+
+Use `createContext7Widget` for reactive programmatic control. Component and
+controller imports are SSR-safe; DOM work begins only after mount.
+
+## Angular
+
+```bash
+npm install @desource/context7-widget-angular
+```
+
+Import `@desource/context7-widget-angular/styles.css` once, then add the
+standalone component:
+
+```ts
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Context7Widget, type Context7WidgetQuestionEventDetail } from '@desource/context7-widget-angular';
+
+@Component({
+  selector: 'app-docs-assistant',
+  standalone: true,
+  imports: [Context7Widget],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <context7-angular-widget
+      library="/owner/repo"
+      position="anchor"
+      preset="glass"
+      [customTrigger]="true"
+      (question)="trackQuestion($event)"
+    />
+  `
+})
+export class DocsAssistant {
+  trackQuestion(detail: Context7WidgetQuestionEventDetail): void {
+    analytics.track('Docs question', detail);
+  }
+}
+```
+
+`Context7WidgetService` exposes signal state and imperative mount, open, send,
+cancel, retry, reset, and unmount controls. Add `provideContext7Widget(...)` to
+`bootstrapApplication` or route providers for defaults without mounting
+anything.
 
 ## Next.js App Router
 
@@ -314,17 +415,17 @@ context7-widget::part(send-button) {
 }
 ```
 
-Do not target internal `.c7-*` classes. They are implementation details. In Vue
-or React, apply the same CSS variables to `.context7-widget`; shadow parts apply
-only to the core custom element.
+Do not target internal `.c7-*` classes. They are implementation details. In a
+native framework package, apply the same CSS variables to `.context7-widget`;
+shadow parts apply only to the core custom element.
 
 Framework `part` attributes remain stable light-DOM selectors and can be
 targeted as `[part~='send-button']`; they are not shadow-DOM `::part()` exports.
 
 ## Localization, Links, And Chat UX
 
-Core helpers, Vue, and React accept a partial `labels` object. Only supplied
-keys replace the English defaults:
+Every package accepts a partial `labels` object. Only supplied keys replace the
+English defaults:
 
 ```ts
 const labels = {
@@ -339,10 +440,10 @@ const labels = {
 };
 ```
 
-The shared `Context7WidgetLabels` type is exported by the core, Vue, and React
-package roots. Attribution prefixes, attribution accessibility labels, the
-initial-message library fallback, and missing-library guidance use the same
-dictionary as the chat controls.
+The shared `Context7WidgetLabels` type is exported by each framework package.
+Attribution prefixes, attribution accessibility labels, the initial-message
+library fallback, and missing-library guidance use the same dictionary as the
+chat controls.
 
 Pass `linkBaseUrl="https://docs.example.com/"` when relative links in generated
 Markdown should resolve to your own docs rather than the Context7 library page.

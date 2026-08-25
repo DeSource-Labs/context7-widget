@@ -11,8 +11,8 @@ https://context7.com/api/v2/widget/chat
 That boundary is intentional. Context7 owns library claiming, allowed-domain
 validation, retrieval, model behavior, and the streaming protocol. This
 repository owns the product-facing client experience: loader, custom element,
-styling contract, typed helpers, native Vue and React bindings, Nuxt demo site,
-events, and compatibility monitoring.
+styling contract, typed helpers, native Vue, React, Svelte, and Angular bindings,
+the Nuxt module and demo site, events, and compatibility monitoring.
 
 ## Workspace Deliverables
 
@@ -27,8 +27,12 @@ events, and compatibility monitoring.
 - `packages/vue`: Vue 3 component, composable, plugin helper, and SCSS output.
 - `packages/react`: native React component and controlled API at `/component`,
   programmatic mounting at `/hook`, a compatibility root, and SCSS output.
-- planned framework packages: Svelte and Angular implementations built on the
-  same boundary and shared contracts.
+- `packages/svelte`: native Svelte 5 component, bindable state, snippets,
+  reactive controller, and SCSS output.
+- `packages/angular`: standalone OnPush component, signal state, injectable
+  service, application defaults, trigger directive, and SCSS output.
+- `packages/nuxt`: Nuxt 3/4 module that auto-imports the Vue component and
+  composable, registers CSS, and provides serializable application defaults.
 - `demo`: Nuxt static site for `context7.desource-labs.org`.
 - `scripts/scan-upstream.mts`: daily upstream byte and hash monitor.
 - GitHub Actions: monorepo CI, Vercel site build check, and scheduled scanner.
@@ -113,20 +117,25 @@ is what makes replacing only `https://context7.com/widget.js` with
 - option, message, event, and tool-call contracts;
 - shared defaults and brand assets.
 
-`@desource/context7-widget-vue` and
-`@desource/context7-widget-react` depend on the kit instead of the core custom
+`@desource/context7-widget-vue`, `@desource/context7-widget-react`,
+`@desource/context7-widget-svelte`, and
+`@desource/context7-widget-angular` depend on the kit instead of the core custom
 element. Each owns:
 
 - native framework DOM rendering and display state;
 - framework lifecycle, focus, trigger, and positioning behavior;
 - idiomatic controlled state plus typed props/events and exposed controls;
-- a composable or hook that mounts and controls its native component;
+- a framework-native composable, hook, controller, or service;
 - SCSS-built widget styles.
 
-Vue additionally owns typed slots and its plugin helper. Future Svelte and
-Angular packages should follow the same boundary: own their framework UI and
-lifecycle, share backend/protocol code through `/kit`, and never wrap the core
-custom element.
+Vue additionally owns typed slots and its plugin helper. Svelte owns snippets
+and runes-based bindings. Angular owns DI defaults, an injectable controller,
+and projected trigger content. None wraps the core custom element.
+
+`@desource/context7-widget-nuxt` is deliberately different: it is a thin module
+over the Vue adapter. Nuxt registers Vue entry points by package path, adds the
+Vue stylesheet, and injects serializable defaults. It has no renderer,
+conversation engine, transport, or copied Vue public type list.
 
 React separates its component and hook entries so component-only consumers do
 not retain `react-dom`; the package root remains a compatibility entry that
@@ -137,10 +146,10 @@ All implementations always show compact linked attribution for Context7 and
 DeSource Labs. Attribution is part of the product contract rather than a
 configurable display option.
 
-Core, Vue, and React compile their widget selectors from
+Core, Vue, React, Svelte, and Angular compile their widget selectors from
 `common/styles/_widget.scss`. Core scopes the mixin to `:host`; framework
-packages scope it to `.context7-widget`. Vue and React also compile their native
-managed button from `common/styles/_framework-trigger.scss`. This keeps the
+packages scope it to `.context7-widget`. Native framework packages also compile
+their managed button from `common/styles/_framework-trigger.scss`. This keeps the
 visual contract in one source of truth without making a framework package
 depend on the custom-element runtime. Core normalizes Sass's nested
 host-attribute output to selectors such as `:host([open])`, which are exercised
@@ -159,6 +168,9 @@ across the shared Playwright browser matrix against real Shadow DOM.
 - Framework renderers own native DOM, lifecycle, focus restoration, outside
   clicks, scrolling, trigger binding, and animation-frame rendering; they do
   not reimplement the request state machine or engine-event routing.
+- Vue, Svelte, and Angular share the completed-answer Markdown cache from
+  `/kit`; it uses display-item identity, so discarded conversations are not
+  retained. React uses its native memoization boundary for the same work.
 - A cancelled request cannot append late frames or clear the busy state of a
   newer request.
 - Transport history can be capped by the engine without trimming public
@@ -179,10 +191,10 @@ across the shared Playwright browser matrix against real Shadow DOM.
   supported and retains an inline fallback.
 - External trigger ARIA attributes are restored when a widget disconnects or
   changes triggers.
-- Vue and React keep package-local registration stacks keyed by `widgetId` for
-  composable/hook lookup. Duplicate ids resolve to the newest registration and
-  reveal the previous registration when it unmounts; lookup is not based on DOM
-  proximity.
+- Vue, React, Svelte, and Angular keep package-local registration stacks keyed by
+  `widgetId` for their framework-native controller lookup. Duplicate ids resolve
+  to the newest registration and reveal the previous registration when it
+  unmounts; lookup is not based on DOM proximity.
 - Centered modal focus is contained inside the panel, not the launcher or host
   page; outside branches are inert and page scroll state is reference-counted
   and restored.
@@ -198,13 +210,15 @@ share behavior, not a lowest-common-denominator renderer.
 - `common/tests/e2e` defines one real-browser demo contract for triggers,
   public options, streaming/events, Stop, outside close, centered-dialog focus,
   backdrop behavior, and mobile input sizing.
-- Core, Vue, and React provide thin adapters and run the same suites. Native
-  package tests cover only framework-specific APIs such as Vue `v-model:open`
-  or React `open`/`onOpenChange`, hooks/composables, refs, and packaging.
+- Core, Vue, React, Svelte, and Angular provide thin adapters and run the same
+  suites. Native package tests cover only framework-specific APIs such as Vue
+  `v-model:open`, React `open`/`onOpenChange`, Svelte `bind:open`, Angular
+  inputs/outputs, controllers, refs, DI, and packaging. Nuxt fixture tests cover
+  module setup, SSR, generated types, defaults, and disabled integrations.
 
-This permits small renderer duplication where Vue or React gains lifecycle,
-DOM, or performance benefits, while keeping the state machine, protocol,
-security-sensitive parsing, and observable behavior maintained once.
+This permits small renderer duplication where a framework gains lifecycle, DOM,
+or performance benefits, while keeping the state machine, protocol,
+security-sensitive parsing, styles, and observable behavior maintained once.
 
 ## HTML Rendering Boundary
 
@@ -216,13 +230,13 @@ native text nodes. Only two kinds of content cross an HTML sink:
 - error guidance returned by `buildContext7ErrorHtml` as
   `Context7RenderedErrorHtml`.
 
-The core renderer escapes raw Markdown HTML, restricts links, and owns the
-small trusted fragments used for code actions. The error renderer escapes the
-transport message and every localized label. Vue uses `v-html`,
-React uses `dangerouslySetInnerHTML`, and the custom element assigns
-the same branded values to DOM HTML. None of those sinks is a sanitizer; the
-shared core producers are the security boundary, and the branded string types
-make that provenance explicit to framework packages.
+The core renderer escapes raw Markdown HTML, restricts links, and owns the small
+trusted fragments used for code actions. The error renderer escapes the
+transport message and every localized label. Each native renderer passes only
+those branded values to its framework HTML sink; the custom element assigns the
+same values to DOM HTML. Those sinks are not sanitizers. The shared core
+producers are the security boundary, and branded string types make that
+provenance explicit to framework packages.
 
 ### Maintenance Change Map
 
@@ -232,7 +246,7 @@ make that provenance explicit to framework packages.
 | Context7 HTTP or stream compatibility                                     | `packages/core/src/transport.ts`                     | Core transport tests; no renderer edits                |
 | Markdown, clipboard/copy action, modal, layout, localization, or defaults | The focused core primitive under `packages/core/src` | Primitive unit tests plus the relevant shared behavior |
 | Widget visual tokens and responsive UX                                    | `common/styles/_widget.scss`                         | Style tests and the shared browser contract            |
-| Native DOM or lifecycle behavior                                          | Core custom element, Vue SFC, and React component    | The same common contract through each thin adapter     |
+| Native DOM or lifecycle behavior                                          | Core custom element or owning framework component    | The same common contract through each thin adapter     |
 | Framework-only API behavior                                               | The owning package                                   | A focused package test and public declaration test     |
 
 When adding another framework package, keep its renderer native, import only
@@ -312,9 +326,11 @@ the library's transport boundary.
 
 ## Site Hosting
 
-`demo` is a Nuxt static app. Its build runs the core, Vue, and React package
-builds, copies `packages/core/dist/widget.js` to `demo/public/widget.js`, then
-generates `.output/public`. `vercel.json` points Vercel at that output directory.
+`demo` is a Nuxt static app. Its build runs every public package build, uses the
+workspace Nuxt module, copies `packages/core/dist/widget.js` to
+`demo/public/widget.js`, then generates `.output/public`. `vercel.json` points
+Vercel at that output directory. Demo decoration assets are outside package
+bundle budgets.
 
 ## Maintenance Strategy
 
