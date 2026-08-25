@@ -4,6 +4,8 @@ node_modules
 upstream
 .nuxt
 .output
+.angular
+.svelte-kit
 .cache
 coverage*
 test-results

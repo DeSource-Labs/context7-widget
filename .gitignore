@@ -15,3 +15,5 @@ output/playwright/
 npm-debug.log*
 .nuxt
 .output
+.angular/
+.svelte-kit/
