@@ -1,4 +1,114 @@
-import type { Context7WidgetEventName, Context7WidgetOptions } from './types.js';
+import type { Context7RenderedErrorHtml } from './runtime.js';
+import { renderMarkdown } from './markdown.js';
+import type { Context7MarkdownOptions, Context7RenderedMarkdown } from './markdown.js';
+import type { Context7Role, Context7WidgetEventName, Context7WidgetOptions } from './types.js';
+
+export type Context7ErrorDisplayItem = {
+  html: Context7RenderedErrorHtml;
+  id: string;
+  kind: 'error';
+  question: string;
+};
+
+export type Context7MessageDisplayItem = {
+  content: string;
+  id: string;
+  kind: 'message';
+  role: Context7Role;
+  streaming?: boolean;
+};
+
+export type Context7ToolDisplayItem = {
+  contentId: string;
+  expanded: boolean;
+  hasResult: boolean;
+  id: string;
+  kind: 'tool';
+  query: string;
+  result: string;
+  toolCallId: string;
+};
+
+export type Context7DisplayItem = Context7ErrorDisplayItem | Context7MessageDisplayItem | Context7ToolDisplayItem;
+
+type Context7MarkdownRenderer<Output> = (markdown: string, options?: Context7MarkdownOptions) => Output;
+
+type Context7CompletedMarkdownCacheEntry<Output> = readonly [
+  content: string,
+  baseUrl: string,
+  copyCodeLabel: string,
+  output: Output
+];
+
+type Context7CompletedMarkdownRenderer<Output> = (
+  item: Context7MessageDisplayItem,
+  options: Context7MarkdownOptions
+) => Output;
+
+export interface Context7StackedRegistry<Value> {
+  get(id?: string): Value | undefined;
+  register(id: string, value: Value): void;
+  unregister(id: string, value: Value): void;
+}
+
+/** Keep duplicate widget ids deterministic while mounted instances come and go. */
+export function createContext7StackedRegistry<Value>(onChange?: () => void): Context7StackedRegistry<Value> {
+  const stacks = new Map<string, Value[]>();
+
+  return {
+    get(id = 'default') {
+      const stack = stacks.get(id);
+      const registered = stack?.[stack.length - 1];
+      if (registered || id !== 'default') return registered;
+
+      for (const fallbackStack of stacks.values()) {
+        const fallback = fallbackStack[fallbackStack.length - 1];
+        if (fallback) return fallback;
+      }
+      return undefined;
+    },
+    register(id, value) {
+      const stack = stacks.get(id) ?? [];
+      if (stack.includes(value)) return;
+      stack.push(value);
+      stacks.set(id, stack);
+      onChange?.();
+    },
+    unregister(id, value) {
+      const stack = stacks.get(id);
+      const index = stack?.indexOf(value) ?? -1;
+      if (!stack || index < 0) return;
+      stack.splice(index, 1);
+      if (stack.length === 0) stacks.delete(id);
+      onChange?.();
+    }
+  };
+}
+
+/** Cache completed answer HTML for the lifetime of its display item. */
+export function createContext7CompletedMarkdownRenderer(): Context7CompletedMarkdownRenderer<Context7RenderedMarkdown>;
+export function createContext7CompletedMarkdownRenderer<Output>(
+  renderer: Context7MarkdownRenderer<Output>
+): Context7CompletedMarkdownRenderer<Output>;
+export function createContext7CompletedMarkdownRenderer(
+  renderer: Context7MarkdownRenderer<unknown> = renderMarkdown
+): Context7CompletedMarkdownRenderer<unknown> {
+  const cache = new WeakMap<Context7MessageDisplayItem, Context7CompletedMarkdownCacheEntry<unknown>>();
+
+  return (item, options) => {
+    const baseUrl = options.baseUrl ?? '';
+    const copyCodeLabel = options.copyCodeLabel ?? '';
+    const cached = cache.get(item);
+
+    if (cached?.[0] === item.content && cached[1] === baseUrl && cached[2] === copyCodeLabel) {
+      return cached[3];
+    }
+
+    const output = renderer(item.content, options);
+    cache.set(item, [item.content, baseUrl, copyCodeLabel, output]);
+    return output;
+  };
+}
 
 export const context7WidgetEvents = [
   'c7:ready',
@@ -44,6 +154,23 @@ export function compactContext7WidgetOptions(options: Partial<Context7WidgetOpti
   }
 
   return compacted;
+}
+
+/** Merge layered widget defaults while preserving partial localization dictionaries. */
+export function mergeContext7WidgetOptions(
+  ...layers: readonly Readonly<Partial<Context7WidgetOptions>>[]
+): Partial<Context7WidgetOptions> {
+  const merged: Partial<Context7WidgetOptions> = {};
+  let labels: Context7WidgetOptions['labels'];
+
+  for (const layer of layers) {
+    const compacted = compactContext7WidgetOptions(layer);
+    Object.assign(merged, compacted);
+    if (compacted.labels) labels = { ...labels, ...compacted.labels };
+  }
+
+  if (labels) merged.labels = labels;
+  return merged;
 }
 
 function copyContext7WidgetOption<Key extends keyof Context7WidgetOptions>(

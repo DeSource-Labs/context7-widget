@@ -4,7 +4,8 @@
 
 ### Minor Changes
 
-- Coordinated the core, native React, and native Vue packages under one shared version, release note, and Git tag.
+- Released the core, Vue, Nuxt, React, Svelte, and Angular packages as one coordinated version with one shared Git tag
+  and GitHub release.
 - Initial release of the framework-agnostic Context7-compatible widget package.
 - Added the `context7-widget` custom element, hosted-script loader, global API, typed helper functions, event payload
   types, presets, theme variables, and `./widget.js` export.

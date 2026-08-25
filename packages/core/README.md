@@ -100,6 +100,33 @@ Custom tag names are supported without reusing the same registered constructor:
 defineContext7Widget('context7-docs-widget');
 ```
 
+## Examples
+
+Mount an anchored widget beside an existing help button:
+
+```html
+<button id="docs-help">Ask docs</button>
+```
+
+```ts
+import { mountContext7Widget } from '@desource/context7-widget';
+
+const widget = mountContext7Widget({
+  library: '/owner/repo',
+  customTrigger: '#docs-help',
+  position: 'anchor',
+  preset: 'minimal',
+  widgetId: 'docs'
+});
+
+await widget.send('Show the installation steps.');
+```
+
+Use `position: 'center'` with `backdrop: true` for a modal help flow. Use a
+corner position without `customTrigger` for the built-in floating launcher.
+Runnable framework-neutral examples are available in the
+[demo gallery](https://context7.desource-labs.org/examples).
+
 ## Options
 
 JavaScript uses camel-case option names. Direct custom-element attributes use
@@ -185,7 +212,12 @@ processing and retention.
 If `color` is omitted, the preset owns the launcher and send-button color. Set
 `color` only when your product needs a brand override.
 
-## Styling Contract
+## Customization
+
+Choose a preset first, then override public tokens or parts. Internal `.c7-*`
+classes are private and can change between releases.
+
+### Styling Contract
 
 Style the custom element from the host page. Do not target internal `.c7-*`
 classes.
