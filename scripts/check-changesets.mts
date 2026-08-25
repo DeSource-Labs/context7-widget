@@ -1,11 +1,9 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const expectedPackages = [
-  '@desource/context7-widget',
-  '@desource/context7-widget-react',
-  '@desource/context7-widget-vue'
-] as const;
+import { readCoordinatedPackageNames } from './public-packages.mts';
+
+const expectedPackages = await readCoordinatedPackageNames();
 const changesetsDirectory = path.resolve(process.argv[2] ?? '.changeset');
 const entries = (await readdir(changesetsDirectory))
   .filter((entry) => entry.endsWith('.md') && entry.toLowerCase() !== 'readme.md')
@@ -42,9 +40,7 @@ function validateChangeset(filename: string, contents: string): void {
 
   const actualPackages = new Set(declarations.map(({ name }) => name));
   const missing = expectedPackages.filter((name) => !actualPackages.has(name));
-  const unexpected = [...actualPackages].filter(
-    (name) => !expectedPackages.includes(name as (typeof expectedPackages)[number])
-  );
+  const unexpected = [...actualPackages].filter((name) => !expectedPackages.includes(name));
   const bumps = new Set(declarations.map(({ bump }) => bump));
 
   if (missing.length > 0 || unexpected.length > 0 || actualPackages.size !== declarations.length) {

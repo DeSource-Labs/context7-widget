@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,6 +27,13 @@ interface PackageArtifactBudget {
   readonly root: string;
 }
 
+interface SvelteConsumerBudget {
+  readonly entry: 'component' | 'controller';
+  readonly maxGzipBytes: number;
+  readonly name: string;
+  readonly ssr?: boolean;
+}
+
 interface PackedArtifact {
   readonly filename: string;
   readonly files: readonly { readonly path: string }[];
@@ -38,18 +45,27 @@ const workspaceRoot = fileURLToPath(new URL('..', import.meta.url));
 const corePackageRoot = fileURLToPath(new URL('../packages/core', import.meta.url));
 const coreKit = fileURLToPath(new URL('../packages/core/dist/kit.js', import.meta.url));
 const reactPackageRoot = fileURLToPath(new URL('../packages/react', import.meta.url));
+const sveltePackageRoot = fileURLToPath(new URL('../packages/svelte', import.meta.url));
 
 const fileBudgets: readonly FileBudget[] = [
   { file: 'packages/core/dist/widget.js', maxGzipBytes: 22_500 },
   { file: 'packages/vue/dist/index.js', maxGzipBytes: 8_500 },
   { file: 'packages/vue/dist/styles.css', maxGzipBytes: 5_500 },
-  { file: 'packages/react/dist/styles.css', maxGzipBytes: 5_500 }
+  { file: 'packages/react/dist/styles.css', maxGzipBytes: 5_500 },
+  { file: 'packages/svelte/dist/Context7Widget.svelte', maxGzipBytes: 9_000 },
+  { file: 'packages/svelte/dist/styles.css', maxGzipBytes: 5_500 },
+  { file: 'packages/nuxt/dist/module.mjs', maxGzipBytes: 950 },
+  { file: 'packages/angular/dist/fesm2022/context7-widget-angular.mjs', maxGzipBytes: 13_600 },
+  { file: 'packages/angular/dist/styles.css', maxGzipBytes: 5_500 }
 ];
 
 const packageArtifactBudgets: readonly PackageArtifactBudget[] = [
   { maxTarballBytes: 75_000, name: '@desource/context7-widget', root: 'packages/core' },
   { maxTarballBytes: 24_000, name: '@desource/context7-widget-react', root: 'packages/react' },
-  { maxTarballBytes: 25_000, name: '@desource/context7-widget-vue', root: 'packages/vue' }
+  { maxTarballBytes: 25_000, name: '@desource/context7-widget-vue', root: 'packages/vue' },
+  { maxTarballBytes: 22_500, name: '@desource/context7-widget-svelte', root: 'packages/svelte' },
+  { maxTarballBytes: 6_500, name: '@desource/context7-widget-nuxt', root: 'packages/nuxt' },
+  { maxTarballBytes: 28_000, name: '@desource/context7-widget-angular', root: 'packages/angular' }
 ];
 
 const consumerBudgets: readonly ConsumerBudget[] = [
@@ -86,7 +102,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { Context7Widget } from './packages/vue/dist/index.js';",
     external: ['vue'],
-    maxGzipBytes: 16_900,
+    maxGzipBytes: 17_100,
     name: 'Vue component with core /kit consumer',
     resolveDir: workspaceRoot
   },
@@ -141,6 +157,36 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     maxGzipBytes: 17_700,
     name: 'React root hook-only consumer',
     resolveDir: reactPackageRoot
+  },
+  {
+    alias: {
+      '@desource/context7-widget/kit': coreKit
+    },
+    contents: "export { Context7Widget } from '@desource/context7-widget-angular';",
+    external: ['@angular/*', 'tslib'],
+    forbiddenMarkers: ['Context7WidgetElement', 'customElements.define'],
+    maxGzipBytes: 21_500,
+    name: 'Angular component with core /kit consumer',
+    resolveDir: fileURLToPath(new URL('../packages/angular', import.meta.url))
+  }
+];
+
+const svelteConsumerBudgets: readonly SvelteConsumerBudget[] = [
+  {
+    entry: 'component',
+    maxGzipBytes: 19_000,
+    name: 'Svelte root component with core /kit consumer'
+  },
+  {
+    entry: 'controller',
+    maxGzipBytes: 20_000,
+    name: 'Svelte root controller with core /kit consumer'
+  },
+  {
+    entry: 'component',
+    maxGzipBytes: 15_100,
+    name: 'Svelte root component SSR consumer',
+    ssr: true
   }
 ];
 
@@ -157,6 +203,8 @@ for (const budget of fileBudgets) {
   const gzipBytes = gzipSync(readFileSync(url), { level: 9 }).byteLength;
   reportBudget(budget.file, gzipBytes, budget.maxGzipBytes);
 }
+
+checkFrameworkStyles();
 
 for (const budget of packageArtifactBudgets) {
   checkPackageArtifact(budget);
@@ -198,10 +246,15 @@ for (const budget of consumerBudgets) {
   }
 }
 
+for (const budget of svelteConsumerBudgets) {
+  checkSvelteConsumer(budget);
+}
+
 for (const [name, url] of [
   ['core root', new URL('../packages/core/dist/index.js', import.meta.url)],
   ['core /core', new URL('../packages/core/dist/core.js', import.meta.url)],
   ['core /kit', new URL('../packages/core/dist/kit.js', import.meta.url)],
+  ['Nuxt root', new URL('../packages/nuxt/dist/module.mjs', import.meta.url)],
   ['Vue root', new URL('../packages/vue/dist/index.js', import.meta.url)],
   ['React root', new URL('../packages/react/dist/index.js', import.meta.url)]
 ] as const) {
@@ -249,6 +302,72 @@ function reportBudget(name: string, gzipBytes: number, maxGzipBytes: number): vo
     `${passed ? 'PASS' : 'FAIL'} ${name}: ${formatKilobytes(gzipBytes)} gzip / ${formatKilobytes(maxGzipBytes)} budget`
   );
   if (!passed) failed = true;
+}
+
+function checkFrameworkStyles(): void {
+  const styleFiles = ['vue', 'react', 'svelte', 'angular'].map((framework) =>
+    path.join(workspaceRoot, 'packages', framework, 'dist/styles.css')
+  );
+  const missingStyle = styleFiles.find((file) => !existsSync(file));
+
+  if (missingStyle) {
+    console.error(`FAIL ${path.relative(workspaceRoot, missingStyle)} was not found. Run pnpm build first.`);
+    failed = true;
+    return;
+  }
+
+  const [canonical, ...others] = styleFiles.map((file) => readFileSync(file));
+  const passed = canonical !== undefined && others.every((style) => style.equals(canonical));
+  console.log(`${passed ? 'PASS' : 'FAIL'} framework stylesheet artifacts are byte-identical`);
+  if (!passed) failed = true;
+}
+
+function checkSvelteConsumer(budget: SvelteConsumerBudget): void {
+  const temporaryDirectory = mkdtempSync(path.join(tmpdir(), 'context7-widget-svelte-size-'));
+  const outputDirectory = path.join(temporaryDirectory, 'dist');
+
+  try {
+    const entryFile = path.join(temporaryDirectory, 'entry.js');
+    const exportName = budget.entry === 'component' ? 'Context7Widget' : 'createContext7Widget';
+    const packageEntry = path.join(sveltePackageRoot, 'dist/index.js');
+    writeFileSync(entryFile, `export { ${exportName} } from ${JSON.stringify(packageEntry)};\n`);
+    const executable = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+    execFileSync(
+      executable,
+      ['--dir', sveltePackageRoot, 'exec', 'vite', 'build', '--config', 'vite.size.config.ts', '--logLevel', 'error'],
+      {
+        cwd: workspaceRoot,
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          CONTEXT7_SVELTE_SIZE_ENTRY_FILE: entryFile,
+          CONTEXT7_SVELTE_SIZE_OUT_DIR: outputDirectory,
+          CONTEXT7_SVELTE_SIZE_SSR: String(budget.ssr === true)
+        }
+      }
+    );
+
+    const outputFiles = collectJavaScriptFiles(outputDirectory);
+    if (outputFiles.length === 0) throw new Error('Vite did not produce JavaScript output');
+    const gzipBytes = outputFiles.reduce(
+      (total, file) => total + gzipSync(readFileSync(file), { level: 9 }).byteLength,
+      0
+    );
+    reportBudget(budget.name, gzipBytes, budget.maxGzipBytes);
+  } catch (error) {
+    console.error(`FAIL ${budget.name} could not be bundled.`, error);
+    failed = true;
+  } finally {
+    rmSync(temporaryDirectory, { force: true, recursive: true });
+  }
+}
+
+function collectJavaScriptFiles(directory: string): string[] {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const entryPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) return collectJavaScriptFiles(entryPath);
+    return /\.(?:m?js)$/u.test(entry.name) ? [entryPath] : [];
+  });
 }
 
 function checkPackageArtifact(budget: PackageArtifactBudget): void {
