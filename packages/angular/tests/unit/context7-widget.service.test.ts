@@ -43,7 +43,7 @@ describe('Context7WidgetService', () => {
       widgetId: 'docs'
     });
     await nextTask();
-    expect(firstTarget.querySelector('context7-angular-widget')).toBe(widget.element);
+    expect(firstTarget.querySelector('context7-widget')).toBe(widget.element);
     expect(service.widgetId()).toBe('docs');
     expect(service.widget()).toBe(widget.element);
     expect(service.isOpen()).toBe(false);
@@ -70,12 +70,12 @@ describe('Context7WidgetService', () => {
       widgetId: 'docs'
     });
     expect(updated).toBe(widget);
-    expect(secondTarget.querySelector('context7-angular-widget')).toBe(widget.element);
+    expect(secondTarget.querySelector('context7-widget')).toBe(widget.element);
     expect(widget.element?.getAttribute('preset')).toBe('terminal');
 
     expect(service.mount({ library: '/owner/repo', target: secondTarget, widgetId: 'docs' })).toBe(widget);
     service.mount({ library: '/owner/repo', widgetId: 'docs' });
-    expect(document.body.querySelector('context7-angular-widget')).toBe(widget.element);
+    expect(document.body.querySelector('context7-widget')).toBe(widget.element);
 
     service.unmount('docs');
     await nextTask();
@@ -98,7 +98,7 @@ describe('Context7WidgetService', () => {
       target: '#service-target',
       widgetId: 'selector'
     });
-    expect(selectorTarget.querySelector('context7-angular-widget')).toBe(selectorWidget.element);
+    expect(selectorTarget.querySelector('context7-widget')).toBe(selectorWidget.element);
     service.unmount('selector');
     expect(service.get()).toBeUndefined();
     expect(service.getMessages()).toEqual([]);

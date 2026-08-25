@@ -9,7 +9,7 @@ import { Context7Widget } from '../../src/components/context7-widget';
   standalone: true,
   imports: [Context7Widget],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: '<context7-angular-widget library="/owner/repo" position="center" />'
+  template: '<context7-widget library="/owner/repo" position="center" />'
 })
 class Context7SsrHost {}
 
@@ -24,7 +24,7 @@ describe('Angular server rendering', () => {
       }
     );
 
-    expect(html).toContain('<context7-angular-widget');
+    expect(html).toContain('<context7-widget');
     expect(html).toContain('class="context7-widget"');
     expect(html).toContain('role="dialog"');
     expect(html).not.toContain('context7-widget-panel-');

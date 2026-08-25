@@ -842,12 +842,12 @@ const constructorAngularCode = computed(() => {
     inputs.splice(7, 0, '[customTrigger]="true"');
   }
 
-  const componentOpen = `<context7-angular-widget\n${inputs.map((input) => `  ${input}`).join('\n')}`;
+  const componentOpen = `<context7-widget\n${inputs.map((input) => `  ${input}`).join('\n')}`;
   const component = constructorUsesTriggerSlot.value
     ? `${componentOpen}
 >
   <span context7WidgetTrigger class="docs-trigger-dot">${escapeText(constructorLauncherLabel.value)}</span>
-</context7-angular-widget>`
+</context7-widget>`
     : `${componentOpen}
 />`;
 

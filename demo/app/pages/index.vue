@@ -214,7 +214,7 @@ import { Context7Widget } from "@desource/context7-widget-angular";
 
 @Component({
   imports: [Context7Widget],
-  template: \`<context7-angular-widget
+  template: \`<context7-widget
     library="/owner/repo"
     preset="glass"
     [customTrigger]="true"

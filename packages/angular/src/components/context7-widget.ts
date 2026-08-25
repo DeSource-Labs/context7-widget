@@ -90,7 +90,7 @@ type AngularAnswerRender = {
 type CopyActionKey = HTMLButtonElement | string;
 
 @Component({
-  selector: 'context7-angular-widget',
+  selector: 'context7-widget',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {

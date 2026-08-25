@@ -331,7 +331,7 @@ import { Context7Widget, type Context7WidgetQuestionEventDetail } from '@desourc
   imports: [Context7Widget],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <context7-angular-widget
+    <context7-widget
       library="/owner/repo"
       position="anchor"
       preset="glass"

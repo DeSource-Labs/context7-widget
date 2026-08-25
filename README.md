@@ -213,7 +213,7 @@ import { Context7Widget } from '@desource/context7-widget-angular';
 @Component({
   standalone: true,
   imports: [Context7Widget],
-  template: '<context7-angular-widget library="/owner/repo" position="anchor" preset="glass" [customTrigger]="true" />'
+  template: '<context7-widget library="/owner/repo" position="anchor" preset="glass" [customTrigger]="true" />'
 })
 export class DocsAssistant {}
 ```

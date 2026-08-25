@@ -83,7 +83,7 @@ export class Context7WidgetService {
     let owned = this.ownedWidgets.get(widgetId);
 
     if (!owned) {
-      const host = this.document.createElement('context7-angular-widget');
+      const host = this.document.createElement('context7-widget');
       resolveAngularTarget(options.target ?? this.document.body, this.document).append(host);
       const component = createComponent(Context7Widget, {
         environmentInjector: this.environmentInjector,

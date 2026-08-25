@@ -14,9 +14,9 @@ const CHAT_ENDPOINT = 'https://context7.com/api/v2/widget/chat';
   standalone: true,
   imports: [Context7Widget, Context7WidgetTrigger],
   template: `
-    <context7-angular-widget [customTrigger]="true" library="/owner/repo">
+    <context7-widget [customTrigger]="true" library="/owner/repo">
       <span context7WidgetTrigger>Projected trigger</span>
-    </context7-angular-widget>
+    </context7-widget>
   `
 })
 class ProjectedTriggerHost {}
@@ -128,7 +128,7 @@ describe('Context7Widget', () => {
     expect(trigger.textContent).toContain('Projected trigger');
     trigger.click();
     await fixture.whenStable();
-    expect(fixture.nativeElement.querySelector('context7-angular-widget')?.hasAttribute('open')).toBe(true);
+    expect(fixture.nativeElement.querySelector('context7-widget')?.hasAttribute('open')).toBe(true);
   });
 
   it('honors controlled open state and relinquishes control', async () => {

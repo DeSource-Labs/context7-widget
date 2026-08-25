@@ -118,7 +118,7 @@ type EventStats = {
           toolResult:{{ stats().toolResult }} error:{{ stats().error }}
         </div>
 
-        <context7-angular-widget
+        <context7-widget
           library="/desource-labs/context7-widget"
           initialMessage="Hello from the Angular demo for **{library}**."
           launcherLabel="Ask docs"

@@ -34,7 +34,7 @@ import { Context7Widget, type Context7WidgetQuestionEventDetail } from '@desourc
   imports: [Context7Widget],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <context7-angular-widget
+    <context7-widget
       library="/owner/repo"
       position="anchor"
       preset="glass"
@@ -136,7 +136,7 @@ import { Context7Widget } from '@desource/context7-widget-angular';
   imports: [Context7Widget],
   template: `
     <button type="button" (click)="docsOpen.set(true)">Open docs</button>
-    <context7-angular-widget [(open)]="docsOpen" library="/owner/repo" position="center" [backdrop]="true" />
+    <context7-widget [(open)]="docsOpen" library="/owner/repo" position="center" [backdrop]="true" />
   `
 })
 export class DocsShell {
@@ -158,9 +158,9 @@ import { Context7Widget, Context7WidgetTrigger } from '@desource/context7-widget
   standalone: true,
   imports: [Context7Widget, Context7WidgetTrigger],
   template: `
-    <context7-angular-widget library="/owner/repo" [customTrigger]="true">
+    <context7-widget library="/owner/repo" [customTrigger]="true">
       <span context7WidgetTrigger>Ask product docs</span>
-    </context7-angular-widget>
+    </context7-widget>
   `
 })
 export class ProductDocs {}
@@ -170,7 +170,7 @@ export class ProductDocs {}
 
 ```html
 <button id="docs-help" type="button">Ask docs</button>
-<context7-angular-widget library="/owner/repo" customTrigger="docs-help" />
+<context7-widget library="/owner/repo" customTrigger="docs-help" />
 ```
 
 An id may include or omit `#`. Full CSS selectors, direct `Element` values,
