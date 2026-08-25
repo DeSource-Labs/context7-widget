@@ -1,7 +1,7 @@
 # Contributing to Context7 Widget
 
 Thanks for considering a contribution. This project is a monorepo for a Context7-compatible browser widget, a core
-TypeScript package, native Vue and React bindings, and the Nuxt documentation site.
+TypeScript package, native Vue, React, Svelte, and Angular bindings, a Nuxt module, and the Nuxt documentation site.
 
 ## Code of Conduct
 
@@ -11,8 +11,8 @@ By participating, you agree to follow the [Code of Conduct](./CODE_OF_CONDUCT.md
 
 Requirements:
 
-- Node.js >= 22.18.0 (Node.js 24 is used in GitHub Actions)
-- pnpm 11.10.0
+- Node.js >= 22.22.3 (Node.js 26 is used in GitHub Actions)
+- pnpm 11.23.0
 
 ```bash
 pnpm install
@@ -26,8 +26,11 @@ pnpm dev:demo
 ```text
 context7-widget/
 ├── packages/
+│   ├── angular/     # @desource/context7-widget-angular
 │   ├── core/        # @desource/context7-widget
+│   ├── nuxt/        # @desource/context7-widget-nuxt
 │   ├── react/       # @desource/context7-widget-react
+│   ├── svelte/      # @desource/context7-widget-svelte
 │   └── vue/         # @desource/context7-widget-vue
 ├── common/
 │   └── tests/       # shared unit/e2e test helpers
@@ -88,7 +91,10 @@ chore(ci): add release workflow
 Recommended scopes:
 
 - `core`
+- `angular`
+- `nuxt`
 - `react`
+- `svelte`
 - `vue`
 - `site`
 - `docs`
@@ -106,8 +112,8 @@ Before opening a PR:
 - Run `pnpm validate:packages`
 - Run `pnpm test:all`
 - Update docs for public API changes
-- Add a changeset for publishable package changes. Select core, React, and Vue together so the user-facing summary is
-  copied to every package changelog; their fixed Changesets group keeps the versions synchronized.
+- Add a changeset for publishable package changes. Select every public package so the user-facing summary is copied to
+  every package changelog; the fixed Changesets group keeps all package versions synchronized.
 
 The general CI workflow is intentionally manual-dispatch only. Run the checks
 above locally before requesting review; a maintainer can dispatch the same
@@ -121,6 +127,18 @@ pnpm changeset
 
 Do not add changesets for site-only or internal-only documentation changes unless they should appear in npm
 changelogs.
+
+## Dependency Policy
+
+- Prefer the latest stable release that satisfies every direct peer and toolchain constraint.
+- Keep TypeScript 5.9 at the workspace/Nuxt layer and TypeScript 6.0 inside the Angular package while the current Nuxt
+  module builder and Angular compiler require non-overlapping TypeScript peer ranges.
+- Run `pnpm update -r --latest`, `pnpm check:peers`, and `pnpm audit:prod` after changing manifests.
+- Keep a dependency below `latest` only when a named consumer cannot support the newer release. Document that reason
+  next to the constraint or in the change that introduces it.
+- Do not add `minimumReleaseAgeExclude` entries without a documented security or compatibility reason.
+- Treat install scripts as denied by default. Add an `allowBuilds` entry only when a verified build or runtime path
+  needs it.
 
 ## Release Process
 
