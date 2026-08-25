@@ -142,12 +142,11 @@
 
 <script setup lang="ts">
 import { MessageSquare } from '@lucide/vue';
-import {
-  Context7Widget,
-  type Context7LauncherVariant,
-  type Context7Position,
-  type Context7Theme,
-  type Context7WidgetPreset
+import type {
+  Context7LauncherVariant,
+  Context7Position,
+  Context7Theme,
+  Context7WidgetPreset
 } from '@desource/context7-widget-vue';
 import { buildContext7WidgetScriptTag } from '@desource/context7-widget';
 

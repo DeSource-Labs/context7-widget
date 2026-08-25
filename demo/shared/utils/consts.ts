@@ -57,8 +57,8 @@ const librariesStates: Record<LibraryKey, boolean> = {
   vue: true,
   nuxt: true,
   react: true,
-  svelte: false,
-  angular: false
+  svelte: true,
+  angular: true
 };
 
 const getLibHref = (key: LibraryKey, path?: string) => {

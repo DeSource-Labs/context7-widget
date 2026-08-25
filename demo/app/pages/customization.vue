@@ -63,8 +63,8 @@
         <p class="eyebrow">CSS variables</p>
         <h2>Override tokens without reaching into the widget.</h2>
         <p>
-          Set these on `context7-widget` for core, or `.context7-widget` for Vue and React. Scope an individual instance
-          with `[widget-id="docs"]`, and use theme or preset selectors when needed.
+          Set these on `context7-widget` for core, or `.context7-widget` for a native framework package. Scope an
+          individual instance with `[widget-id="docs"]`, and use theme or preset selectors when needed.
         </p>
       </div>
 
@@ -86,8 +86,8 @@
         <p class="eyebrow">Shadow parts</p>
         <h2>Target exact blocks when variables are not enough.</h2>
         <p>
-          Use `::part(...)` with the core custom element, or `[part~='...']` with the native Vue and React DOM, when a
-          product system needs direct styling for one stable surface. Prefer variables for colors and layout.
+          Use `::part(...)` with the core custom element, or `[part~='...']` with native framework DOM, when a product
+          system needs direct styling for one stable surface. Prefer variables for colors and layout.
         </p>
       </div>
 
@@ -230,7 +230,7 @@ const tokenGroups = [
     tokens: ['--c7-control-background', '--c7-control-border', '--c7-control-color']
   },
   {
-    copy: 'Applies to managed triggers rendered by the Vue or React package after its stylesheet is imported.',
+    copy: 'Applies to managed triggers rendered by a native framework package after its stylesheet is imported.',
     title: 'Framework managed trigger',
     tokens: [
       '--c7-trigger-background',
@@ -323,7 +323,7 @@ context7-widget::part(code-block) {
   border: 1px solid rgba(255, 255, 255, 0.12);
 }`;
 
-const frameworkTriggerSnippet = `/* Import the Vue or React package stylesheet first. */
+const frameworkTriggerSnippet = `/* Import the Vue, React, Svelte, or Angular package stylesheet first. */
 .context7-widget-trigger {
   --c7-trigger-background: #111827;
   --c7-trigger-color: #f8fafc;

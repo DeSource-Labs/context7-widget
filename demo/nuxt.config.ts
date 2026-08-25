@@ -2,7 +2,14 @@ import { defineNuxtConfig } from 'nuxt/config';
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-15',
-  css: ['@desource/context7-widget-vue/styles.css', '~/assets/styles/main.scss'],
+  modules: ['@desource/context7-widget-nuxt'],
+  context7Widget: {
+    defaults: {
+      library: '/desource-labs/context7-widget',
+      theme: 'auto'
+    }
+  },
+  css: ['~/assets/styles/main.scss'],
   devtools: { enabled: false },
   ssr: true,
   app: {
@@ -15,7 +22,7 @@ export default defineNuxtConfig({
         {
           name: 'description',
           content:
-            'Customizable Context7 documentation chat widget for product sites, docs portals, dashboards, and developer tools. Hosted script, TypeScript core, Vue, Nuxt, and React integrations.'
+            'Customizable Context7 documentation chat widget for product sites, docs portals, dashboards, and developer tools. Hosted script, TypeScript core, Vue, Nuxt, React, Svelte, and Angular integrations.'
         },
         { property: 'og:title', content: 'Context7 Widget by DeSource Labs' },
         {
