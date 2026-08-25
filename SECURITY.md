@@ -1,17 +1,5 @@
 # Security Policy
 
-## Supported Versions
-
-Security fixes target the latest published version of the fixed core, React,
-and Vue package group. Before 1.0, older minor and prerelease lines do not
-receive backports; please upgrade all three packages together. Reports against
-unreleased code on `main` are also welcome.
-
-| Release line             | Security updates |
-| ------------------------ | ---------------- |
-| Latest published version | Supported        |
-| Older versions           | Not supported    |
-
 ## Reporting a Vulnerability
 
 Please do not open a public GitHub issue for security vulnerabilities.
@@ -38,7 +26,10 @@ Include:
 In scope:
 
 - `@desource/context7-widget`
+- `@desource/context7-widget-angular`
+- `@desource/context7-widget-nuxt`
 - `@desource/context7-widget-react`
+- `@desource/context7-widget-svelte`
 - `@desource/context7-widget-vue`
 - Hosted script behavior documented by this repository
 
@@ -51,9 +42,9 @@ Out of scope:
 
 ## Security Notes
 
-The widget renders model-provided markdown through a shared escaping renderer. Core places the result in an open shadow
-root; the Vue and React packages place the same trusted output in native framework DOM. Please report any HTML
-injection, unsafe link, or rendering-boundary bypass.
+The widget renders model-provided Markdown through a shared escaping renderer. Core places the result in an open shadow
+root; the Vue, React, Svelte, and Angular packages place the same trusted output in native framework DOM. The Nuxt
+module uses the Vue renderer. Please report any HTML injection, unsafe link, or rendering-boundary bypass.
 
 Chat requests go directly from the visitor's browser to `https://context7.com/api/v2/widget/chat`; DeSource Labs does
 not proxy them. Each request includes the configured library id and the current conversation messages (message id,
