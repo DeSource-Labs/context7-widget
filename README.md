@@ -3,7 +3,10 @@
 [![Coverage](https://codecov.io/gh/DeSource-Labs/context7-widget/branch/main/graph/badge.svg)](https://codecov.io/gh/DeSource-Labs/context7-widget)
 [![Core](https://img.shields.io/npm/v/@desource/context7-widget?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget)
 [![Vue](https://img.shields.io/npm/v/@desource/context7-widget-vue?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget-vue)
+[![Nuxt](https://img.shields.io/npm/v/@desource/context7-widget-nuxt?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget-nuxt)
 [![React](https://img.shields.io/npm/v/@desource/context7-widget-react?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget-react)
+[![Svelte](https://img.shields.io/npm/v/@desource/context7-widget-svelte?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget-svelte)
+[![Angular](https://img.shields.io/npm/v/@desource/context7-widget-angular?logo=npm)](https://www.npmjs.com/package/@desource/context7-widget-angular)
 [![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
 Add an AI documentation assistant to a product, docs site, dashboard, SDK portal,
@@ -32,17 +35,20 @@ own site.
 
 ## Package Surfaces
 
-| Surface                                               | Use it when                                                                                      |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `https://context7.desource-labs.org/widget.js`        | You want a drop-in script tag for HTML, Docusaurus, Next.js, Astro, Nuxt, Vite, or static pages  |
-| [`@desource/context7-widget`](./packages/core)        | You want TypeScript helpers, the custom element, script generation, or direct runtime control    |
-| [`@desource/context7-widget-vue`](./packages/vue)     | You want a Vue 3 component, composable, plugin helper, typed events, and managed triggers        |
-| [`@desource/context7-widget-react`](./packages/react) | You want a native React component, controlled state, hook, typed callbacks, and managed triggers |
+| Surface                                                   | Use it when                                                                                      |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `https://context7.desource-labs.org/widget.js`            | You want a drop-in script tag for HTML, Docusaurus, Next.js, Astro, Nuxt, Vite, or static pages  |
+| [`@desource/context7-widget`](./packages/core)            | You want TypeScript helpers, the custom element, script generation, or direct runtime control    |
+| [`@desource/context7-widget-vue`](./packages/vue)         | You want a Vue 3 component, composable, plugin helper, typed events, and managed triggers        |
+| [`@desource/context7-widget-nuxt`](./packages/nuxt)       | You want Nuxt auto-imports, global defaults, automatic CSS, and SSR-safe Vue integration         |
+| [`@desource/context7-widget-react`](./packages/react)     | You want a native React component, controlled state, hook, typed callbacks, and managed triggers |
+| [`@desource/context7-widget-svelte`](./packages/svelte)   | You want a native Svelte 5 component, bindable state, snippets, and reactive controls            |
+| [`@desource/context7-widget-angular`](./packages/angular) | You want a standalone Angular component, signals, DI defaults, and injectable controls           |
 
-Coming next: dedicated Svelte and Angular packages. Each framework package
-will own its UI and lifecycle while sharing the headless conversation engine,
-renderer bridge, transport, markdown, types, defaults, and brand assets through
-`@desource/context7-widget/kit`.
+Vue, React, Svelte, and Angular own native framework UI and lifecycle while
+sharing the headless conversation engine, renderer bridge, transport, Markdown,
+types, defaults, and brand assets through `@desource/context7-widget/kit`. The
+Nuxt module configures the Vue package without adding another renderer.
 
 ## Quick Start
 
@@ -161,6 +167,59 @@ export function DocsAssistant() {
 }
 ```
 
+### Nuxt application
+
+```bash
+npm install @desource/context7-widget-nuxt
+```
+
+```ts
+export default defineNuxtConfig({
+  modules: ['@desource/context7-widget-nuxt'],
+  context7Widget: {
+    defaults: { library: '/owner/repo', preset: 'glass' }
+  }
+});
+```
+
+`<Context7Widget />` and `useContext7Widget()` are then auto-imported.
+
+### Svelte application
+
+```bash
+npm install @desource/context7-widget-svelte
+```
+
+```svelte
+<script lang="ts">
+  import { Context7Widget } from '@desource/context7-widget-svelte';
+  import '@desource/context7-widget-svelte/styles.css';
+
+  let open = $state(false);
+</script>
+
+<Context7Widget bind:open library="/owner/repo" position="anchor" preset="glass" customTrigger />
+```
+
+### Angular application
+
+```bash
+npm install @desource/context7-widget-angular
+```
+
+```ts
+import { Context7Widget } from '@desource/context7-widget-angular';
+
+@Component({
+  standalone: true,
+  imports: [Context7Widget],
+  template: '<context7-angular-widget library="/owner/repo" position="anchor" preset="glass" [customTrigger]="true" />'
+})
+export class DocsAssistant {}
+```
+
+Import `@desource/context7-widget-angular/styles.css` once in the application stylesheet or build configuration.
+
 ## Feature Highlights
 
 - Official-compatible script replacement for the fastest migration path.
@@ -181,8 +240,11 @@ export function DocsAssistant() {
 - Centered-dialog background isolation and scroll locking, focus containment,
   safe-area padding, and contained message scrolling.
 - Public CSS variables and stable shadow parts for product-grade styling.
-- Native Vue and React renderers with idiomatic controlled state, composables or
-  hooks, managed triggers, and the same parameterized unit/browser contracts.
+- Native Vue, React, Svelte, and Angular renderers with idiomatic controlled
+  state, framework-native controls, managed triggers, and the same parameterized
+  unit/browser contracts.
+- Nuxt 3/4 module with component and composable auto-imports, app defaults, and
+  optional global CSS.
 - Daily upstream scanner for the official unversioned Context7 widget script.
 
 ## Customization
@@ -211,6 +273,10 @@ context7-widget::part(send-button) {
   text-transform: uppercase;
 }
 ```
+
+Native Vue, React, Svelte, and Angular packages render light DOM. Apply the
+same variables to `.context7-widget`; their package guides document the
+framework-specific trigger selector and customization examples.
 
 See the [live customization guide](https://context7.desource-labs.org/customization)
 and [integration examples](https://context7.desource-labs.org/examples).
@@ -274,7 +340,10 @@ document.addEventListener('c7:question', (event) => {
 
 - [Core package](./packages/core)
 - [Vue package](./packages/vue)
+- [Nuxt package](./packages/nuxt)
 - [React package](./packages/react)
+- [Svelte package](./packages/svelte)
+- [Angular package](./packages/angular)
 - [Integration recipes](./docs/INTEGRATION.md)
 - [Architecture notes](./docs/ARCHITECTURE.md)
 - [Contributing guide](./CONTRIBUTING.md)
@@ -293,16 +362,17 @@ pnpm dev:prepare
 pnpm dev:demo
 ```
 
-Core and framework package builds use Vite 8. The demo site builds packages,
-copies `packages/core/dist/widget.js` into `demo/public/widget.js`, then runs
-Nuxt.
+The packages use framework-appropriate production builders. The demo site
+builds every package, copies `packages/core/dist/widget.js` into
+`demo/public/widget.js`, then runs Nuxt.
 
 The manually dispatched CI workflow and mandatory release gate enforce coverage
 floors, production dependency and peer checks, package metadata/type
 validation, SSR imports, and gzip budgets for the hosted widget and real
 tree-shaken consumers of core, `/core`, `/kit`, every framework package, and
-their stylesheets. Core, Vue, and React also run the same behavior suite in
-desktop Chromium, Firefox, WebKit, and mobile WebKit profiles.
+their stylesheets. Core, Vue, React, Svelte, and Angular run the same behavior
+suite in desktop Chromium, Firefox, WebKit, and mobile WebKit profiles; Nuxt
+adds module fixtures covering SSR, generated types, and disabled integrations.
 
 ## Maintenance
 
