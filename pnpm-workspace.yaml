@@ -2,15 +2,25 @@ packages:
   - 'packages/*'
   - 'demo'
 
+# Nuxt's module builder and Angular 22 require different TypeScript lines.
+# Resolve toolchain peers from each package so both constraints stay honest.
+resolvePeersFromWorkspaceRoot: false
+
 overrides:
-  '@napi-rs/wasm-runtime': ^1.2.1
+  '@napi-rs/wasm-runtime': ^1.2.3
   '@bomb.sh/tab': ^0.0.22
   brace-expansion: ^5.0.9
   glob: ^13.0.6
+  nanoid: ^3.3.18
+
+# @nuxt/module-builder 1.0.3 requires vue-sfc-transformer 0.2.x while its
+# bundled mkdist 2.4.1 still declares the compatible 0.1.x line.
+peerDependencyRules:
+  allowedVersions:
+    'mkdist@2.4.1>vue-sfc-transformer': 0.2.5
 
 allowBuilds:
   '@parcel/watcher': true
   esbuild: true
-
-minimumReleaseAgeExclude:
-  - '@napi-rs/wasm-runtime@1.2.1'
+  lmdb: false
+  msgpackr-extract: false
