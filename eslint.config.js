@@ -22,6 +22,7 @@ const SVELTE_FILES = [
 ];
 
 const BROWSER_FILES = [
+  'packages/angular/**/*.{ts,js,mts,cts}',
   'packages/core/**/*.{ts,mts,cts}',
   'packages/react/**/*.{ts,tsx,js,jsx}',
   'packages/vue/**/*.{ts,js,mts,cts,vue}',
@@ -34,6 +35,7 @@ const NODE_FILES = [
   'scripts/**/*.{js,mjs,cjs,ts,mts,cts}',
   'packages/*/scripts/**/*.{js,mjs,cjs,ts,mts,cts}',
   '**/vite.config.{js,mjs,cjs,ts,mts,cts}',
+  '**/vite.*.config.{js,mjs,cjs,ts,mts,cts}',
   '**/vitest.config.{js,mjs,cjs,ts,mts,cts}',
   '**/vitest.*.config.{js,mjs,cjs,ts,mts,cts}',
   '**/playwright.config.{js,mjs,cjs,ts,mts,cts}',
@@ -51,6 +53,7 @@ export default [
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
+      '**/.angular/**',
       '**/.nuxt/**',
       '**/.output/**',
       '**/.svelte-kit/**',
@@ -82,6 +85,8 @@ export default [
     },
     rules: {
       ...typescript.configs.recommended.rules,
+      'no-redeclare': 'off',
+      '@typescript-eslint/no-redeclare': 'error',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
@@ -234,6 +239,14 @@ export default [
       'no-unused-vars': 'off',
       'no-undef': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }]
+    }
+  },
+
+  {
+    files: ['packages/svelte/src/Context7Widget.svelte'],
+    rules: {
+      // Both sinks accept only branded HTML from the shared escaping renderers.
+      'svelte/no-at-html-tags': 'off'
     }
   },
 
