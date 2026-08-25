@@ -1,29 +1,16 @@
+import { createContext7StackedRegistry } from '@desource/context7-widget/kit';
 import type { Context7WidgetHandle } from '../types';
 
-const registrations = new Map<string, Context7WidgetHandle[]>();
+const registry = createContext7StackedRegistry<Context7WidgetHandle>();
 
 export function registerReactContext7Widget(id: string, controller: Context7WidgetHandle): void {
-  const stack = registrations.get(id) ?? [];
-  if (stack[stack.length - 1] !== controller) stack.push(controller);
-  registrations.set(id, stack);
+  registry.register(id, controller);
 }
 
 export function unregisterReactContext7Widget(id: string, controller: Context7WidgetHandle): void {
-  const stack = registrations.get(id);
-  if (!stack) return;
-  const index = stack.lastIndexOf(controller);
-  if (index >= 0) stack.splice(index, 1);
-  if (stack.length === 0) registrations.delete(id);
+  registry.unregister(id, controller);
 }
 
 export function getReactContext7Widget(id = 'default'): Context7WidgetHandle | undefined {
-  const stack = registrations.get(id);
-  const registered = stack?.[stack.length - 1];
-  if (registered || id !== 'default') return registered;
-
-  for (const fallbackStack of registrations.values()) {
-    const fallback = fallbackStack[fallbackStack.length - 1];
-    if (fallback) return fallback;
-  }
-  return undefined;
+  return registry.get(id);
 }

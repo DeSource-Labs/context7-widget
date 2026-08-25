@@ -96,6 +96,37 @@ back to the first available registered widget for single-widget applications.
 Duplicate ids form a stack: the newest registration wins, and unmounting it
 restores the previous registration.
 
+## Examples
+
+Use a controlled widget when application state owns visibility:
+
+```tsx
+import { useState } from 'react';
+import { Context7Widget } from '@desource/context7-widget-react/component';
+import '@desource/context7-widget-react/styles.css';
+
+export function DocsHelp() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Context7Widget
+      library="/owner/repo"
+      open={open}
+      onOpenChange={setOpen}
+      position="center"
+      backdrop
+      preset="glass"
+      customTrigger
+    />
+  );
+}
+```
+
+Use `useContext7Widget({ autoMount: true })` for route actions, command
+palettes, or other flows that need imperative control without placing a
+component in the current tree. More runnable patterns are available in the
+[demo gallery](https://context7.desource-labs.org/examples).
+
 ## Props, Events, And Localization
 
 The component accepts the shared options: `library`, `theme`, `preset`,
@@ -136,13 +167,32 @@ application, so any logging, analytics, or persistence added there is the
 integrator's data flow. Do not send secrets or sensitive personal data, and
 review Context7's policies for backend processing and retention.
 
-## Styling And Packaging
+## Customization
 
 The component renders native light DOM under `.context7-widget`. Apply shared
 CSS variables to that root and use `[part~='send-button']`-style selectors for
 stable component parts. Managed trigger tokens use `--c7-trigger-background`,
 `--c7-trigger-border`, `--c7-trigger-color`, `--c7-trigger-focus`,
 `--c7-trigger-radius`, and `--c7-trigger-shadow`.
+
+```css
+.context7-widget.docs-assistant {
+  --c7-accent: #7cffb2;
+  --c7-panel-background: #101513;
+  --c7-panel-color: #f7f2e8;
+  --c7-panel-radius: 8px;
+}
+
+.context7-widget.docs-assistant [part~='send-button'] {
+  min-width: 5rem;
+}
+```
+
+Pass `rootProps={{ className: 'docs-assistant' }}` to scope these overrides. See the
+[live customization guide](https://context7.desource-labs.org/customization)
+for every public token and part.
+
+### Packaging
 
 The package is ESM-only and SSR-import safe:
 

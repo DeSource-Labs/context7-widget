@@ -4,7 +4,8 @@
 
 ### Minor Changes
 
-- Coordinated the core, native React, and native Vue packages under one shared version, release note, and Git tag.
+- Released the core, Vue, Nuxt, React, Svelte, and Angular packages as one coordinated version with one shared Git tag
+  and GitHub release.
 - Initial React release with a native component, controlled open state,
   imperative handle, programmatic hook, managed/external triggers, shared
   behavior contracts, complete UI localization, aligned event-detail exports,
