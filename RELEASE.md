@@ -8,7 +8,10 @@ together. Every release has one shared version, one Git tag, and one GitHub rele
 The following packages form a Changesets fixed group and always receive the same version bump:
 
 - `@desource/context7-widget`
+- `@desource/context7-widget-angular`
+- `@desource/context7-widget-nuxt`
 - `@desource/context7-widget-react`
+- `@desource/context7-widget-svelte`
 - `@desource/context7-widget-vue`
 
 ## Contributor Flow
@@ -19,8 +22,8 @@ For a publishable change:
 pnpm changeset
 ```
 
-Select all three public packages, choose the same semver bump, and write a complete user-facing summary. Selecting all
-packages puts the summary in every package changelog; the fixed group independently guarantees that their versions stay
+Select every public package, choose the same semver bump, and write a complete user-facing summary. Selecting every
+package puts the summary in every package changelog; the fixed group independently guarantees that their versions stay
 in sync.
 
 ## Standard Release
@@ -43,7 +46,7 @@ pnpm changeset
 
 In the prompts:
 
-1. Select all three public packages listed above.
+1. Select every public package listed above.
 2. Select the same `major`, `minor`, or `patch` bump for the release.
 3. Write the complete, user-facing release summary.
 4. Confirm the generated changeset.
@@ -56,14 +59,14 @@ Run:
 pnpm changeset:version
 ```
 
-This consumes all pending changesets and updates the three package versions and changelogs. A pnpm install is not
+This consumes all pending changesets and updates the six package versions and changelogs. A pnpm install is not
 required because internal packages use `workspace:*`; package version changes do not change the workspace importers in
 `pnpm-lock.yaml`.
 
 Before committing, verify:
 
-- all three `package.json` files contain the intended version;
-- all three changelogs contain the release summary;
+- all six `package.json` files contain the intended version;
+- all six changelogs contain the release summary;
 - `packages/core/CHANGELOG.md` has the content wanted for the GitHub release;
 - all temporary changeset files were consumed;
 - no unrelated files changed.
@@ -93,7 +96,7 @@ After the release commit reaches `main`, `.github/workflows/release.yml`:
 2. verifies that every public package has the core package version;
 3. extracts the matching entry from `packages/core/CHANGELOG.md`;
 4. runs the full `pnpm check:release` quality gate;
-5. builds and publishes all packages to npm with provenance and without package-specific Git tags;
+5. publishes the already-verified build artifacts to npm with provenance and without package-specific Git tags;
 6. creates one Git tag named `X.Y.Z`;
 7. creates one GitHub release named `X.Y.Z` using the extracted changelog entry.
 
