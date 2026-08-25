@@ -92,6 +92,28 @@ defaults to `default`; if no default registration exists, that lookup falls back
 to the first available widget. Duplicate ids form a stack, so unmounting the
 newest registration restores the previous one.
 
+## Examples
+
+Use `v-model:open` when a parent owns visibility:
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { Context7Widget } from '@desource/context7-widget-vue';
+import '@desource/context7-widget-vue/styles.css';
+
+const open = ref(false);
+</script>
+
+<template>
+  <Context7Widget v-model:open="open" library="/owner/repo" position="center" preset="glass" backdrop custom-trigger />
+</template>
+```
+
+Use `useContext7Widget({ autoMount: true })` for route actions, command
+palettes, or other imperative flows. More runnable patterns are available in
+the [demo gallery](https://context7.desource-labs.org/examples).
+
 ## Plugin
 
 Register the native component under a custom name and provide app-wide defaults:
@@ -164,7 +186,7 @@ External custom triggers hide the Vue floating launcher only after they bind.
 Missing or late-rendered selectors keep the launcher available and bind
 automatically when the target appears.
 
-## Styling
+## Customization
 
 The Vue component renders native Vue DOM under `.context7-widget`; it does not
 mount the core custom element. Customize it with the shared CSS variables:
@@ -194,6 +216,10 @@ mount the core custom element. Customize it with the shared CSS variables:
   --c7-trigger-shadow: none;
 }
 ```
+
+See the
+[live customization guide](https://context7.desource-labs.org/customization)
+for every public token and part.
 
 ## Props And Events
 

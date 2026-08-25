@@ -300,12 +300,14 @@ import {
   captureTriggerAccessibility,
   compactContext7WidgetOptions,
   createContext7CopyActionController,
+  createContext7CompletedMarkdownRenderer,
   createContext7ConversationEngine,
   createContext7ConversationRenderBridge,
   deSourceLabsLogoUrl,
   formatContext7ToolResult,
   getContext7ToolQuery,
   isContext7WidgetTriggerElement,
+  mergeContext7WidgetOptions,
   normalizeContext7WidgetTrigger,
   requestRenderFrame,
   resolveContext7MarkdownBaseUrl,
@@ -341,7 +343,6 @@ import {
   type MaybeRefOrGetter
 } from 'vue';
 import { context7WidgetDefaultsKey } from '../internal/injection';
-import { createCompletedMarkdownRenderer } from '../internal/markdown';
 import { registerVueContext7Widget, unregisterVueContext7Widget } from '../internal/registry';
 import type {
   Context7WidgetEmits,
@@ -419,7 +420,7 @@ const resolvedConfig = computed(() => {
   const { customTrigger: _customTrigger, open: _open, ...widgetProps } = props;
   const { customTrigger: _defaultCustomTrigger, ...defaultOptions } = defaults;
   const provided = compactContext7WidgetOptions(widgetProps);
-  return resolveContext7WidgetConfig({ ...defaultOptions, ...provided });
+  return resolveContext7WidgetConfig(mergeContext7WidgetOptions(defaultOptions, provided));
 });
 const resolvedLibrary = computed(() => resolvedConfig.value.library);
 const resolvedPosition = computed(() => resolvedConfig.value.position);
@@ -461,7 +462,7 @@ const detail = (): Context7WidgetLifecycleEventDetail => ({
   widgetId: resolvedConfig.value.widgetId
 });
 
-const renderCompletedMarkdownCached = createCompletedMarkdownRenderer();
+const renderCompletedMarkdownCached = createContext7CompletedMarkdownRenderer();
 const renderCompletedMarkdown = (item: MessageDisplayItem): Context7RenderedMarkdown =>
   renderCompletedMarkdownCached(item, {
     baseUrl: resolveContext7MarkdownBaseUrl(resolvedLibrary.value, resolvedConfig.value.linkBaseUrl),

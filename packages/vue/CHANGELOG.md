@@ -4,7 +4,8 @@
 
 ### Minor Changes
 
-- Coordinated the core, native React, and native Vue packages under one shared version, release note, and Git tag.
+- Released the core, Vue, Nuxt, React, Svelte, and Angular packages as one coordinated version with one shared Git tag
+  and GitHub release.
 - Initial release of Vue 3 bindings for `@desource/context7-widget`.
 - Added the `Context7Widget` SFC, typed Vue events, `useContext7Widget` composable, plugin helper, managed custom trigger
   support, and optional `styles.css` entry.

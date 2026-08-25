@@ -1,6 +1,7 @@
 import {
   assertBrowser,
   compactContext7WidgetOptions,
+  mergeContext7WidgetOptions,
   resolveTarget,
   type Context7Message,
   type Context7WidgetSendResult,
@@ -77,11 +78,22 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
   let subscribedController: Context7WidgetExpose | null = null;
   let unsubscribe: (() => void) | null = null;
 
-  const options = computed<UseContext7WidgetOptions>(() => ({
-    ...defaults,
-    ...toValue(source),
-    ...mountOverrides.value
-  }));
+  const options = computed<UseContext7WidgetOptions>(() => {
+    const sourceOptions = toValue(source);
+    const overrides = mountOverrides.value;
+    const mergedLabels = mergeContext7WidgetOptions(
+      { labels: defaults.labels },
+      { labels: sourceOptions.labels },
+      { labels: overrides.labels }
+    ).labels;
+
+    return {
+      ...defaults,
+      ...sourceOptions,
+      ...overrides,
+      ...(mergedLabels ? { labels: mergedLabels } : {})
+    };
+  });
   const widgetId = computed(() => options.value.widgetId ?? 'default');
 
   function resolveController(): Context7WidgetExpose | null {
@@ -111,7 +123,15 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
 
   function mount(overrides: Partial<UseContext7WidgetOptions> = {}): HTMLElement {
     assertBrowser();
-    const nextOptions = { ...options.value, ...overrides };
+    const mergedLabels = mergeContext7WidgetOptions(
+      { labels: options.value.labels },
+      { labels: overrides.labels }
+    ).labels;
+    const nextOptions = {
+      ...options.value,
+      ...overrides,
+      ...(mergedLabels ? { labels: mergedLabels } : {})
+    };
     if (!nextOptions.library) {
       throw new Error('useContext7Widget mount requires a library option.');
     }

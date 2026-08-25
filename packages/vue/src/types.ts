@@ -1,7 +1,8 @@
 import type {
   Context7Message,
-  Context7RenderedErrorHtml,
-  Context7Role,
+  Context7DisplayItem,
+  Context7MessageDisplayItem,
+  Context7ToolDisplayItem,
   Context7WidgetController,
   Context7WidgetOptions,
   Context7WidgetAnswerCompleteEventDetail,
@@ -116,32 +117,8 @@ export interface Context7WidgetState {
 
 export type Context7WidgetStateListener = (state: Context7WidgetState) => void;
 
-type ErrorDisplayItem = {
-  html: Context7RenderedErrorHtml;
-  id: string;
-  kind: 'error';
-  question: string;
-};
-
-export type MessageDisplayItem = {
-  content: string;
-  id: string;
-  kind: 'message';
-  role: Context7Role;
-  streaming?: boolean;
-};
-
-export type ToolDisplayItem = {
-  contentId: string;
-  expanded: boolean;
-  hasResult: boolean;
-  id: string;
-  kind: 'tool';
-  query: string;
-  result: string;
-  toolCallId: string;
-};
-
-export type DisplayItem = ErrorDisplayItem | MessageDisplayItem | ToolDisplayItem;
+export type MessageDisplayItem = Context7MessageDisplayItem;
+export type ToolDisplayItem = Context7ToolDisplayItem;
+export type DisplayItem = Context7DisplayItem;
 
 export type { Context7WidgetSendResult };
