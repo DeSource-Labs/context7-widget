@@ -967,7 +967,7 @@ const centerScript =
 
 <script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-custom-trigger="#docs-help"
   data-position="center"
@@ -990,7 +990,7 @@ const anchorVue = `<button id="docs-trigger">Ask docs</button>
 const cornerScript =
   `<script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-preset="minimal"
   data-position="bottom-right"
@@ -1000,7 +1000,7 @@ const cornerScript =
 const presetColorFallback =
   `<script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-preset="neo"
 ></scr` +

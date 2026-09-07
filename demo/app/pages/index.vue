@@ -154,7 +154,7 @@ import { ArrowUp, Braces, GitFork, Package, Palette, PanelRightOpen, SlidersHori
 const scriptInstall =
   `<script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-color="#10b981"
 ></scr` + `ipt>`;

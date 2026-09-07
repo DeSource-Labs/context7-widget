@@ -32,7 +32,7 @@ preset, position, `widgetId`, and other presentation options are not included
 in the chat request.
 
 The request does not pass through DeSource Labs. Loading the optional hosted
-script is a separate file request to `context7.desource-labs.org`; npm package
+script is a separate file request to `context7.desourcelabs.com`; npm package
 users do not make that request. The widget itself adds no analytics, cookies,
 `localStorage`, or `sessionStorage`, and keeps the conversation in memory until
 the widget is released; `reset()` clears it explicitly.
@@ -54,7 +54,7 @@ Official Context7:
 Customizable replacement:
 
 ```html
-<script async src="https://context7.desource-labs.org/widget.js" data-library="/owner/repo"></script>
+<script async src="https://context7.desourcelabs.com/widget.js" data-library="/owner/repo"></script>
 ```
 
 Keep your Context7 library and allowed-domain configuration unchanged. Chat
@@ -65,7 +65,7 @@ requests still go to `https://context7.com`.
 ```html
 <script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-position="anchor"
   data-preset="glass"
@@ -87,7 +87,7 @@ menu, help item, or navigation action.
 
 <script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-custom-trigger="#docs-chat"
   data-position="anchor"
@@ -111,7 +111,7 @@ onboarding flow, command palette, empty state, or support menu.
 
 <script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-custom-trigger="#docs-help"
   data-position="center"
@@ -368,7 +368,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <Script
-          src="https://context7.desource-labs.org/widget.js"
+          src="https://context7.desourcelabs.com/widget.js"
           data-library="/owner/repo"
           data-preset="minimal"
           strategy="afterInteractive"
@@ -387,7 +387,7 @@ Add the script in `docusaurus.config.js`:
 export default {
   scripts: [
     {
-      src: 'https://context7.desource-labs.org/widget.js',
+      src: 'https://context7.desourcelabs.com/widget.js',
       async: true,
       'data-library': '/owner/repo',
       'data-preset': 'minimal'
@@ -481,7 +481,7 @@ For the hosted script and default Context7 backend:
 
 ```http
 Content-Security-Policy:
-  script-src 'self' https://context7.desource-labs.org;
+  script-src 'self' https://context7.desourcelabs.com;
   connect-src 'self' https://context7.com;
   img-src 'self' data:;
 ```

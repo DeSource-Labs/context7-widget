@@ -125,7 +125,7 @@ export function DocsHelp() {
 Use `useContext7Widget({ autoMount: true })` for route actions, command
 palettes, or other flows that need imperative control without placing a
 component in the current tree. More runnable patterns are available in the
-[demo gallery](https://context7.desource-labs.org/examples).
+[demo gallery](https://context7.desourcelabs.com/examples).
 
 ## Props, Events, And Localization
 
@@ -189,7 +189,7 @@ stable component parts. Managed trigger tokens use `--c7-trigger-background`,
 ```
 
 Pass `rootProps={{ className: 'docs-assistant' }}` to scope these overrides. See the
-[live customization guide](https://context7.desource-labs.org/customization)
+[live customization guide](https://context7.desourcelabs.com/customization)
 for every public token and part.
 
 ### Packaging

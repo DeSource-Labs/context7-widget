@@ -35,7 +35,7 @@
         >
           Security
         </a>
-        <a class="external" href="https://desource-labs.org" target="_blank" rel="noopener noreferrer">
+        <a class="external" href="https://desourcelabs.com" target="_blank" rel="noopener noreferrer">
           DeSource Labs
         </a>
       </div>

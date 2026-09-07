@@ -33,7 +33,7 @@ the Nuxt module and demo site, events, and compatibility monitoring.
   service, application defaults, trigger directive, and SCSS output.
 - `packages/nuxt`: Nuxt 3/4 module that auto-imports the Vue component and
   composable, registers CSS, and provides serializable application defaults.
-- `demo`: Nuxt static site for `context7.desource-labs.org`.
+- `demo`: Nuxt static site for `context7.desourcelabs.com`.
 - `scripts/scan-upstream.mts`: daily upstream byte and hash monitor.
 - GitHub Actions: monorepo CI, Vercel site build check, and scheduled scanner.
 
@@ -42,7 +42,7 @@ the Nuxt module and demo site, events, and compatibility monitoring.
 The auto-loader reads the current script tag:
 
 ```html
-<script async src="https://context7.desource-labs.org/widget.js" data-library="/owner/repo"></script>
+<script async src="https://context7.desourcelabs.com/widget.js" data-library="/owner/repo"></script>
 ```
 
 It creates:
@@ -87,7 +87,7 @@ It also adds:
 
 The chat backend is fixed to `https://context7.com`, not the script origin. This
 is what makes replacing only `https://context7.com/widget.js` with
-`https://context7.desource-labs.org/widget.js` work.
+`https://context7.desourcelabs.com/widget.js` work.
 
 ## Package Boundaries
 

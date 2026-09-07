@@ -4,7 +4,7 @@
 
 Please do not open a public GitHub issue for security vulnerabilities.
 
-Report vulnerabilities to [hello@desource-labs.org](mailto:hello@desource-labs.org).
+Report vulnerabilities to [hello@desourcelabs.com](mailto:hello@desourcelabs.com).
 
 Include:
 

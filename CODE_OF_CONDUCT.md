@@ -41,7 +41,7 @@ public spaces.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to
-[hello@desource-labs.org](mailto:hello@desource-labs.org).
+[hello@desourcelabs.com](mailto:hello@desourcelabs.com).
 
 All complaints will be reviewed and investigated promptly and fairly. Community leaders are obligated to respect the
 privacy and security of the reporter of any incident.

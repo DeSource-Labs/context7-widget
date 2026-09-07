@@ -207,7 +207,7 @@ wrap the core custom element. Override shared CSS variables or public parts:
 }
 ```
 
-See the [live customization guide](https://context7.desource-labs.org/customization)
+See the [live customization guide](https://context7.desourcelabs.com/customization)
 for every public token and part.
 
 ## Inputs and outputs

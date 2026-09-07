@@ -112,7 +112,7 @@ const open = ref(false);
 
 Use `useContext7Widget({ autoMount: true })` for route actions, command
 palettes, or other imperative flows. More runnable patterns are available in
-the [demo gallery](https://context7.desource-labs.org/examples).
+the [demo gallery](https://context7.desourcelabs.com/examples).
 
 ## Plugin
 
@@ -218,7 +218,7 @@ mount the core custom element. Customize it with the shared CSS variables:
 ```
 
 See the
-[live customization guide](https://context7.desource-labs.org/customization)
+[live customization guide](https://context7.desourcelabs.com/customization)
 for every public token and part.
 
 ## Props And Events

@@ -40,7 +40,7 @@ No package manager or build step is required:
 ```html
 <script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-position="anchor"
   data-preset="glass"
@@ -125,7 +125,7 @@ await widget.send('Show the installation steps.');
 Use `position: 'center'` with `backdrop: true` for a modal help flow. Use a
 corner position without `customTrigger` for the built-in floating launcher.
 Runnable framework-neutral examples are available in the
-[demo gallery](https://context7.desource-labs.org/examples).
+[demo gallery](https://context7.desourcelabs.com/examples).
 
 ## Options
 

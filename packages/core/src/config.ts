@@ -15,7 +15,7 @@ export type Context7WidgetConfigInput = {
 };
 
 export const CONTEXT7_URL = 'https://context7.com';
-export const DESOURCE_LABS_URL = 'https://desource-labs.org';
+export const DESOURCE_LABS_URL = 'https://desourcelabs.com';
 
 export const deSourceLabsLogoUrl = deSourceLabsLogoSource;
 

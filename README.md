@@ -37,7 +37,7 @@ own site.
 
 | Surface                                                   | Use it when                                                                                      |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `https://context7.desource-labs.org/widget.js`            | You want a drop-in script tag for HTML, Docusaurus, Next.js, Astro, Nuxt, Vite, or static pages  |
+| `https://context7.desourcelabs.com/widget.js`             | You want a drop-in script tag for HTML, Docusaurus, Next.js, Astro, Nuxt, Vite, or static pages  |
 | [`@desource/context7-widget`](./packages/core)            | You want TypeScript helpers, the custom element, script generation, or direct runtime control    |
 | [`@desource/context7-widget-vue`](./packages/vue)         | You want a Vue 3 component, composable, plugin helper, typed events, and managed triggers        |
 | [`@desource/context7-widget-nuxt`](./packages/nuxt)       | You want Nuxt auto-imports, global defaults, automatic CSS, and SSR-safe Vue integration         |
@@ -55,7 +55,7 @@ Nuxt module configures the Vue package without adding another renderer.
 Replace the official Context7 script URL and keep `data-library`:
 
 ```html
-<script async src="https://context7.desource-labs.org/widget.js" data-library="/owner/repo"></script>
+<script async src="https://context7.desourcelabs.com/widget.js" data-library="/owner/repo"></script>
 ```
 
 For a branded widget:
@@ -63,7 +63,7 @@ For a branded widget:
 ```html
 <script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-position="anchor"
   data-preset="glass"
@@ -101,7 +101,7 @@ backend behavior stay the same.
 <script async src="https://context7.com/widget.js" data-library="/owner/repo"></script>
 
 <!-- After -->
-<script async src="https://context7.desource-labs.org/widget.js" data-library="/owner/repo"></script>
+<script async src="https://context7.desourcelabs.com/widget.js" data-library="/owner/repo"></script>
 ```
 
 ### Product or docs team new to Context7
@@ -278,8 +278,8 @@ Native Vue, React, Svelte, and Angular packages render light DOM. Apply the
 same variables to `.context7-widget`; their package guides document the
 framework-specific trigger selector and customization examples.
 
-See the [live customization guide](https://context7.desource-labs.org/customization)
-and [integration examples](https://context7.desource-labs.org/examples).
+See the [live customization guide](https://context7.desourcelabs.com/customization)
+and [integration examples](https://context7.desourcelabs.com/examples).
 
 ## Public Options
 

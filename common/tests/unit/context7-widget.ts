@@ -420,7 +420,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
 
       const branding = required(view, '.c7-branding');
       const context7Attribution = required<HTMLAnchorElement>(branding, 'a[href="https://context7.com"]');
-      const deSourceLabsAttribution = required<HTMLAnchorElement>(branding, 'a[href="https://desource-labs.org"]');
+      const deSourceLabsAttribution = required<HTMLAnchorElement>(branding, 'a[href="https://desourcelabs.com"]');
       expect(branding.getAttribute('aria-label')).toBe('Propulsé par Context7, amélioré par DeSource Labs');
       expect(context7Attribution.getAttribute('aria-label')).toBe('Propulsé par Context7');
       expect(context7Attribution.querySelector('.c7-brand-prefix')?.textContent).toBe('Propulsé par <script>');

@@ -229,7 +229,7 @@ describe('core helpers', () => {
         placeholder: 'Ask "docs"'
       })
     ).toBe(
-      '<script src="https://context7.desource-labs.org/widget.js" async data-color="#16a34a" data-custom-trigger="#docs-chat" data-library="/desource-labs/context7-widget" data-placeholder="Ask &quot;docs&quot;"></script>'
+      '<script src="https://context7.desourcelabs.com/widget.js" async data-color="#16a34a" data-custom-trigger="#docs-chat" data-library="/desource-labs/context7-widget" data-placeholder="Ask &quot;docs&quot;"></script>'
     );
   });
 
@@ -268,7 +268,7 @@ describe('core helpers', () => {
         library: '/owner/repo'
       })
     ).toBe(
-      '<script src="https://context7.desource-labs.org/widget.js" data-backdrop="false" data-default-open="true" data-library="/owner/repo"></script>'
+      '<script src="https://context7.desourcelabs.com/widget.js" data-backdrop="false" data-default-open="true" data-library="/owner/repo"></script>'
     );
   });
 
@@ -282,7 +282,7 @@ describe('core helpers', () => {
         customTrigger: trigger as unknown as string,
         library: '/owner/repo'
       })
-    ).toBe('<script src="https://context7.desource-labs.org/widget.js" data-library="/owner/repo"></script>');
+    ).toBe('<script src="https://context7.desourcelabs.com/widget.js" data-library="/owner/repo"></script>');
 
     setContext7WidgetAttributes(plainWidget, { customTrigger: '#docs' });
     expect(plainWidget.getAttribute('custom-trigger')).toBe('#docs');

@@ -31,7 +31,7 @@ export default defineNuxtConfig({
             'Add a Context7-powered AI docs assistant to your site, then match it to your product with presets, CSS variables, events, and framework bindings.'
         },
         { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: 'https://context7.desource-labs.org' },
+        { property: 'og:url', content: 'https://context7.desourcelabs.com' },
         { name: 'twitter:card', content: 'summary_large_image' }
       ],
       link: [{ rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' }]

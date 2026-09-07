@@ -8,7 +8,7 @@ import type {
 } from './types.js';
 import { assertBrowser, isContext7WidgetTriggerElement, resolveTarget } from './dom.js';
 
-const DEFAULT_SCRIPT_SRC = 'https://context7.desource-labs.org/widget.js';
+const DEFAULT_SCRIPT_SRC = 'https://context7.desourcelabs.com/widget.js';
 
 type Context7SerializableOptionKey = Exclude<keyof Context7WidgetOptions, 'labels'>;
 
