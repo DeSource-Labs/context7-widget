@@ -171,10 +171,18 @@ export function useContext7Widget(options: UseContext7WidgetOptions = {}): UseCo
       syncState();
       return;
     }
-    const currentOptions = optionsRef.current;
-    const target = resolveTarget(currentOptions.target ?? document.body);
-    if (containerRef.current.parentNode !== target) target.append(containerRef.current);
-    renderOwned({ ...currentOptions, ...overridesRef.current });
+    let cancelled = false;
+    // An owned root must render after the owner's effect has finished.
+    queueMicrotask(() => {
+      if (cancelled || !containerRef.current) return;
+      const currentOptions = optionsRef.current;
+      const target = resolveTarget(currentOptions.target ?? document.body);
+      if (containerRef.current.parentNode !== target) target.append(containerRef.current);
+      renderOwned({ ...currentOptions, ...overridesRef.current });
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [
     options.backdrop,
     options.closeOnOutsideClick,
