@@ -59,7 +59,7 @@ export interface Context7WidgetContractHarness {
   /** Flush framework rendering scheduled by the preceding operation. */
   flush(): Promise<void>;
   /** Run a native UI interaction inside the framework's test transaction. */
-  interact?(action: () => void): Promise<void> | void;
+  interact?(action: () => unknown): Promise<void> | void;
   /** Remove the widget and all listeners owned by the adapter. */
   unmount(): Promise<void> | void;
 }
@@ -110,9 +110,10 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       const question = '**user text** <img src=x onerror=alert(1)>';
       const answer = '**assistant text** <script>alert(1)</script>';
       stubSseResponse([jsonFrame({ delta: answer, type: 'text-delta' }), doneFrame()]);
-      const { controller, flush, view } = await mount();
+      const harness = await mount();
+      const { controller, flush, view } = harness;
 
-      await controller.send(question);
+      await interact(harness, () => controller.send(question));
       await flush();
 
       const userMessage = lastRequired(view.querySelectorAll<HTMLElement>('.c7-message--user'));
@@ -140,27 +141,36 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
           })
       );
       vi.stubGlobal('fetch', fetchMock);
-      const { controller } = await mount();
+      const harness = await mount();
+      const { controller } = harness;
 
-      await controller.send('   ');
+      await interact(harness, () => controller.send('   '));
       expect(fetchMock).not.toHaveBeenCalled();
       expect(controller.getMessages()).toEqual([]);
 
-      const pending = controller.send('First question');
+      let pending!: ReturnType<typeof controller.send>;
+      await interact(harness, () => {
+        pending = controller.send('First question');
+      });
       expect(controller.isBusy()).toBe(true);
-      await expect(controller.send('Second question')).resolves.toMatchObject({ status: 'busy' });
+      await expect(interact(harness, () => controller.send('Second question'))).resolves.toMatchObject({
+        status: 'busy'
+      });
 
       expect(fetchMock).toHaveBeenCalledOnce();
       expect(controller.getMessages().map((message) => message.content)).toEqual(['First question']);
 
-      controller.cancel();
-      await pending;
+      await interact(harness, async () => {
+        controller.cancel();
+        await pending;
+      });
 
       expect(requestSignal?.aborted).toBe(true);
       expect(controller.isBusy()).toBe(false);
     });
 
     it('preserves visible partial answers in public state when cancelled', async () => {
+      vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] });
       const encoder = new TextEncoder();
       let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
       vi.stubGlobal(
@@ -182,16 +192,25 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
             )
         )
       );
-      const { controller, flush, view } = await mount();
+      const harness = await mount();
+      const { controller, flush, view } = harness;
 
-      const pending = controller.send('Stop after the first token');
-      await vi.waitFor(async () => {
-        await flush();
-        expect(view.textContent).toContain('Partial answer');
+      let pending!: ReturnType<typeof controller.send>;
+      await interact(harness, () => {
+        pending = controller.send('Stop after the first token');
       });
+      await expect
+        .poll(async () => {
+          await interact(harness, () => vi.advanceTimersToNextFrame());
+          await flush();
+          return view.textContent;
+        })
+        .toContain('Partial answer');
 
-      controller.cancel();
-      const result = await pending;
+      const result = await interact(harness, async () => {
+        controller.cancel();
+        return await pending;
+      });
       await flush();
 
       expect(stream).toBeDefined();
@@ -214,6 +233,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
     });
 
     it('discards uncommitted partial answers when a transport error follows streamed tokens', async () => {
+      vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] });
       const encoder = new TextEncoder();
       let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
       vi.stubGlobal(
@@ -230,16 +250,25 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
             )
         )
       );
-      const { controller, flush, view } = await mount();
+      const harness = await mount();
+      const { controller, flush, view } = harness;
 
-      const pending = controller.send('Break after a token');
-      await vi.waitFor(async () => {
-        await flush();
-        expect(view.textContent).toContain('Uncommitted partial');
+      let pending!: ReturnType<typeof controller.send>;
+      await interact(harness, () => {
+        pending = controller.send('Break after a token');
       });
+      await expect
+        .poll(async () => {
+          await interact(harness, () => vi.advanceTimersToNextFrame());
+          await flush();
+          return view.textContent;
+        })
+        .toContain('Uncommitted partial');
 
-      stream?.error(new Error('Transport <img src=x onerror=alert(1)> broke'));
-      const result = await pending;
+      const result = await interact(harness, async () => {
+        stream?.error(new Error('Transport <img src=x onerror=alert(1)> broke'));
+        return await pending;
+      });
       await flush();
 
       expect(result).toMatchObject({
@@ -262,9 +291,10 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
           new Response(createSseStream([jsonFrame({ delta: 'Recovered answer', type: 'text-delta' }), doneFrame()]))
         );
       vi.stubGlobal('fetch', fetchMock);
-      const { controller, flush, view } = await mount();
+      const harness = await mount();
+      const { controller, flush, view } = harness;
 
-      await expect(controller.send('Retry this question')).resolves.toMatchObject({
+      await expect(interact(harness, () => controller.send('Retry this question'))).resolves.toMatchObject({
         error: 'Unable to connect to the Context7 chat service.',
         status: 'error'
       });
@@ -272,7 +302,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
 
       const retryButton = required<HTMLButtonElement>(view, '.c7-retry');
       expect(retryButton.textContent).toContain('Retry');
-      retryButton.click();
+      await interact(harness, () => retryButton.click());
       await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
       await vi.waitFor(async () => {
         await flush();
@@ -328,8 +358,10 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       expect(activeElement).toBe(stop);
       expect(input.readOnly).toBe(true);
 
-      controller.cancel();
-      rejectRequest?.(new DOMException('The request was aborted.', 'AbortError'));
+      await interact(harness, () => {
+        controller.cancel();
+        rejectRequest?.(new DOMException('The request was aborted.', 'AbortError'));
+      });
       await vi.waitFor(() => expect(controller.isBusy()).toBe(false));
       expect(input.readOnly).toBe(false);
     });
@@ -343,7 +375,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       const harness = await mount();
       const { controller, flush, view } = harness;
 
-      await controller.send('Show code');
+      await interact(harness, () => controller.send('Show code'));
       await flush();
 
       const assistantMessages = view.querySelectorAll<HTMLElement>('.c7-message--assistant');
@@ -392,7 +424,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       const outside = document.createElement('button');
       outside.textContent = 'Host action';
       document.body.append(outside);
-      const { controller, flush, view } = await mount({
+      const harness = await mount({
         initialMessage: 'Ask about {library}',
         labels: {
           branding: 'Propulsé par Context7, amélioré par DeSource Labs',
@@ -411,6 +443,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
         library: '',
         position: 'center'
       });
+      const { controller, flush, view } = harness;
 
       expect(required(view, '.c7-close').getAttribute('aria-label')).toBe('Fermer');
       expect(required(view, '.c7-input').getAttribute('aria-label')).toBe('Question de documentation');
@@ -428,7 +461,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       expect(deSourceLabsAttribution.getAttribute('aria-label')).toBe('Amélioré par DeSource Labs');
       expect(deSourceLabsAttribution.querySelector('.c7-brand-prefix')?.textContent).toBe('Amélioré par');
 
-      const missingLibrary = await controller.send('Question sans bibliothèque');
+      const missingLibrary = await interact(harness, () => controller.send('Question sans bibliothèque'));
       await flush();
       expect(missingLibrary?.error).toBe('Configuration de bibliothèque manquante.');
       const errorMessage = required(view, '.c7-message--error');
@@ -448,7 +481,8 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
 
     it('keeps controller operations idempotent and reset restores the initial conversation', async () => {
       stubSseResponse([jsonFrame({ delta: 'Tracked answer', type: 'text-delta' }), doneFrame()]);
-      const { controller, flush, view } = await mount({ initialMessage: 'Shared contract intro' });
+      const harness = await mount({ initialMessage: 'Shared contract intro' });
+      const { controller, flush, view } = harness;
 
       controller.cancel();
       controller.close();
@@ -465,7 +499,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       controller.toggle();
       expect(controller.isOpen()).toBe(false);
 
-      await controller.send('Track this question');
+      await interact(harness, () => controller.send('Track this question'));
       expect(controller.getMessages().map((message) => message.content)).toEqual([
         'Track this question',
         'Tracked answer'
@@ -517,9 +551,10 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
         }),
         doneFrame()
       ]);
-      const { controller, flush, view } = await mount();
+      const harness = await mount();
+      const { controller, flush, view } = harness;
 
-      await controller.send('Find the API');
+      await interact(harness, () => controller.send('Find the API'));
       await flush();
 
       expect(view.querySelectorAll('.c7-tool-call')).toHaveLength(3);
@@ -537,7 +572,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
 
       const toggle = required<HTMLButtonElement>(view, '.c7-tool-toggle');
       expect(toggle.getAttribute('aria-expanded')).toBe('false');
-      toggle.click();
+      await interact(harness, () => toggle.click());
       await flush();
       expect(toggle.getAttribute('aria-expanded')).toBe('true');
     });
@@ -561,17 +596,20 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
           async () => new Response(createSseStream([jsonFrame({ delta: 'Fresh answer', type: 'text-delta' })]))
         );
       vi.stubGlobal('fetch', fetchMock);
-      const { controller, flush, view } = await mount();
+      const harness = await mount();
+      const { controller, flush, view } = harness;
 
-      const staleRequest = controller.send('Old question');
-      controller.cancel();
-      const freshRequest = controller.send('New question');
+      await interact(harness, async () => {
+        const staleRequest = controller.send('Old question');
+        controller.cancel();
+        const freshRequest = controller.send('New question');
 
-      expect(controller.isBusy()).toBe(true);
-      await freshRequest;
-      staleStream?.enqueue(encoder.encode(jsonFrame({ delta: 'Stale answer', type: 'text-delta' })));
-      staleStream?.close();
-      await staleRequest;
+        expect(controller.isBusy()).toBe(true);
+        await freshRequest;
+        staleStream?.enqueue(encoder.encode(jsonFrame({ delta: 'Stale answer', type: 'text-delta' })));
+        staleStream?.close();
+        await staleRequest;
+      });
       await flush();
 
       expect(controller.isBusy()).toBe(false);
@@ -611,20 +649,28 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
         frames.push(callback);
         return frames.length;
       });
-      const { controller, flush, view } = await mount();
+      const harness = await mount();
+      const { controller, flush, view } = harness;
 
-      const pending = controller.send('Stream the answer');
-      await vi.waitFor(() => {
-        for (const frame of frames.splice(0)) frame(performance.now());
+      let pending!: ReturnType<typeof controller.send>;
+      await interact(harness, () => {
+        pending = controller.send('Stream the answer');
+      });
+      await vi.waitFor(async () => {
+        await interact(harness, () => {
+          for (const frame of frames.splice(0)) frame(performance.now());
+        });
         expect(view.textContent).toContain('Progressive answer');
       });
       await flush();
 
       expect(controller.isBusy()).toBe(true);
 
-      if (!finishStream) throw new Error('Expected the stream reader to request its final frame.');
-      finishStream();
-      await pending;
+      await interact(harness, async () => {
+        if (!finishStream) throw new Error('Expected the stream reader to request its final frame.');
+        finishStream();
+        await pending;
+      });
       expect(reader.releaseLock).toHaveBeenCalledOnce();
       expect(controller.isBusy()).toBe(false);
     });
@@ -645,7 +691,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       expect(trigger.getAttribute('aria-haspopup')).toBe('dialog');
 
       const boundClick = new MouseEvent('click', { bubbles: true, cancelable: true });
-      expect(trigger.dispatchEvent(boundClick)).toBe(false);
+      expect(await interact(harness, () => trigger.dispatchEvent(boundClick))).toBe(false);
       await harness.flush();
       expect(harness.controller.isOpen()).toBe(true);
 
@@ -660,9 +706,16 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
   });
 }
 
-async function interact(harness: Context7WidgetContractHarness, action: () => void): Promise<void> {
-  if (harness.interact) await harness.interact(action);
-  else action();
+async function interact<Result>(
+  harness: Context7WidgetContractHarness,
+  action: () => Result
+): Promise<Awaited<Result>> {
+  if (!harness.interact) return await action();
+  let result!: Awaited<Result>;
+  await harness.interact(async () => {
+    result = await action();
+  });
+  return result;
 }
 
 function stubSseResponse(frames: string[]): void {

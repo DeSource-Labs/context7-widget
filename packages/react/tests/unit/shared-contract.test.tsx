@@ -46,24 +46,8 @@ const adapter: Context7WidgetContractAdapter = {
       reset() {
         act(() => nativeController.reset());
       },
-      retry: async () => {
-        let pending!: ReturnType<Context7WidgetHandle['retry']>;
-        act(() => {
-          pending = nativeController.retry();
-        });
-        const result = await pending;
-        await act(async () => undefined);
-        return result;
-      },
-      send: async (message) => {
-        let pending!: ReturnType<Context7WidgetHandle['send']>;
-        act(() => {
-          pending = nativeController.send(message);
-        });
-        const result = await pending;
-        await act(async () => undefined);
-        return result;
-      },
+      retry: () => nativeController.retry(),
+      send: (message) => nativeController.send(message),
       subscribe: (listener) => nativeController.subscribe(listener),
       toggle() {
         act(() => nativeController.toggle());
@@ -79,7 +63,7 @@ const adapter: Context7WidgetContractAdapter = {
       },
       interact: async (action) => {
         await act(async () => {
-          action();
+          await action();
           await Promise.resolve();
           await Promise.resolve();
           await Promise.resolve();

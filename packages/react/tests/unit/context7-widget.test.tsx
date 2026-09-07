@@ -259,7 +259,7 @@ describe('@desource/context7-widget-react', () => {
 
     expect(container.querySelector('[data-testid="managed-trigger"]')?.textContent).toBe('Ask Docs AI');
     const controller = required(controllerRef.current, 'Expected a React widget controller.');
-    await controller.send('How does React work?');
+    await act(async () => controller.send('How does React work?'));
     await flush();
     expect(container.textContent).toContain('React answer');
     expect(container.textContent).toContain('Searching: React');
@@ -269,7 +269,7 @@ describe('@desource/context7-widget-react', () => {
       'React answer'
     ]);
 
-    container.querySelector<HTMLButtonElement>('.c7-tool-toggle')?.click();
+    await act(async () => container.querySelector<HTMLButtonElement>('.c7-tool-toggle')?.click());
     await flush();
     expect(container.querySelector('.c7-tool-content')?.textContent).toContain('"matches": 1');
   });
@@ -1018,15 +1018,19 @@ describe('@desource/context7-widget-react', () => {
     }
     mount(<Harness />);
     const controls = required(controlsRef.current, 'Expected hook controls.');
-    controls.cancel();
-    controls.close();
-    controls.open();
-    controls.reset();
-    controls.toggle();
+    await act(async () => {
+      controls.cancel();
+      controls.close();
+      controls.open();
+      controls.reset();
+      controls.toggle();
+    });
     expect(controls.getMessages()).toEqual([]);
-    await expect(controls.send('No widget')).resolves.toBeUndefined();
-    await expect(controls.retry()).resolves.toBeUndefined();
-    controls.unmount();
+    await act(async () => {
+      await expect(controls.send('No widget')).resolves.toBeUndefined();
+      await expect(controls.retry()).resolves.toBeUndefined();
+      controls.unmount();
+    });
     expect(() => controls.mount()).toThrow('useContext7Widget mount requires a library option.');
   });
 });

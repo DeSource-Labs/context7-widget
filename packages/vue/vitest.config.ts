@@ -18,6 +18,9 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    pool: 'forks',
+    isolate: true,
+    fsModuleCache: true,
     globals: true,
     include: ['tests/unit/**/*.{test,spec}.{ts,tsx}'],
     restoreMocks: true,

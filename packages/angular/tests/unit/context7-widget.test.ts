@@ -408,11 +408,14 @@ describe('Context7Widget', () => {
   });
 
   it('resets messages, isolates throwing subscribers, and supports empty controls', async () => {
+    const reportError = vi.fn();
+    vi.stubGlobal('reportError', reportError);
+    const subscriberError = new Error('subscriber failed');
     const fixture = createWidget({ library: '/owner/repo' });
     await fixture.whenStable();
     const healthy = vi.fn();
     fixture.componentInstance.subscribe(() => {
-      throw new Error('subscriber failed');
+      throw subscriberError;
     });
     fixture.componentInstance.subscribe(healthy);
     fixture.componentInstance.reset();
@@ -421,6 +424,8 @@ describe('Context7Widget', () => {
     expect((await fixture.componentInstance.send('   ')).status).toBe('empty');
     expect((await fixture.componentInstance.retry()).status).toBe('empty');
     fixture.componentInstance.cancel();
+    expect(reportError).toHaveBeenCalledTimes(3);
+    for (const call of reportError.mock.calls) expect(call).toEqual([subscriberError]);
   });
 
   it('keeps streaming autoscroll disabled while reader remains above bottom', async () => {

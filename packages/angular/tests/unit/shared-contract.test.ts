@@ -65,7 +65,7 @@ const adapter: Context7WidgetContractAdapter = {
         TestBed.tick();
       },
       interact: async (action) => {
-        action();
+        await action();
         TestBed.tick();
         await Promise.resolve();
         TestBed.tick();

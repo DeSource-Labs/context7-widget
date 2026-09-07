@@ -51,7 +51,9 @@ describe('script loader', () => {
     };
 
     Object.assign(script.dataset, dataset);
-    document.body.append(script);
+    const trigger = document.createElement('button');
+    trigger.id = 'docs-chat';
+    document.body.append(script, trigger);
 
     const widget = mountContext7WidgetFromScript(script);
 
