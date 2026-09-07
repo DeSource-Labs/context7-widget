@@ -12,7 +12,7 @@ import { ref } from 'vue';
 declare function expectType<Type>(value: Type): void;
 
 expectType<Partial<Context7WidgetLabels>>({ poweredBy: 'Propulsé par' });
-expectType<Context7WidgetProps>({ preset: 'glass' });
+expectType<Context7WidgetProps>({ preset: 'glass' } as Context7WidgetProps);
 
 const props = {
   library: '/desource-labs/context7-widget',
