@@ -17,7 +17,7 @@
     "svelte",
     "angular"
   ],
-  "packageManager": "pnpm@11.23.0",
+  "packageManager": "pnpm@12.3.4",
   "engines": {
     "node": ">=22.22.3"
   },
@@ -62,9 +62,9 @@
     "@eslint/js": "^10.0.1",
     "@microsoft/api-extractor": "^7.59.0",
     "@playwright/test": "^1.63.0",
-    "@types/node": "^26.4.1",
-    "@typescript-eslint/eslint-plugin": "^8.69.0",
-    "@typescript-eslint/parser": "^8.69.0",
+    "@types/node": "^26.5.0",
+    "@typescript-eslint/eslint-plugin": "^8.70.0",
+    "@typescript-eslint/parser": "^8.70.0",
     "@vitest/coverage-v8": "^5.0.0",
     "esbuild": "^0.28.2",
     "eslint": "^10.10.0",
