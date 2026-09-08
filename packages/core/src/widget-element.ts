@@ -72,7 +72,7 @@ interface WidgetAnswerRender {
 }
 
 export class Context7WidgetElement extends BaseHTMLElement {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'backdrop',
     'close-on-outside-click',
     'color',
