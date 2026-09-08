@@ -165,11 +165,11 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-01-01',
   modules: ['${PACKAGE_NAMES.nuxt}'],
   srcDir: 'app',
-  context7Widget: {
-    defaults: {
-      library: '/vercel/nuxt',
-      position: 'anchor',
-      widgetId: 'packed-nuxt-${matrixEntry.expectedMajor}'
+  runtimeConfig: {
+    public: {
+      context7Widget: {
+        defaults: { library: '', position: '', widgetId: '' }
+      }
     }
   }
 });
@@ -278,6 +278,9 @@ async function assertProductionSsr(consumerRoot: string, expectedMajor: number):
       HOST: '127.0.0.1',
       NITRO_HOST: '127.0.0.1',
       NITRO_PORT: String(port),
+      NUXT_PUBLIC_CONTEXT7_WIDGET_DEFAULTS_LIBRARY: '/vercel/nuxt',
+      NUXT_PUBLIC_CONTEXT7_WIDGET_DEFAULTS_POSITION: 'anchor',
+      NUXT_PUBLIC_CONTEXT7_WIDGET_DEFAULTS_WIDGET_ID: `packed-nuxt-${expectedMajor}`,
       PORT: String(port)
     },
     stdio: ['ignore', 'pipe', 'pipe']
@@ -293,7 +296,9 @@ async function assertProductionSsr(consumerRoot: string, expectedMajor: number):
     assertContains(html, 'composable:yes', 'production composable result');
     assertContains(html, 'hydration:pending', 'production pre-hydration state');
     assertContains(html, 'class="context7-widget"', 'production component markup');
-    assertContains(html, `widget-id="packed-nuxt-${expectedMajor}"`, 'production module defaults');
+    assertContains(html, `widget-id="packed-nuxt-${expectedMajor}"`, 'production runtime defaults');
+    assertContains(html, 'library="/vercel/nuxt"', 'production runtime library');
+    assertContains(html, 'position="anchor"', 'production runtime position');
     await assertBrowserHydration(serverUrl);
   } finally {
     child.kill('SIGTERM');
@@ -326,7 +331,7 @@ async function assertBrowserHydration(serverUrl: string): Promise<void> {
 
     const hydrationStatus = page.locator('#hydration-status');
     const trigger = page.locator('.context7-widget .c7-launcher');
-    const panel = page.locator('.context7-widget [role="dialog"]');
+    const panel = page.locator('.context7-widget dialog');
 
     await hydrationStatus.waitFor({ state: 'visible' });
     await page.waitForFunction(() => document.querySelector('#hydration-status')?.textContent === 'hydration:ready');

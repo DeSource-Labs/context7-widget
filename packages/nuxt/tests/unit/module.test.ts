@@ -98,7 +98,7 @@ describe('Nuxt module', () => {
       name: 'useContext7Widget'
     });
     expect(nuxt.options.css).toEqual(['@desource/context7-widget-vue/styles.css']);
-    expect(addPluginMock).not.toHaveBeenCalled();
+    expect(addPluginMock).toHaveBeenCalledWith('./runtime/plugin');
 
     const references: Array<{ types?: string }> = [];
     hooks['prepare:types']?.({ references });
@@ -145,6 +145,20 @@ describe('Nuxt module', () => {
     expect(addPluginMock).toHaveBeenCalledWith(expect.stringMatching(/runtime\/plugin$/));
   });
 
+  it.each([{}, { preset: 'glass' as const }])(
+    'preserves empty runtime placeholders with module defaults %j',
+    async (defaults) => {
+      const { nuxt } = createNuxtStub({ context7Widget: { defaults: { library: '' }, marker: 'preserved' } });
+      await setup({ ...defaultOptions, defaults }, nuxt);
+
+      expect(addPluginMock).toHaveBeenCalledWith('./runtime/plugin');
+      expect(nuxt.options.runtimeConfig.public.context7Widget).toEqual({
+        defaults: { library: '', ...defaults },
+        marker: 'preserved'
+      });
+    }
+  );
+
   it('respects feature flags, keeps existing CSS unique, and normalizes an empty component name', async () => {
     const first = createNuxtStub();
     first.nuxt.options.css.push('@desource/context7-widget-vue/styles.css');
@@ -168,7 +182,7 @@ describe('Nuxt module', () => {
 
     expect(addComponentMock).not.toHaveBeenCalled();
     expect(addImportsMock).not.toHaveBeenCalled();
-    expect(addPluginMock).not.toHaveBeenCalled();
+    expect(addPluginMock).toHaveBeenCalledWith('./runtime/plugin');
     expect(second.nuxt.options.css).toEqual([]);
   });
 

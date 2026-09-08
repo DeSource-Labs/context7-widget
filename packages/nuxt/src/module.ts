@@ -93,13 +93,12 @@ const module: NuxtModule<ModuleOptions> = defineNuxtModule<ModuleOptions>({
     const moduleDefaults = options.defaults ?? {};
     const runtimeDefaults = mergeContext7WidgetOptions(moduleDefaults, configuredDefaults);
 
-    if (Object.keys(runtimeDefaults).length > 0) {
-      publicRuntimeConfig[RUNTIME_CONFIG_KEY] = {
-        ...configuredRuntime,
-        defaults: runtimeDefaults
-      } satisfies NonNullable<ModulePublicRuntimeConfig['context7Widget']>;
-      addPlugin(resolver.resolve('./runtime/plugin'));
-    }
+    publicRuntimeConfig[RUNTIME_CONFIG_KEY] = {
+      ...configuredRuntime,
+      // Keep empty keys declared so Nuxt can apply deployment-time environment overrides.
+      defaults: { ...moduleDefaults, ...configuredDefaults, ...runtimeDefaults }
+    } satisfies NonNullable<ModulePublicRuntimeConfig['context7Widget']>;
+    addPlugin(resolver.resolve('./runtime/plugin'));
   }
 });
 
