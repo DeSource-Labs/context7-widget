@@ -250,7 +250,7 @@ button {
   font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', monospace;
   line-height: 1.5;
   padding: 0.85rem;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 720px) {

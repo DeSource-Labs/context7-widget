@@ -172,6 +172,32 @@ describe('streamContext7Response', () => {
     expect(toolResults).toEqual([{ result: 'No matches', toolCallId: '' }]);
   });
 
+  it.each([{}, [], 42, false, null])('ignores non-string tool identifiers and names: %j', async (value) => {
+    const onToolCall = vi.fn();
+    const onToolResult = vi.fn();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            createSseStream([
+              `data: ${JSON.stringify({ type: 'tool-input-available', toolCallId: value, toolName: value })}\n`,
+              `data: ${JSON.stringify({ type: 'tool-output-available', toolCallId: value, output: 'result' })}\n`
+            ])
+          )
+      )
+    );
+
+    await streamContext7Response({ library: '/vercel/next.js' }, messages, {
+      onChunk: () => undefined,
+      onToolCall,
+      onToolResult
+    });
+
+    expect(onToolCall).toHaveBeenCalledWith({ args: {}, toolCallId: '', toolName: 'tool' });
+    expect(onToolResult).toHaveBeenCalledWith({ result: 'result', toolCallId: '' });
+  });
+
   it('reports disabled widgets and generic HTTP failures', async () => {
     vi.stubGlobal(
       'fetch',

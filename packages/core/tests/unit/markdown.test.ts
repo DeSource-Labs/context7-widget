@@ -235,6 +235,41 @@ describe('markdown', () => {
     expect(html).not.toContain('<script>');
   });
 
+  it.each([
+    ['[[]](https://example.com)', '[[]](https://example.com)'],
+    ['[](https://example.com)', '[](https://example.com)'],
+    ['[x]()', '[x]()'],
+    ['[x](https://example.com/a b)', '[x](https://example.com/a b)'],
+    ['[x](https://example.com/a\u00a0b)', '[x](https://example.com/a\u00a0b)'],
+    ['[x](https://example.com/a\u2028b)', '[x](https://example.com/a\u2028b)'],
+    ['[x](https://example.com/a\tb)', '[x](https://example.com/a\tb)']
+  ])('preserves incomplete or invalid link syntax %j', (markdown, expected) => {
+    expect(renderMarkdown(markdown)).toBe(`<p>${expected}</p>`);
+  });
+
+  it('preserves bracket labels, adjacent links, and parentheses in URL segments', () => {
+    const html = renderMarkdown('[[API](https://example.com/(a)(b)) [B](https://example.com/(a(b))');
+
+    expect(html).toBe(
+      '<p><a href="https://example.com/(a)(b)" target="_blank" rel="noopener noreferrer">[API</a> <a href="https://example.com/(a(b)" target="_blank" rel="noopener noreferrer">B</a></p>'
+    );
+  });
+
+  it('finds a valid link inside an unfinished earlier target', () => {
+    const html = renderMarkdown('[broken]([API](https://example.com)');
+
+    expect(html).toBe(
+      '<p>[broken](<a href="https://example.com" target="_blank" rel="noopener noreferrer">API</a></p>'
+    );
+  });
+
+  it.each(['['.repeat(50_000), '[x]('.repeat(10_000) + 'unfinished', '[x]('.repeat(10_000) + ') trailing'])(
+    'preserves long unfinished links without rescanning suffixes',
+    (markdown) => {
+      expect(renderMarkdown(markdown)).toBe(`<p>${markdown}</p>`);
+    }
+  );
+
   it('renders nested lists, task items, blockquotes, tables, and custom code labels', () => {
     const html = renderMarkdown(
       [
