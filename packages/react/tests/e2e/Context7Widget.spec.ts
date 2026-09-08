@@ -1,4 +1,4 @@
-import { testContext7WidgetDemo } from '../../../../common/tests/e2e/Context7Widget';
+import { testContext7WidgetDemo } from '@common/tests/e2e/Context7Widget';
 
 testContext7WidgetDemo('[data-testid="context7-demo"]', {
   accent: '[data-testid="accent"]',

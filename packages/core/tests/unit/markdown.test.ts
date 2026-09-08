@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderMarkdown, resolveContext7MarkdownBaseUrl } from '../../src/markdown';
+import { renderMarkdown, resolveContext7MarkdownBaseUrl } from '@src/markdown';
 
 describe('renderMarkdown', () => {
   it('escapes raw HTML', () => {

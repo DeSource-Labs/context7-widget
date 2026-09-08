@@ -1,6 +1,6 @@
 import { createApp, defineComponent, h, inject, nextTick, resolveComponent, type App } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { context7WidgetDefaultsKey, createContext7WidgetPlugin } from '../../src/plugin';
+import { context7WidgetDefaultsKey, createContext7WidgetPlugin } from '@src/plugin';
 
 const mountedApps: App[] = [];
 

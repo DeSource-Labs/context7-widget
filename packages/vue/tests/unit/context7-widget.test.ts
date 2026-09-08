@@ -1,6 +1,6 @@
 import { createApp, defineComponent, h, nextTick, ref, type App } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Context7Widget, createContext7WidgetPlugin, useContext7Widget, type Context7WidgetExpose } from '../../src';
+import { Context7Widget, createContext7WidgetPlugin, useContext7Widget, type Context7WidgetExpose } from '@src/index';
 import { setDocumentClientSize, setElementRect, setElementSize, setViewportSize } from '@common/tests/unit/dom';
 import { createSseStream } from '@common/tests/unit/stream';
 import { expectAlwaysVisibleBranding } from '@common/tests/unit/widget-contract';

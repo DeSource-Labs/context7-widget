@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { defineContext7Widget, setContext7WidgetAttributes } from '../../src';
-import type { Context7WidgetOptions } from '../../src';
-import { createContext7CopyActionController } from '../../src/copy-action';
-import { trapFocus, updateAnchorPosition } from '../../src/dom';
-import { acquireContext7Modal } from '../../src/modal';
-import { streamContext7Response } from '../../src/transport';
-import type { Context7Message } from '../../src/types';
+import { defineContext7Widget, setContext7WidgetAttributes } from '@src/index';
+import type { Context7WidgetOptions } from '@src/index';
+import { createContext7CopyActionController } from '@src/copy-action';
+import { trapFocus, updateAnchorPosition } from '@src/dom';
+import { acquireContext7Modal } from '@src/modal';
+import { streamContext7Response } from '@src/transport';
+import type { Context7Message } from '@src/types';
 import { setDocumentClientSize, setElementRect, setViewportSize } from '@common/tests/unit/dom';
 import { createSseStream } from '@common/tests/unit/stream';
 

@@ -7,9 +7,9 @@ import {
   mountContext7Widget,
   setContext7WidgetAttributes,
   toContext7WidgetAttributes
-} from '../../src';
-import type { Context7WidgetOptions } from '../../src';
-import { context7WidgetOptionKeys } from '../../src/kit';
+} from '@src/index';
+import type { Context7WidgetOptions } from '@src/index';
+import { context7WidgetOptionKeys } from '@src/kit';
 
 const everySerializableOption = {
   backdrop: true,

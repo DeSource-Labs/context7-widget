@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Context7Widget from '../../src/Context7Widget.svelte';
+  import Context7Widget from '@src/Context7Widget.svelte';
 
   let open = $state(true);
 

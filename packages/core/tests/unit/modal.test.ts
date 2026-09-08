@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { acquireContext7Modal } from '../../src/kit';
+import { acquireContext7Modal } from '@src/kit';
 
 describe('modal isolation helper', () => {
   afterEach(() => {

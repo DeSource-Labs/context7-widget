@@ -3,8 +3,8 @@ import { createSseStream } from '@common/tests/unit/stream';
 import { cleanup, fireEvent, render } from '@testing-library/svelte';
 import { flushSync, tick } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import Context7Widget from '../../src/Context7Widget.svelte';
-import { createContext7Widget } from '../../src/controller.svelte.js';
+import Context7Widget from '@src/Context7Widget.svelte';
+import { createContext7Widget } from '@src/controller.svelte';
 
 describe('native Svelte widget behavior', () => {
   afterEach(() => {

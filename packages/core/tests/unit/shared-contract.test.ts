@@ -1,4 +1,4 @@
-import { Context7WidgetElement, defineContext7Widget } from '../../src';
+import { Context7WidgetElement, defineContext7Widget } from '@src/index';
 import { testContext7WidgetContract, type Context7WidgetContractAdapter } from '@common/tests/unit/context7-widget';
 
 const adapter: Context7WidgetContractAdapter = {

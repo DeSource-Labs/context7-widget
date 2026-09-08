@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createContext7ConversationRenderBridge, formatContext7ToolResult, getContext7ToolQuery } from '../../src/core';
-import type { Context7ConversationEvent } from '../../src/core';
+import { createContext7ConversationRenderBridge, formatContext7ToolResult, getContext7ToolQuery } from '@src/core';
+import type { Context7ConversationEvent } from '@src/core';
 
 describe('conversation renderer bridge', () => {
   it('routes every event and ignores stale answer frames', () => {

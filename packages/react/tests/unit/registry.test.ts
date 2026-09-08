@@ -3,8 +3,8 @@ import {
   getReactContext7Widget,
   registerReactContext7Widget,
   unregisterReactContext7Widget
-} from '../../src/internal/registry';
-import type { Context7WidgetHandle } from '../../src';
+} from '@src/internal/registry';
+import type { Context7WidgetHandle } from '@src/index';
 
 describe('React widget registry', () => {
   it('restores previous duplicate registrations', () => {

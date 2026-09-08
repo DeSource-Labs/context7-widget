@@ -6,9 +6,10 @@
     "noEmit": true,
     "paths": {
       "@common/*": ["../../common/*"],
-      "@desource/context7-widget/kit": ["../core/src/kit.ts"]
+      "@desource/context7-widget/kit": ["../core/src/kit.ts"],
+      "@src/*": ["./src/*"]
     },
     "types": ["react", "react-dom", "node"]
   },
-  "include": ["src", "tests", "../../common/tests/**/*.ts", "vite.config.ts", "vitest.config.ts"]
+  "include": ["src", "tests", "../../common/tests/**/*.ts", "vite.config.ts", "vitest.config.ts", "demo/**/*"]
 }

@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 import { StrictMode, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {

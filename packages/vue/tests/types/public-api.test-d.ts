@@ -5,8 +5,8 @@ import type {
   Context7WidgetQuestionEventDetail,
   Context7WidgetSendResult,
   UseContext7WidgetReturn
-} from '../../src';
-import { useContext7Widget } from '../../src';
+} from '@src/index';
+import { useContext7Widget } from '@src/index';
 import { ref } from 'vue';
 
 declare function expectType<Type>(value: Type): void;

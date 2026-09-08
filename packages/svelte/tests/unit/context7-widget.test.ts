@@ -1,8 +1,8 @@
 import { cleanup, fireEvent, render } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { flushSync, mount, unmount } from 'svelte';
-import Context7Widget from '../../src/Context7Widget.svelte';
-import { createContext7Widget } from '../../src/controller.svelte.js';
+import Context7Widget from '@src/Context7Widget.svelte';
+import { createContext7Widget } from '@src/controller.svelte';
 import WidgetHarness from '../fixtures/WidgetHarness.svelte';
 
 describe('@desource/context7-widget-svelte', () => {

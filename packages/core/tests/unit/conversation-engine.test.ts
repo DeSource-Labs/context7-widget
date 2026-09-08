@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createContext7ConversationEngine } from '../../src/kit';
+import { createContext7ConversationEngine } from '@src/kit';
 import type {
   Context7Message,
   Context7StreamCallbacks,
   Context7WidgetConfig,
   Context7WidgetSendResult
-} from '../../src/kit';
+} from '@src/kit';
 
 type TestTransport = (
   config: Pick<Context7WidgetConfig, 'library'>,

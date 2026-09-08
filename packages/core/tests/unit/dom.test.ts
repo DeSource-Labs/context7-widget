@@ -9,7 +9,7 @@ import {
   restoreTriggerAccessibility,
   trapFocus,
   updateAnchorPosition
-} from '../../src/kit';
+} from '@src/kit';
 import { setDocumentClientSize, setElementRect, setElementSize, setViewportSize } from '@common/tests/unit/dom';
 
 describe('DOM accessibility helpers', () => {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Context7WidgetElement, defineContext7Widget } from '../../src';
+import { Context7WidgetElement, defineContext7Widget } from '@src/index';
 import { setDocumentClientSize, setElementRect, setElementSize, setViewportSize } from '@common/tests/unit/dom';
 import { createSseStream } from '@common/tests/unit/stream';
 

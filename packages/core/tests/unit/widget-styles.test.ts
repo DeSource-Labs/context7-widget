@@ -24,7 +24,7 @@ describe('widget style-sheet adoption', () => {
     vi.stubGlobal('CSSStyleSheet', ConstructableStyleSheet);
     const adoptedSheets = installAdoptedStyleSheetsSupport();
     vi.resetModules();
-    const { defineContext7Widget } = await import('../../src/widget-element');
+    const { defineContext7Widget } = await import('@src/widget-element');
     defineContext7Widget('context7-adopted-styles');
 
     const first = document.createElement('context7-adopted-styles');
@@ -53,7 +53,7 @@ describe('widget style-sheet adoption', () => {
     vi.stubGlobal('CSSStyleSheet', BrokenStyleSheet);
     installAdoptedStyleSheetsSupport();
     vi.resetModules();
-    const { defineContext7Widget } = await import('../../src/widget-element');
+    const { defineContext7Widget } = await import('@src/widget-element');
     defineContext7Widget('context7-inline-styles');
 
     const first = document.createElement('context7-inline-styles');

@@ -5,7 +5,7 @@ import {
   type Context7WidgetContractAdapter,
   type Context7WidgetContractProps
 } from '@common/tests/unit/context7-widget';
-import { Context7Widget } from '../../src/components/context7-widget';
+import { Context7Widget } from '@src/components/context7-widget';
 
 let testBedConfigured = false;
 

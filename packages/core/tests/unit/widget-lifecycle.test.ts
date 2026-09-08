@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { defineContext7Widget } from '../../src';
+import { defineContext7Widget } from '@src/index';
 import { createSseStream } from '@common/tests/unit/stream';
 import { expectAlwaysVisibleBranding } from '@common/tests/unit/widget-contract';
 

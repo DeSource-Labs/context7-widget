@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { callContext7ListenerSafely } from '../../src/kit';
+import { callContext7ListenerSafely } from '@src/kit';
 
 describe('safe public listeners', () => {
   it('reports callback failures through the browser error reporter', () => {

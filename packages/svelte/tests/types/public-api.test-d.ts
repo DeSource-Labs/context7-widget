@@ -8,7 +8,7 @@ import {
   type Context7WidgetQuestionEventDetail,
   type Context7WidgetSendResult,
   type Context7WidgetStore
-} from '../../src/index.js';
+} from '@src/index';
 
 declare function expectType<Type>(value: Type): void;
 

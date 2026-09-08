@@ -3,8 +3,8 @@ import {
   getSvelteContext7Widget,
   registerSvelteContext7Widget,
   unregisterSvelteContext7Widget
-} from '../../src/internal/registry.js';
-import type { Context7WidgetHandle } from '../../src/types.js';
+} from '@src/internal/registry';
+import type { Context7WidgetHandle } from '@src/types';
 
 describe('Svelte renderer internals', () => {
   it('stacks duplicate widget ids, ignores duplicate registration, and restores the previous owner', () => {

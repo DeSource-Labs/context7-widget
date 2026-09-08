@@ -11,7 +11,7 @@ import {
   type Context7WidgetHandle,
   type Context7WidgetMountOptions,
   type Context7WidgetSendResult
-} from '../../src/public-api';
+} from '@src/public-api';
 
 const providers: EnvironmentProviders = provideContext7Widget({
   launcherLabel: 'Ask docs',

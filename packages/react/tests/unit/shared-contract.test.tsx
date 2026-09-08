@@ -1,7 +1,7 @@
 import { testContext7WidgetContract, type Context7WidgetContractAdapter } from '@common/tests/unit/context7-widget';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Context7Widget, type Context7WidgetHandle } from '../../src';
+import { Context7Widget, type Context7WidgetHandle } from '@src/index';
 
 const adapter: Context7WidgetContractAdapter = {
   suiteName: 'React component',

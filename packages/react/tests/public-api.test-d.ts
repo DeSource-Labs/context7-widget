@@ -6,10 +6,10 @@ import type {
   Context7WidgetSendResult,
   UseContext7WidgetReturn
 } from '../src';
-import { Context7Widget as ComponentEntryWidget } from '../src/component';
-import type { Context7WidgetProps as ComponentEntryProps } from '../src/component';
-import { useContext7Widget as HookEntryHook } from '../src/hook';
-import type { UseContext7WidgetOptions as HookEntryOptions } from '../src/hook';
+import { Context7Widget as ComponentEntryWidget } from '@src/component';
+import type { Context7WidgetProps as ComponentEntryProps } from '@src/component';
+import { useContext7Widget as HookEntryHook } from '@src/hook';
+import type { UseContext7WidgetOptions as HookEntryOptions } from '@src/hook';
 
 declare function expectType<Type>(value: Type): void;
 

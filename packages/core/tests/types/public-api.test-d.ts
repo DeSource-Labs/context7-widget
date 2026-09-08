@@ -3,7 +3,7 @@ import {
   getContext7Widget,
   type Context7WidgetInstance,
   type Context7WidgetSendResult
-} from '../../src/index.js';
+} from '@src/index';
 import {
   copyText,
   createContext7ConversationEngine,
@@ -15,7 +15,7 @@ import {
   type Context7ActiveRequest,
   type Context7ConversationEvent,
   type Context7ConversationState
-} from '../../src/core.js';
+} from '@src/core';
 
 declare function expectType<Type>(value: Type): void;
 

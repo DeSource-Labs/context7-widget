@@ -4,8 +4,8 @@ import { expectAlwaysVisibleBranding } from '@common/tests/unit/widget-contract'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Context7Widget } from '../../src/components/context7-widget';
 import { Context7WidgetTrigger } from '../../src/directives/context7-widget-trigger';
-import { provideContext7Widget } from '../../src/provider';
-import type { Context7WidgetState } from '../../src/types';
+import { provideContext7Widget } from '@src/provider';
+import type { Context7WidgetState } from '@src/types';
 import { TestResizeObserver } from '../setup';
 
 const CHAT_ENDPOINT = 'https://context7.com/api/v2/widget/chat';

@@ -3,7 +3,7 @@ import { setElementRect, setElementSize } from '@common/tests/unit/dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { Context7Widget, useContext7Widget, type Context7WidgetHandle } from '../../src';
+import { Context7Widget, useContext7Widget, type Context7WidgetHandle } from '@src/index';
 
 const { engineSubscribeOptionsSpy, renderMarkdownSpy } = vi.hoisted(() => ({
   engineSubscribeOptionsSpy: vi.fn(),

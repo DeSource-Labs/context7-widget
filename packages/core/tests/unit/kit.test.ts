@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { vi } from 'vitest';
-import * as core from '../../src/core';
-import * as kit from '../../src/kit';
+import * as core from '@src/core';
+import * as kit from '@src/kit';
 
 describe('core kit', () => {
   it('exports canonical widget event names', () => {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Context7WidgetElement, defineContext7Widget } from '../../src';
+import { Context7WidgetElement, defineContext7Widget } from '@src/index';
 import { createSseStream } from '@common/tests/unit/stream';
 
 describe('Context7WidgetElement public API', () => {

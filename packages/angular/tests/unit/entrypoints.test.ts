@@ -5,7 +5,7 @@ import {
   Context7WidgetService,
   Context7WidgetTrigger,
   provideContext7Widget
-} from '../../src/public-api';
+} from '@src/public-api';
 
 describe('public entry', () => {
   it('exports the Angular runtime surface', () => {

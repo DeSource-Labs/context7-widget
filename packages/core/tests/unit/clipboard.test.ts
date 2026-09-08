@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { copyText } from '../../src/kit';
+import { copyText } from '@src/kit';
 
 describe('clipboard helper', () => {
   afterEach(() => {

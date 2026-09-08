@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createContext7CopyActionController, syncContext7CopyButton } from '../../src/copy-action';
+import { createContext7CopyActionController, syncContext7CopyButton } from '@src/copy-action';
 
 describe('copy action controller', () => {
   afterEach(() => {

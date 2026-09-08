@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildContext7ErrorHtml, isAbortError } from '../../src/kit';
+import { buildContext7ErrorHtml, isAbortError } from '@src/kit';
 
 describe('runtime helpers', () => {
   it('builds an escaped, library-specific owner recovery link', () => {

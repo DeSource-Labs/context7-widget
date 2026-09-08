@@ -1,13 +1,13 @@
 import { PLATFORM_ID, provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Context7WidgetService } from '../../src/context7-widget.service';
+import { Context7WidgetService } from '@src/context7-widget.service';
 import {
   getAngularContext7Widget,
   registerAngularContext7Widget,
   unregisterAngularContext7Widget
-} from '../../src/internal/registry';
-import type { Context7WidgetHandle, Context7WidgetStateListener } from '../../src/types';
+} from '@src/internal/registry';
+import type { Context7WidgetHandle, Context7WidgetStateListener } from '@src/types';
 
 describe('Context7WidgetService', () => {
   beforeEach(() => {

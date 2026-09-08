@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { context7WidgetDefaults, normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from '../../src/kit';
+import { context7WidgetDefaults, normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from '@src/kit';
 
 describe('widget config', () => {
   it('provides immutable documented defaults', () => {

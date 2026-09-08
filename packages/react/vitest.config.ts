@@ -5,13 +5,11 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: [
-      { find: '@common', replacement: fileURLToPath(new URL('../../common', import.meta.url)) },
-      {
-        find: '@desource/context7-widget/kit',
-        replacement: fileURLToPath(new URL('../core/src/kit.ts', import.meta.url))
-      }
-    ]
+    alias: {
+      '@src': fileURLToPath(new URL('./src', import.meta.url)),
+      '@common': fileURLToPath(new URL('../../common', import.meta.url)),
+      '@desource/context7-widget/kit': fileURLToPath(new URL('../core/src/kit.ts', import.meta.url))
+    }
   },
   test: {
     environment: 'jsdom',

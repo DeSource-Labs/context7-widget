@@ -5,7 +5,8 @@
     "noEmit": false,
     "rootDir": "../..",
     "paths": {
-      "@common/*": ["../../common/*"]
+      "@common/*": ["../../common/*"],
+      "@src/*": ["./src/*"]
     },
     "types": ["node", "vitest/globals"]
   },

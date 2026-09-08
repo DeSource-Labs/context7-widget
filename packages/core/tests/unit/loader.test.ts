@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { findCurrentWidgetScript, mountContext7WidgetFromScript } from '../../src/loader';
+import { findCurrentWidgetScript, mountContext7WidgetFromScript } from '@src/loader';
 
 describe('script loader', () => {
   afterEach(() => {
