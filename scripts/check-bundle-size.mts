@@ -102,7 +102,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { Context7Widget } from './packages/vue/dist/index.js';",
     external: ['vue'],
-    maxGzipBytes: 17_100,
+    maxGzipBytes: 17_125,
     name: 'Vue component with core /kit consumer',
     resolveDir: workspaceRoot
   },

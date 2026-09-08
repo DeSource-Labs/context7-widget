@@ -32,6 +32,7 @@ import {
   type Context7ToolCall,
   type Context7ToolResult,
   type Context7TriggerA11yState,
+  type Context7WidgetConfig,
   type Context7WidgetLifecycleEventDetail,
   type Context7WidgetSendResult
 } from '@desource/context7-widget/kit';
@@ -137,6 +138,62 @@ const CompletedMarkdown = memo(function CompletedMarkdown({
   // This sink only receives branded output from the escaping core renderer.
   return <div dangerouslySetInnerHTML={{ __html: html }} />;
 });
+
+function renderMessage(
+  item: MessageDisplayItem,
+  config: Context7WidgetConfig,
+  copiedAnswerIds: ReadonlySet<string>,
+  completed: boolean,
+  onCopy: ((event: ReactMouseEvent<HTMLButtonElement>) => void) | undefined
+) {
+  const copied = item.role === 'assistant' && copiedAnswerIds.has(item.id);
+  const copyLabel = copied ? config.labels.copied : config.labels.copyAnswer;
+  return (
+    <div key={item.id} className={`c7-message c7-message--${item.role}`} part={`message ${item.role}-message`}>
+      {completed ? (
+        <CompletedMarkdown
+          content={item.content}
+          copyCodeLabel={config.labels.copyCode}
+          library={config.library}
+          linkBaseUrl={config.linkBaseUrl}
+        />
+      ) : (
+        <div>{item.content}</div>
+      )}
+      {completed ? (
+        <button
+          aria-disabled={copied || undefined}
+          aria-label={copyLabel}
+          className="c7-copy-answer"
+          data-c7-copy-answer
+          data-c7-copied={copied ? '' : undefined}
+          title={copyLabel}
+          type="button"
+          onClick={onCopy}
+        >
+          <svg
+            className="c7-copy-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path className="c7-copy-icon--copy" d="M5 5h9v9H5zM2 11V2h9"></path>
+            <path className="c7-copy-icon--copied" d="m3 8 3 3 7-7"></path>
+          </svg>
+          <span aria-live="polite" className="c7-copy-status">
+            {copied ? config.labels.copied : ''}
+          </span>
+        </button>
+      ) : null}
+    </div>
+  );
+}
 
 export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetProps>(
   function Context7Widget(props, forwardedRef) {
@@ -889,58 +946,18 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
           >
             {displayItems.map((item) => {
               if (item.kind === 'message') {
-                const copied = item.role === 'assistant' && copiedAnswerIds.has(item.id);
-                return (
-                  <div
-                    key={item.id}
-                    className={`c7-message c7-message--${item.role}`}
-                    part={`message ${item.role}-message`}
-                  >
-                    {item.role === 'assistant' && !item.streaming ? (
-                      <CompletedMarkdown
-                        content={item.content}
-                        copyCodeLabel={config.labels.copyCode}
-                        library={config.library}
-                        linkBaseUrl={config.linkBaseUrl}
-                      />
-                    ) : (
-                      <div>{item.content}</div>
-                    )}
-                    {item.role === 'assistant' && !item.streaming ? (
-                      <button
-                        aria-disabled={copied || undefined}
-                        aria-label={copied ? config.labels.copied : config.labels.copyAnswer}
-                        className="c7-copy-answer"
-                        data-c7-copy-answer
-                        data-c7-copied={copied ? '' : undefined}
-                        title={copied ? config.labels.copied : config.labels.copyAnswer}
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          void copyActions.copy(item.id, item.content);
-                        }}
-                      >
-                        <svg
-                          className="c7-copy-icon"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 16 16"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden="true"
-                        >
-                          <path className="c7-copy-icon--copy" d="M5 5h9v9H5zM2 11V2h9"></path>
-                          <path className="c7-copy-icon--copied" d="m3 8 3 3 7-7"></path>
-                        </svg>
-                        <span aria-live="polite" className="c7-copy-status">
-                          {copied ? config.labels.copied : ''}
-                        </span>
-                      </button>
-                    ) : null}
-                  </div>
+                const completed = item.role === 'assistant' && !item.streaming;
+                return renderMessage(
+                  item,
+                  config,
+                  copiedAnswerIds,
+                  completed,
+                  completed
+                    ? (event) => {
+                        event.stopPropagation();
+                        void copyActions.copy(item.id, item.content);
+                      }
+                    : undefined
                 );
               }
 

@@ -179,6 +179,43 @@ describe('@desource/context7-widget-react', () => {
     expect(renderMarkdownSpy).toHaveBeenCalled();
   });
 
+  it('updates copied-answer labels without remounting the message or reparsing Markdown', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    let updateRevision: ((value: number) => void) | undefined;
+    function Harness() {
+      const [revision, setRevision] = useState(0);
+      updateRevision = setRevision;
+      return (
+        <Context7Widget
+          initialMessage="Hello"
+          labels={{ copied: `Copied ${revision}`, copyAnswer: `Copy ${revision}` }}
+          library="/owner/repo"
+        />
+      );
+    }
+
+    const container = mount(<Harness />);
+    await flush();
+    const button = container.querySelector<HTMLButtonElement>('[data-c7-copy-answer]')!;
+    expect(button.getAttribute('aria-label')).toBe('Copy 0');
+    expect(button.title).toBe('Copy 0');
+    renderMarkdownSpy.mockClear();
+
+    await act(async () => button.click());
+    await flush();
+    expect(writeText).toHaveBeenCalledExactlyOnceWith('Hello');
+    expect(button.getAttribute('aria-label')).toBe('Copied 0');
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+
+    await act(async () => updateRevision?.(1));
+    expect(container.querySelector('[data-c7-copy-answer]')).toBe(button);
+    expect(button.getAttribute('aria-label')).toBe('Copied 1');
+    expect(button.title).toBe('Copied 1');
+    expect(button.querySelector('.c7-copy-status')?.textContent).toBe('Copied 1');
+    expect(renderMarkdownSpy).not.toHaveBeenCalled();
+  });
+
   it('ignores non-element events delegated through the Markdown copy surface', async () => {
     const container = mount(<Context7Widget library="/owner/repo" />);
     const messages = container.querySelector<HTMLElement>('.c7-messages')!;

@@ -108,16 +108,7 @@ export class Context7ConversationEngine {
     if (this.activeRequest) return this.createSendResult('busy', question);
 
     const config = this.resolveConfig();
-    if (!config.library) {
-      const missingLibraryMessage =
-        (typeof this.missingLibraryMessage === 'function'
-          ? this.missingLibraryMessage()
-          : this.missingLibraryMessage) || DEFAULT_MISSING_LIBRARY_MESSAGE;
-      const result = this.createSendResult('error', question, { error: missingLibraryMessage });
-      this.lastFailedQuestion = question;
-      this.emit('c7:error', { error: missingLibraryMessage, question }, null);
-      return result;
-    }
+    if (!config.library) return this.failMissingLibrary(question);
 
     const controller = new AbortController();
     this.lastFailedQuestion = null;
@@ -158,13 +149,7 @@ export class Context7ConversationEngine {
     };
     this.activeRequest = request;
 
-    const existingMessage = retry ? this.findRetryMessage(question) : undefined;
-    const userMessage: Context7Message = existingMessage ?? {
-      content: question,
-      id: this.nextMessageId(),
-      role: 'user'
-    };
-    if (!existingMessage) this.messages.push(userMessage);
+    const userMessage = this.recordUserMessage(question, retry);
     this.notifyState();
     this.emit(
       'c7:question',
@@ -279,6 +264,16 @@ export class Context7ConversationEngine {
     return () => this.eventListeners.delete(listener);
   }
 
+  private failMissingLibrary(question: string): Context7WidgetSendResult {
+    const missingLibraryMessage =
+      (typeof this.missingLibraryMessage === 'function' ? this.missingLibraryMessage() : this.missingLibraryMessage) ||
+      DEFAULT_MISSING_LIBRARY_MESSAGE;
+    const result = this.createSendResult('error', question, { error: missingLibraryMessage });
+    this.lastFailedQuestion = question;
+    this.emit('c7:error', { error: missingLibraryMessage, question }, null);
+    return result;
+  }
+
   private createSendResult<Status extends Context7WidgetSendResult['status']>(
     status: Status,
     question: string,
@@ -315,12 +310,20 @@ export class Context7ConversationEngine {
     return this.messages.slice(-this.historyLimit);
   }
 
-  private findRetryMessage(question: string): Context7Message | undefined {
-    for (let index = this.messages.length - 1; index >= 0; index -= 1) {
-      const message = this.messages[index];
-      if (message?.role === 'user' && message.content === question) return message;
+  private recordUserMessage(question: string, retry: boolean): Context7Message {
+    if (retry) {
+      for (let index = this.messages.length - 1; index >= 0; index -= 1) {
+        const message = this.messages[index];
+        if (message?.role === 'user' && message.content === question) return message;
+      }
     }
-    return undefined;
+    const message: Context7Message = {
+      content: question,
+      id: this.nextMessageId(),
+      role: 'user'
+    };
+    this.messages.push(message);
+    return message;
   }
 
   private nextFallbackMessageId(): string {

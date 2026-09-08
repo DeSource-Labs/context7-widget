@@ -267,6 +267,61 @@ describe('core conversation engine', () => {
     expect(transport).toHaveBeenCalledOnce();
   });
 
+  it('resolves the current missing-library label only when configuration is missing', async () => {
+    let library = '/owner/repo';
+    let label = 'Select a library.';
+    const missingLibraryMessage = vi.fn(() => label);
+    const transport = vi.fn<TestTransport>(async () => {});
+    const engine = createContext7ConversationEngine({
+      missingLibraryMessage,
+      resolveConfig: () => ({ library }),
+      transport
+    });
+
+    await engine.send('   ');
+    await engine.send('Configured question');
+    expect(missingLibraryMessage).not.toHaveBeenCalled();
+
+    library = '';
+    await expect(engine.send('Retry after configuration')).resolves.toMatchObject({ error: label, status: 'error' });
+    label = 'Choose the documentation library.';
+    await expect(engine.retry()).resolves.toMatchObject({ error: label, status: 'error' });
+    expect(missingLibraryMessage).toHaveBeenCalledTimes(2);
+
+    library = '/owner/repo';
+    await expect(engine.retry()).resolves.toMatchObject({ status: 'complete' });
+    expect(missingLibraryMessage).toHaveBeenCalledTimes(2);
+    expect(engine.getMessages().map((message) => message.content)).toEqual([
+      'Configured question',
+      'Retry after configuration'
+    ]);
+    expect(transport).toHaveBeenCalledTimes(2);
+  });
+
+  it('preserves cancellation performed synchronously by an error listener', async () => {
+    let cancelled: Context7WidgetSendResult | undefined;
+    const engine = createContext7ConversationEngine({
+      resolveConfig: () => ({ library: '/owner/repo' }),
+      transport: async (_config, _messages, callbacks) => {
+        callbacks.onChunk('Partial answer');
+        throw new Error('Stream failed');
+      }
+    });
+    engine.subscribeEvents((event) => {
+      if (event.type === 'c7:error') cancelled = engine.cancel();
+    });
+
+    const result = await engine.send('Cancel from the error listener');
+
+    expect(result).toBe(cancelled);
+    expect(result).toMatchObject({
+      answer: 'Partial answer',
+      message: { content: 'Partial answer', role: 'assistant', status: 'cancelled' },
+      status: 'cancelled'
+    });
+    expect(engine.isBusy()).toBe(false);
+  });
+
   it('ignores stale stream and tool callbacks after reset', async () => {
     let callbacks: Context7StreamCallbacks | undefined;
     let finish: (() => void) | undefined;
