@@ -4,7 +4,7 @@ import path from 'node:path';
 import { readCoordinatedPackageNames } from './public-packages.mts';
 
 const expectedPackages = await readCoordinatedPackageNames();
-const changesetsDirectory = path.resolve(process.argv[2] ?? '.changeset');
+const changesetsDirectory = path.resolve('.changeset');
 const entries = (await readdir(changesetsDirectory))
   .filter((entry) => entry.endsWith('.md') && entry.toLowerCase() !== 'readme.md')
   .sort();
