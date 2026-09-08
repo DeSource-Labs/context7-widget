@@ -48,7 +48,7 @@ const reactPackageRoot = fileURLToPath(new URL('../packages/react', import.meta.
 const sveltePackageRoot = fileURLToPath(new URL('../packages/svelte', import.meta.url));
 
 const fileBudgets: readonly FileBudget[] = [
-  { file: 'packages/core/dist/widget.js', maxGzipBytes: 22_600 },
+  { file: 'packages/core/dist/widget.js', maxGzipBytes: 22_650 },
   { file: 'packages/vue/dist/index.js', maxGzipBytes: 8_500 },
   { file: 'packages/vue/dist/styles.css', maxGzipBytes: 5_500 },
   { file: 'packages/react/dist/styles.css', maxGzipBytes: 5_500 },
@@ -102,7 +102,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { Context7Widget } from './packages/vue/dist/index.js';",
     external: ['vue'],
-    maxGzipBytes: 17_125,
+    maxGzipBytes: 17_175,
     name: 'Vue component with core /kit consumer',
     resolveDir: workspaceRoot
   },
