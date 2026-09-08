@@ -61,7 +61,7 @@ export class Context7WidgetService {
       onCleanup(unsubscribe);
     });
     inject(DestroyRef).onDestroy(() => {
-      for (const widgetId of [...this.ownedWidgets.keys()]) this.unmount(widgetId);
+      for (const widgetId of this.ownedWidgets.keys()) this.unmount(widgetId);
     });
   }
 

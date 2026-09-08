@@ -1,4 +1,9 @@
-import { PLATFORM_ID, provideZonelessChangeDetection } from '@angular/core';
+import {
+  EnvironmentInjector,
+  PLATFORM_ID,
+  createEnvironmentInjector,
+  provideZonelessChangeDetection
+} from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Context7WidgetService } from '@src/context7-widget.service';
@@ -109,6 +114,41 @@ describe('Context7WidgetService', () => {
     service.toggle();
     service.cancel();
     service.reset();
+  });
+
+  it('cleans up every owned widget when a cancellation callback unmounts another during teardown', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, options: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            options.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), {
+              once: true
+            });
+          })
+      )
+    );
+    const injector = createEnvironmentInjector([Context7WidgetService], TestBed.inject(EnvironmentInjector));
+
+    try {
+      const service = injector.get(Context7WidgetService);
+      const ids = ['first', 'second', 'third'];
+      const widgets = ids.map((widgetId) => service.mount({ library: '/owner/repo', widgetId }));
+      const elements = widgets.map((widget) => widget.element);
+      const first = widgets[0]!;
+      const cancelled = vi.fn(() => service.unmount('second'));
+      first.cancelled.subscribe(cancelled);
+      const pending = first.send('Question');
+
+      injector.destroy();
+
+      await expect(pending).resolves.toMatchObject({ status: 'cancelled' });
+      expect(cancelled).toHaveBeenCalledOnce();
+      for (const id of ids) expect(getAngularContext7Widget(id)).toBeUndefined();
+      for (const element of elements) expect(element?.isConnected).toBe(false);
+    } finally {
+      if (!injector.destroyed) injector.destroy();
+    }
   });
 
   it('rejects programmatic mounting on the server', () => {

@@ -42,7 +42,7 @@ describe('Context7Widget', () => {
       backdrop: true,
       closeOnOutsideClick: false,
       color: '#ff6f91',
-      initialMessage: 'Hello **{library}**',
+      initialMessage: 'Hello **{library}**. Ask about {library}.',
       launcherLabel: 'Ask docs',
       launcherVariant: 'pill',
       library: '/owner/repo',
@@ -75,6 +75,9 @@ describe('Context7Widget', () => {
     expect(host.querySelector('.c7-title')?.textContent).toBe('Product docs');
     expect(host.querySelector('textarea')?.placeholder).toBe('Search docs');
     expect(host.querySelector('.c7-message--assistant strong')?.textContent).toBe('/owner/repo');
+    expect(host.querySelector('.c7-message--assistant')?.textContent).toContain(
+      'Hello /owner/repo. Ask about /owner/repo.'
+    );
     expectAlwaysVisibleBranding(host);
     expect(ready).toHaveBeenCalledWith({ library: '/owner/repo', widget: host, widgetId: 'docs' });
   });

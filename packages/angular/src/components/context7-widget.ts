@@ -684,8 +684,8 @@ export class Context7Widget implements AfterViewInit, OnChanges, OnDestroy, Cont
     this.copyActions.reset(false);
     this.copiedAnswerIds.set(new Set());
     this.errorHtmlCache.clear();
-    const intro = this.resolvedConfig().initialMessage.replace(
-      /\{library\}/g,
+    const intro = this.resolvedConfig().initialMessage.replaceAll(
+      '{library}',
       this.resolvedLibrary() || this.resolvedLabels().libraryFallback
     );
     this.displayItems.set([{ content: intro, id: this.nextMessageId(), kind: 'message', role: 'assistant' }]);

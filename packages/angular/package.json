@@ -59,7 +59,7 @@
   "scripts": {
     "clean": "rimraf dist dist-demo tsconfig.tsbuildinfo test-results coverage",
     "clean:modules": "rimraf node_modules",
-    "build": "pnpm clean && ng-packagr -p ng-package.json && node scripts/finalize-dist.mts && pnpm build:css",
+    "build": "pnpm clean && ng-packagr -p ng-package.json -c tsconfig.lib.json && node scripts/finalize-dist.mts && pnpm build:css",
     "build:css": "sass src/styles.scss dist/styles.css --no-source-map --style=compressed",
     "dev:demo": "ng serve demo --host 127.0.0.1 --port 5176",
     "typecheck": "ngc -p tsconfig.lib.json --noEmit && ngc -p tsconfig.spec.json --noEmit && ngc -p demo/tsconfig.app.json --noEmit",
