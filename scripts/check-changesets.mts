@@ -18,7 +18,7 @@ console.log(`Validated ${entries.length} pending changeset${entries.length === 1
 
 function validateChangeset(filename: string, contents: string): void {
   const frontmatter = /^---\r?\n([\s\S]*?)^---[ \t]*(?:\r?\n|$)/m.exec(contents);
-  if (!frontmatter || frontmatter.index !== 0) {
+  if (frontmatter?.index !== 0) {
     throw new Error(`${filename} does not contain valid Changesets frontmatter`);
   }
 

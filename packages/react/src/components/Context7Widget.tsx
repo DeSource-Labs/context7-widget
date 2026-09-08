@@ -788,11 +788,11 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
     const resolvedCustomTrigger = resolveReactCustomTrigger(props.customTrigger);
     const rendersManagedTrigger = resolvedCustomTrigger === true;
     const hasCustomTrigger = rendersManagedTrigger || hasBoundExternalTrigger;
-    const customTriggerSelector = rendersManagedTrigger
-      ? `#${managedTriggerId}`
-      : typeof resolvedCustomTrigger === 'string'
-        ? normalizeContext7WidgetTrigger(resolvedCustomTrigger)
-        : undefined;
+    let customTriggerSelector: string | undefined;
+    if (rendersManagedTrigger) customTriggerSelector = `#${managedTriggerId}`;
+    else if (typeof resolvedCustomTrigger === 'string') {
+      customTriggerSelector = normalizeContext7WidgetTrigger(resolvedCustomTrigger);
+    }
     const rootProps = props.rootProps;
     const className = ['context7-widget', rootProps?.className].filter(Boolean).join(' ');
     const style = {

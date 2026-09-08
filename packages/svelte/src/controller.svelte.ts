@@ -48,9 +48,7 @@ export function createContext7Widget(initialOptions: CreateContext7WidgetOptions
     }
     if (container.parentNode !== target) target.append(container);
     syncMountedProps();
-    if (!ownedComponent) {
-      ownedComponent = mountSvelte(Context7Widget, { props: mountedProps, target: container });
-    }
+    ownedComponent ??= mountSvelte(Context7Widget, { props: mountedProps, target: container });
     flushSync();
     syncState();
     const current = ownedComponent?.element();

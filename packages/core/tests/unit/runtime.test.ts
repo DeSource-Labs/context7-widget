@@ -25,6 +25,15 @@ describe('runtime helpers', () => {
     expect(html).not.toContain('context7.com//admin');
   });
 
+  it('preserves long internal slash runs and trims slash-only library paths', () => {
+    const path = `owner${'/'.repeat(50_000)}repo`;
+
+    expect(buildContext7ErrorHtml('Failed', `  ///${path}///  `)).toContain(
+      `https://context7.com/${path}/admin?tab=chat`
+    );
+    expect(buildContext7ErrorHtml('Failed', ' /// ')).toContain('https://context7.com/admin?tab=chat');
+  });
+
   it('recognizes native and structurally compatible abort errors', () => {
     expect(isAbortError(new DOMException('Stopped', 'AbortError'))).toBe(true);
     expect(isAbortError(new DOMException('Failed', 'NetworkError'))).toBe(false);

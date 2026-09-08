@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { renderMarkdown, resolveContext7MarkdownBaseUrl } from '@src/markdown';
+import { renderMarkdown, resolveContext7MarkdownBaseUrl, trimLibraryPath } from '@src/markdown';
 
-describe('renderMarkdown', () => {
+describe('markdown', () => {
   it('escapes raw HTML', () => {
     expect(renderMarkdown('<script>alert(1)</script>')).toContain('&lt;script&gt;');
   });
@@ -55,6 +55,55 @@ describe('renderMarkdown', () => {
 
     expect(html).toContain('<pre part="code-block">');
     expect(html).toContain('npm install @desource/context7-widget');
+  });
+
+  it.each(['', '   ', 'ts extra metadata', 'ts\u2028extra metadata'])('reads fence metadata %j', (metadata) => {
+    const html = renderMarkdown(`  \`\`\`${metadata}\nconst ready = true;\n\`\`\``);
+
+    expect(html).toContain('<pre part="code-block">');
+    expect(html.includes('data-language="typescript"')).toBe(metadata.startsWith('ts'));
+  });
+
+  it('reads a long fence header containing a Unicode line separator', () => {
+    const html = renderMarkdown(`\`\`\`${' '.repeat(50_000)}ts\u2028metadata\nconst ready = true;\n\`\`\``);
+
+    expect(html).toContain('data-language="typescript"');
+    expect(html).toContain('c7-token--keyword">const</span>');
+  });
+
+  it.each(['js', 'css', 'sh', 'json'])('consumes unfinished escaped quotes once in %s code', (language) => {
+    const code = '"' + '\\"'.repeat(50_000) + '\\';
+    const html = renderMarkdown(`\`\`\`${language}\n${code}\n\`\`\``);
+    const container = document.createElement('div');
+    container.innerHTML = html;
+
+    expect(container.querySelector('code')?.textContent).toBe(code);
+    expect(container.querySelectorAll('.c7-token--string')).toHaveLength(1);
+  });
+
+  it('preserves escaped delimiters and line continuations in quoted code', () => {
+    const code = "const value = 'it\\'s'; const template = `a\\`b`; const continued = \"a\\\nb\";";
+    const container = document.createElement('div');
+    container.innerHTML = renderMarkdown(`\`\`\`js\n${code}\n\`\`\``);
+
+    expect(container.querySelector('code')?.textContent).toBe(code);
+    expect(Array.from(container.querySelectorAll('.c7-token--string'), (token) => token.textContent)).toEqual([
+      "'it\\'s'",
+      '`a\\`b`',
+      '"a\\\nb"'
+    ]);
+  });
+
+  it('classifies JSON properties by position when keys and values repeat', () => {
+    const html = renderMarkdown('```json\n{"name":"name","other":"name"}\n```');
+    const container = document.createElement('div');
+    container.innerHTML = html;
+
+    expect(Array.from(container.querySelectorAll('.c7-token--property'), (token) => token.textContent)).toEqual([
+      '"name"',
+      '"other"'
+    ]);
+    expect(container.querySelectorAll('.c7-token--string')).toHaveLength(2);
   });
 
   it('keeps markdown characters inside inline code literal', () => {
@@ -207,5 +256,44 @@ describe('renderMarkdown', () => {
     expect(links).toContain('href="http://example.com"');
     expect(links).not.toContain('mailto:');
     expect(links).not.toContain('<a href="./guide"');
+  });
+
+  it.each(['', '///', '  ///owner/repo///  ', `/owner${'/'.repeat(50_000)}repo/`])(
+    'normalizes library paths without changing internal slashes (%#)',
+    (library) => {
+      const path = library.trim().split('/');
+      while (path[0] === '') path.shift();
+      while (path[path.length - 1] === '') path.pop();
+      const expected = path.join('/');
+
+      expect(resolveContext7MarkdownBaseUrl(library)).toBe(`https://context7.com/${expected}${expected ? '/' : ''}`);
+    }
+  );
+
+  it.each([
+    ['trimLibraryPath: empty input', '', ''],
+    ['trimLibraryPath: whitespace only', ' \t\n\r ', ''],
+    ['trimLibraryPath: slashes only', '///', ''],
+    ['trimLibraryPath: whitespace and slashes only', ' \t///\r\n', ''],
+    ['trimLibraryPath: an already normalized path', 'owner/repo', 'owner/repo'],
+    ['trimLibraryPath: leading slashes', '///owner/repo', 'owner/repo'],
+    ['trimLibraryPath: trailing slashes', 'owner/repo///', 'owner/repo'],
+    ['trimLibraryPath: surrounding whitespace and slashes', ' \t///owner/repo///\n', 'owner/repo'],
+    ['trimLibraryPath: internal slashes', '/owner///repo/', 'owner///repo'],
+    ['trimLibraryPath: spaces inside the surrounding slashes', ' / owner / repo / ', ' owner / repo ']
+  ])('handles %s', (_description, library, expected) => {
+    expect(trimLibraryPath(library)).toBe(expected);
+  });
+
+  it('trimLibraryPath: trims long runs of surrounding slashes', () => {
+    const slashes = '/'.repeat(50_000);
+
+    expect(trimLibraryPath(`${slashes}owner/repo${slashes}`)).toBe('owner/repo');
+  });
+
+  it('trimLibraryPath: preserves long runs of internal slashes', () => {
+    const path = `owner${'/'.repeat(50_000)}repo`;
+
+    expect(trimLibraryPath(` /${path}/ `)).toBe(path);
   });
 });

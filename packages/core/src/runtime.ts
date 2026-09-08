@@ -1,4 +1,4 @@
-import { escapeHtml } from './markdown.js';
+import { escapeHtml, trimLibraryPath } from './markdown.js';
 import { context7WidgetLabels } from './labels.js';
 import type { Context7WidgetLabels } from './types.js';
 
@@ -21,7 +21,7 @@ export function buildContext7ErrorHtml(
   > = context7WidgetLabels
 ): Context7RenderedErrorHtml {
   const safeMessage = escapeHtml(message || labels.errorFallback);
-  const libraryPath = library.trim().replace(/^\/+|\/+$/g, '');
+  const libraryPath = trimLibraryPath(library);
   const adminPath = libraryPath ? `/${libraryPath}/admin` : '/admin';
   const adminUrl = escapeHtml(encodeURI(`https://context7.com${adminPath}?tab=chat`));
 

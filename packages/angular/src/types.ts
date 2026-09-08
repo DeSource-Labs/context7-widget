@@ -11,7 +11,6 @@ import type {
   Context7WidgetLifecycleEventDetail,
   Context7WidgetOptions,
   Context7WidgetQuestionEventDetail,
-  Context7WidgetSendResult,
   Context7WidgetToolCallEventDetail,
   Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
@@ -64,4 +63,4 @@ export interface Context7WidgetMountOptions extends Partial<Context7WidgetAngula
 export type MessageDisplayItem = Context7MessageDisplayItem;
 export type DisplayItem = Context7DisplayItem;
 
-export type { Context7Message, Context7WidgetSendResult };
+export type { Context7Message, Context7WidgetSendResult } from '@desource/context7-widget/kit';

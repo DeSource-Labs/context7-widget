@@ -21,9 +21,6 @@ body {
   border-radius: 8px;
   min-width: 0;
   padding: 1rem;
-}
-.demo-controls,
-.demo-stage {
   align-content: start;
   display: grid;
   gap: 0.8rem;

@@ -43,8 +43,9 @@ function Demo() {
   const [stats, setStats] = useState(initialStats);
   const widget = useRef<Context7WidgetHandle>(null);
   const count = (name: keyof EventStats) => setStats((current) => ({ ...current, [name]: current[name] + 1 }));
-  const customTrigger =
-    triggerMode === 'managed' ? true : triggerMode === 'external' ? 'demo-external-trigger' : undefined;
+  let customTrigger: true | string | undefined;
+  if (triggerMode === 'managed') customTrigger = true;
+  else if (triggerMode === 'external') customTrigger = 'demo-external-trigger';
 
   return (
     <main data-testid="context7-demo" className="demo-shell">

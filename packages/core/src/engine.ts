@@ -332,7 +332,8 @@ export class Context7ConversationEngine {
     let state: Context7ConversationState | undefined;
     for (const [listener, includeTransient] of this.stateListeners) {
       if (transient && !includeTransient) continue;
-      callContext7ListenerSafely(listener, (state ??= this.getState()));
+      state ??= this.getState();
+      callContext7ListenerSafely(listener, state);
     }
   }
 }

@@ -11,7 +11,6 @@ import type {
   Context7WidgetErrorEventDetail,
   Context7WidgetLifecycleEventDetail,
   Context7WidgetQuestionEventDetail,
-  Context7WidgetSendResult,
   Context7WidgetToolCallEventDetail,
   Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
@@ -121,4 +120,4 @@ export type MessageDisplayItem = Context7MessageDisplayItem;
 export type ToolDisplayItem = Context7ToolDisplayItem;
 export type DisplayItem = Context7DisplayItem;
 
-export type { Context7WidgetSendResult };
+export type { Context7WidgetSendResult } from '@desource/context7-widget/kit';

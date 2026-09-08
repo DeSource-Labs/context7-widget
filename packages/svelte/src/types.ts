@@ -11,7 +11,6 @@ import type {
   Context7WidgetLifecycleEventDetail,
   Context7WidgetOptions,
   Context7WidgetQuestionEventDetail,
-  Context7WidgetSendResult,
   Context7WidgetTarget,
   Context7WidgetToolCallEventDetail,
   Context7WidgetToolResultEventDetail
@@ -85,7 +84,7 @@ export interface Context7WidgetStore extends Context7WidgetController {
   update(options: Partial<CreateContext7WidgetOptions>): void;
 }
 
-export type { Context7Message, Context7WidgetSendResult };
+export type { Context7Message, Context7WidgetSendResult } from '@desource/context7-widget/kit';
 
 export type MessageDisplayItem = Context7MessageDisplayItem;
 export type ToolDisplayItem = Context7ToolDisplayItem;

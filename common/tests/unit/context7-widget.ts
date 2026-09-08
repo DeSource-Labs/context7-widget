@@ -402,7 +402,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       expect(writeText).toHaveBeenNthCalledWith(1, answer);
       expect(writeText).toHaveBeenNthCalledWith(2, 'const ready = true;');
       for (const button of [answerCopy(), codeCopy()]) {
-        expect(button.hasAttribute('data-c7-copied')).toBe(true);
+        expect(button.dataset.c7Copied).toBe('');
         expect(button.getAttribute('aria-disabled')).toBe('true');
         expect(button.getAttribute('aria-label')).toBe('Copied');
         expect(required(button, '.c7-copy-status').getAttribute('aria-live')).toBe('polite');
@@ -411,12 +411,12 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
 
       await interact(harness, () => vi.advanceTimersByTime(1599));
       await flush();
-      expect(answerCopy().hasAttribute('data-c7-copied')).toBe(true);
+      expect(answerCopy().dataset.c7Copied).toBe('');
       await interact(harness, () => vi.advanceTimersByTime(1));
       await flush();
-      expect(answerCopy().hasAttribute('data-c7-copied')).toBe(false);
+      expect(answerCopy().dataset.c7Copied).toBeUndefined();
       expect(answerCopy().getAttribute('aria-label')).toBe('Copy answer');
-      expect(codeCopy().hasAttribute('data-c7-copied')).toBe(false);
+      expect(codeCopy().dataset.c7Copied).toBeUndefined();
       expect(codeCopy().getAttribute('aria-label')).toBe('Copy code');
     });
 

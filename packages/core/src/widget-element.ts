@@ -230,9 +230,10 @@ export class Context7WidgetElement extends BaseHTMLElement {
     if (!button || !this.messagesElement.contains(button)) return;
     event.stopPropagation();
 
-    const value = button.hasAttribute('data-c7-copy-code')
-      ? (button.closest('.c7-code-block')?.querySelector('code')?.textContent ?? '')
-      : (this.copyValues.get(button) ?? '');
+    const value =
+      button.dataset.c7CopyCode !== undefined
+        ? (button.closest('.c7-code-block')?.querySelector('code')?.textContent ?? '')
+        : (this.copyValues.get(button) ?? '');
     void this.copyActions.copy(button, value);
   };
 
@@ -279,7 +280,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
       this.setAttribute('custom-trigger', value);
     } else {
       this.removeAttribute('custom-trigger');
-      this.removeAttribute('data-custom-trigger');
+      delete this.dataset.customTrigger;
     }
 
     this.config = readConfig(this, this.reflectedConfigAttributes, this.labelsInput);
@@ -596,7 +597,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     const detail = event.detail;
     render.typing.remove();
     render.answer = detail.answer;
-    if (!render.answerElement) render.answerElement = this.appendMessage('assistant', '');
+    render.answerElement ??= this.appendMessage('assistant', '');
     render.renderFrame ??= requestRenderFrame(() => {
       render.renderFrame = null;
       if (!render.answerElement) return;
@@ -652,7 +653,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     const button = document.createElement('button');
     button.className = 'c7-copy-answer';
     button.type = 'button';
-    button.setAttribute('data-c7-copy-answer', '');
+    button.dataset.c7CopyAnswer = '';
     button.innerHTML = context7CopyIconsHtml;
     this.syncCopyButton(button, false);
     this.copyValues.set(button, answer);
@@ -660,9 +661,8 @@ export class Context7WidgetElement extends BaseHTMLElement {
   }
 
   private syncCopyButton(button: HTMLButtonElement, copied: boolean): void {
-    const copyLabel = button.hasAttribute('data-c7-copy-code')
-      ? this.config.labels.copyCode
-      : this.config.labels.copyAnswer;
+    const copyLabel =
+      button.dataset.c7CopyCode !== undefined ? this.config.labels.copyCode : this.config.labels.copyAnswer;
     syncContext7CopyButton(button, copied, copyLabel, this.config.labels.copied);
   }
 

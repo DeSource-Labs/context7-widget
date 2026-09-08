@@ -595,7 +595,8 @@ const constructorVueCode = computed(() => {
     props.splice(7, 0, 'custom-trigger');
   }
 
-  const componentOpen = `<Context7Widget\n${props.map((prop) => `  ${prop}`).join('\n')}`;
+  const formattedProps = props.map((prop) => `  ${prop}`).join('\n');
+  const componentOpen = `<Context7Widget\n${formattedProps}`;
 
   if (constructorUsesTriggerSlot.value) {
     return `${componentOpen}
@@ -798,7 +799,8 @@ const constructorSvelteCode = computed(() => {
     props.splice(7, 0, 'customTrigger');
   }
 
-  const componentOpen = `<Context7Widget\n${props.map((prop) => `  ${prop}`).join('\n')}`;
+  const formattedProps = props.map((prop) => `  ${prop}`).join('\n');
+  const componentOpen = `<Context7Widget\n${formattedProps}`;
   const component = constructorUsesTriggerSlot.value
     ? `${componentOpen}
 >
@@ -842,7 +844,8 @@ const constructorAngularCode = computed(() => {
     inputs.splice(7, 0, '[customTrigger]="true"');
   }
 
-  const componentOpen = `<context7-widget\n${inputs.map((input) => `  ${input}`).join('\n')}`;
+  const formattedInputs = inputs.map((input) => `  ${input}`).join('\n');
+  const componentOpen = `<context7-widget\n${formattedInputs}`;
   const component = constructorUsesTriggerSlot.value
     ? `${componentOpen}
 >

@@ -49,6 +49,16 @@ const LANGUAGE_ALIASES: Readonly<Record<string, string>> = {
   xml: 'markup'
 };
 
+/** Remove surrounding whitespace and slashes without rescanning internal slash runs. */
+export function trimLibraryPath(library: string): string {
+  const path = library.trim();
+  let start = 0;
+  let end = path.length;
+  while (start < end && path[start] === '/') start += 1;
+  while (end > start && path[end - 1] === '/') end -= 1;
+  return path.slice(start, end);
+}
+
 export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -80,7 +90,7 @@ export function renderMarkdown(markdown: string, options: Context7MarkdownOption
       continue;
     }
 
-    const fence = rawLine.match(/^\s*```\s*([^\s`]*)?.*$/);
+    const fence = /^```\s*([^\s`]+)?/.exec(line);
     if (fence) {
       flushParagraph(state);
       const block = renderCodeFence(state.lines, index, fence[1] ?? '', options);
@@ -114,7 +124,7 @@ export function renderMarkdown(markdown: string, options: Context7MarkdownOption
       continue;
     }
 
-    const heading = line.match(/^(#{1,6})\s+(.+)/);
+    const heading = /^(#{1,6})\s+(.+)/.exec(line);
     if (heading) {
       flushParagraph(state);
       const level = Math.min((heading[1]?.length ?? 1) + 2, 6);
@@ -150,7 +160,7 @@ export function resolveContext7MarkdownBaseUrl(library: string, baseUrl?: string
   }
 
   const url = new URL('https://context7.com');
-  const libraryPath = library.trim().replace(/^\/+|\/+$/g, '');
+  const libraryPath = trimLibraryPath(library);
   url.pathname = libraryPath ? `/${libraryPath}/` : '/';
   return url.href;
 }
@@ -197,7 +207,7 @@ function renderBlockquote(
   const quote: string[] = [];
   let index = startIndex;
   while (index < lines.length) {
-    const match = (lines[index] ?? '').match(/^\s*>\s?(.*)$/);
+    const match = /^\s*>\s?(.*)$/.exec(lines[index] ?? '');
     if (!match) break;
     quote.push(match[1] ?? '');
     index += 1;
@@ -235,21 +245,22 @@ function renderList(
     index += 1;
   }
 
+  const content = items.map((item) => `<li>${item}</li>`).join('');
   return {
-    html: `<${kind}>${items.map((item) => `<li>${item}</li>`).join('')}</${kind}>`,
+    html: `<${kind}>${content}</${kind}>`,
     nextIndex: index
   };
 }
 
 function renderListItem(content: string, options: Context7MarkdownOptions): string {
-  const task = content.match(/^\[([ xX])]\s+(.+)/);
+  const task = /^\[([ xX])]\s+(.+)/.exec(content);
   if (!task) return renderInline(content, options);
   const checked = task[1]?.toLowerCase() === 'x';
   return `<label class="c7-task"><input aria-hidden="true" disabled type="checkbox"${checked ? ' checked' : ''}><span>${renderInline(task[2] ?? '', options)}</span></label>`;
 }
 
 function matchListLine(line: string): ListMatch | null {
-  const match = line.match(/^(\s*)([-+*]|\d+[.)])\s+(.+)/);
+  const match = /^(\s*)([-+*]|\d+[.)])\s+(.+)/.exec(line);
   if (!match) return null;
   return {
     content: match[3] ?? '',
@@ -361,7 +372,8 @@ function toSafeHttpUrl(value: string, baseUrl?: string): string | null {
   try {
     const isRelative = !/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(value);
     const url = isRelative ? new URL(value, normalizeBaseUrl(baseUrl)) : new URL(value);
-    return url.protocol === 'http:' || url.protocol === 'https:' ? (isRelative ? url.href : value) : null;
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    return isRelative ? url.href : value;
   } catch {
     return null;
   }
@@ -379,21 +391,22 @@ function normalizeLanguage(value: string): string {
   return LANGUAGE_ALIASES[normalized] ?? normalized;
 }
 
+// Quoted tokens consume unfinished strings through EOF instead of rescanning each escaped quote.
 function highlightCode(code: string, language: string): string {
   const normalized = LANGUAGE_ALIASES[language] ?? language;
   if (normalized === 'javascript' || normalized === 'typescript') {
     return highlightTokens(
       code,
-      /(\/\*[\s\S]*?\*\/|\/\/[^\n]*|`(?:\\.|[^`\\])*`|'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|\b(?:async|await|break|case|catch|class|const|continue|default|delete|do|else|export|extends|false|finally|for|from|function|if|import|in|instanceof|interface|let|new|null|of|return|static|super|switch|this|throw|true|try|type|typeof|undefined|var|void|while|yield)\b|\b\d+(?:\.\d+)?\b)/g,
+      /(\/\*[\s\S]*?\*\/|\/\/[^\n]*|`(?:\\[\s\S]|[^`\\])*(?:`|\\?$)|'(?:\\[\s\S]|[^'\\])*(?:'|\\?$)|"(?:\\[\s\S]|[^"\\])*(?:"|\\?$)|\b(?:async|await|break|case|catch|class|const|continue|default|delete|do|else|export|extends|false|finally|for|from|function|if|import|in|instanceof|interface|let|new|null|of|return|static|super|switch|this|throw|true|try|type|typeof|undefined|var|void|while|yield)\b|\b\d+(?:\.\d+)?\b)/g,
       classifyScriptToken
     );
   }
   if (normalized === 'json') {
     return highlightTokens(
       code,
-      /("(?:\\.|[^"\\])*"(?=\s*:)|"(?:\\.|[^"\\])*"|\b(?:true|false|null)\b|-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)/gi,
-      (token) =>
-        token.endsWith('"') && new RegExp(`${escapeRegExp(token)}\\s*:`).test(code)
+      /("(?:\\[\s\S]|[^"\\])*(?:"|\\?$)|\b(?:true|false|null)\b|-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)/gi,
+      (token, index) =>
+        token.startsWith('"') && /^\s*:/.test(code.slice(index + token.length))
           ? 'property'
           : classifyScriptToken(token)
     );
@@ -406,14 +419,14 @@ function highlightCode(code: string, language: string): string {
   if (normalized === 'css') {
     return highlightTokens(
       code,
-      /(\/\*[\s\S]*?\*\/|'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|#[\da-fA-F]{3,8}|\b\d+(?:\.\d+)?(?:px|rem|em|%|s|ms)?\b)/g,
+      /(\/\*[\s\S]*?\*\/|'(?:\\[\s\S]|[^'\\])*(?:'|\\?$)|"(?:\\[\s\S]|[^"\\])*(?:"|\\?$)|#[\da-fA-F]{3,8}|\b\d+(?:\.\d+)?(?:px|rem|em|%|s|ms)?\b)/g,
       classifyScriptToken
     );
   }
   if (normalized === 'shell') {
     return highlightTokens(
       code,
-      /(#.*$|'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|\$[\w@#?$!*-]+|\b\d+(?:\.\d+)?\b)/gm,
+      /(#.*$|'(?:\\[\s\S]|[^'\\])*(?:'|\\?$)|"(?:\\[\s\S]|[^"\\])*(?:"|\\?$)|\$[\w@#?$!*-]+|\b\d+(?:\.\d+)?\b)/gm,
       classifyScriptToken
     );
   }
@@ -423,7 +436,7 @@ function highlightCode(code: string, language: string): string {
 function highlightTokens(
   code: string,
   pattern: RegExp,
-  classify: (token: string) => 'comment' | 'keyword' | 'number' | 'property' | 'string' | 'variable'
+  classify: (token: string, index: number) => 'comment' | 'keyword' | 'number' | 'property' | 'string' | 'variable'
 ): string {
   let output = '';
   let lastIndex = 0;
@@ -431,7 +444,7 @@ function highlightTokens(
     const token = match[0];
     const index = match.index ?? 0;
     output += escapeHtml(code.slice(lastIndex, index));
-    output += `<span class="c7-token c7-token--${classify(token)}">${escapeHtml(token)}</span>`;
+    output += `<span class="c7-token c7-token--${classify(token, index)}">${escapeHtml(token)}</span>`;
     lastIndex = index + token.length;
   }
   return output + escapeHtml(code.slice(lastIndex));
@@ -443,8 +456,4 @@ function classifyScriptToken(token: string): 'comment' | 'keyword' | 'number' | 
   if (/^['"`]/.test(token)) return 'string';
   if (/^-?\d/.test(token)) return 'number';
   return 'keyword';
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

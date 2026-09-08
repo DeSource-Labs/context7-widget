@@ -180,7 +180,7 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await container.locator(selectors.backdrop).check();
       await container.locator('.context7-widget-trigger').click();
 
-      await expect(widget).toHaveAttribute('open', /^(?:|true)$/);
+      await expect(widget).toHaveAttribute('open', /^(?:true)?$/);
       await expect(widget).toHaveAttribute('backdrop-active', '');
       await expect(panel(widget)).toBeVisible();
 
