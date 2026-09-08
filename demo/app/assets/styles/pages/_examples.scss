@@ -31,6 +31,7 @@
 .constructor-controls,
 .constructor-preview {
   @include card-surface;
+  height: clamp(560px, calc(100dvh - 7rem), 720px);
 }
 
 .constructor-controls,
@@ -44,11 +45,6 @@
 .constructor-controls {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-}
-
-.constructor-controls,
-.constructor-preview {
-  height: clamp(560px, calc(100dvh - 7rem), 720px);
 }
 
 .constructor-controls__header {
@@ -151,6 +147,12 @@
   min-height: 4.6rem;
 }
 
+.constructor-segmented,
+.constructor-swatches {
+  margin: 0;
+  min-width: 0;
+}
+
 .constructor-segmented {
   background: rgba(16, 21, 19, 0.72);
   border: 1px solid var(--line);
@@ -206,6 +208,8 @@
 }
 
 .constructor-swatches {
+  border: 0;
+  padding: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;

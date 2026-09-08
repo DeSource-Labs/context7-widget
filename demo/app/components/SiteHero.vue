@@ -150,6 +150,6 @@ const props = withDefaults(
 const resolvedNavItems = computed(() => props.navItems ?? defaultNavItems);
 const scanOptions = computed(() => ({
   ...scanDefaults[props.tone],
-  ...(props.scan ?? {})
+  ...props.scan
 }));
 </script>

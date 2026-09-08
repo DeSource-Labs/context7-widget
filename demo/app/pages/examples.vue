@@ -122,7 +122,7 @@
           >
             <div class="constructor-group">
               <span>Theme</span>
-              <div class="constructor-segmented" role="group" aria-label="Theme">
+              <fieldset class="constructor-segmented" aria-label="Theme">
                 <button
                   v-for="themeOption in themeOptions"
                   :key="themeOption"
@@ -132,7 +132,7 @@
                 >
                   {{ themeOption }}
                 </button>
-              </div>
+              </fieldset>
             </div>
 
             <div class="constructor-group">
@@ -146,7 +146,7 @@
 
             <div class="constructor-group constructor-group--full">
               <span>Accent</span>
-              <div class="constructor-swatches" role="group" aria-label="Accent color">
+              <fieldset class="constructor-swatches" aria-label="Accent color">
                 <button
                   v-for="accentOption in accentOptions"
                   :key="accentOption.label"
@@ -159,7 +159,7 @@
                 >
                   <span v-if="!accentOption.value">preset</span>
                 </button>
-              </div>
+              </fieldset>
             </div>
 
             <div class="constructor-group constructor-group--full">
