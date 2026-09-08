@@ -391,45 +391,67 @@ function normalizeLanguage(value: string): string {
   return LANGUAGE_ALIASES[normalized] ?? normalized;
 }
 
+const BLOCK_COMMENT = /\/\*[\s\S]*?\*\//;
 // Quoted tokens consume unfinished strings through EOF instead of rescanning each escaped quote.
+const SINGLE_QUOTED = /'(?:\\[\s\S]|[^'\\])*(?:'|\\?$)/;
+const DOUBLE_QUOTED = /"(?:\\[\s\S]|[^"\\])*(?:"|\\?$)/;
+const TEMPLATE_QUOTED = /`(?:\\[\s\S]|[^`\\])*(?:`|\\?$)/;
+const CODE_NUMBER = /\b\d+(?:\.\d+)?\b/;
+// Cache each language once; pure initializers let other consumers drop the highlighter.
+const SCRIPT_TOKENS = /* @__PURE__ */ createScriptTokens();
+const JSON_TOKENS = /* @__PURE__ */ combineTokenPatterns(
+  [DOUBLE_QUOTED, /\b(?:true|false|null)\b/, /-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b/],
+  'gi'
+);
+const CSS_TOKENS = /* @__PURE__ */ combineTokenPatterns([
+  BLOCK_COMMENT,
+  SINGLE_QUOTED,
+  DOUBLE_QUOTED,
+  /#[\da-fA-F]{3,8}/,
+  /\b\d+(?:\.\d+)?(?:px|rem|em|%|s|ms)?\b/
+]);
+const SHELL_TOKENS = /* @__PURE__ */ combineTokenPatterns(
+  [/#.*$/, SINGLE_QUOTED, DOUBLE_QUOTED, /\$[\w@#?$!*-]+/, CODE_NUMBER],
+  'gm'
+);
+
+const MARKUP_TOKENS = /* @__PURE__ */ combineTokenPatterns([/<!--[\s\S]*?-->|<\/?[a-zA-Z][^>]*>/]);
+
+function createScriptTokens(): RegExp {
+  const keywords =
+    'async await break case catch class const continue default delete do else export extends false finally for from function if import in instanceof interface let new null of return static super switch this throw true try type typeof undefined var void while yield'.split(
+      ' '
+    );
+  return combineTokenPatterns([
+    BLOCK_COMMENT,
+    /\/\/[^\n]*/,
+    TEMPLATE_QUOTED,
+    SINGLE_QUOTED,
+    DOUBLE_QUOTED,
+    new RegExp(String.raw`\b(?:${keywords.join('|')})\b`),
+    CODE_NUMBER
+  ]);
+}
+
+// Compile once per language while keeping shared token grammars in one place.
+function combineTokenPatterns(patterns: readonly RegExp[], flags = 'g'): RegExp {
+  return new RegExp(patterns.map((pattern) => pattern.source).join('|'), flags);
+}
+
 function highlightCode(code: string, language: string): string {
-  const normalized = LANGUAGE_ALIASES[language] ?? language;
-  if (normalized === 'javascript' || normalized === 'typescript') {
-    return highlightTokens(
-      code,
-      /(\/\*[\s\S]*?\*\/|\/\/[^\n]*|`(?:\\[\s\S]|[^`\\])*(?:`|\\?$)|'(?:\\[\s\S]|[^'\\])*(?:'|\\?$)|"(?:\\[\s\S]|[^"\\])*(?:"|\\?$)|\b(?:async|await|break|case|catch|class|const|continue|default|delete|do|else|export|extends|false|finally|for|from|function|if|import|in|instanceof|interface|let|new|null|of|return|static|super|switch|this|throw|true|try|type|typeof|undefined|var|void|while|yield)\b|\b\d+(?:\.\d+)?\b)/g,
-      classifyScriptToken
+  if (language === 'javascript' || language === 'typescript') {
+    return highlightTokens(code, SCRIPT_TOKENS, classifyScriptToken);
+  }
+  if (language === 'json') {
+    return highlightTokens(code, JSON_TOKENS, (token, index) =>
+      token.startsWith('"') && /^\s*:/.test(code.slice(index + token.length)) ? 'property' : classifyScriptToken(token)
     );
   }
-  if (normalized === 'json') {
-    return highlightTokens(
-      code,
-      /("(?:\\[\s\S]|[^"\\])*(?:"|\\?$)|\b(?:true|false|null)\b|-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)/gi,
-      (token, index) =>
-        token.startsWith('"') && /^\s*:/.test(code.slice(index + token.length))
-          ? 'property'
-          : classifyScriptToken(token)
-    );
+  if (language === 'markup') {
+    return highlightTokens(code, MARKUP_TOKENS, (token) => (token.startsWith('<!--') ? 'comment' : 'keyword'));
   }
-  if (normalized === 'markup') {
-    return highlightTokens(code, /(<!--[\s\S]*?-->|<\/?[a-zA-Z][^>]*>)/g, (token) =>
-      token.startsWith('<!--') ? 'comment' : 'keyword'
-    );
-  }
-  if (normalized === 'css') {
-    return highlightTokens(
-      code,
-      /(\/\*[\s\S]*?\*\/|'(?:\\[\s\S]|[^'\\])*(?:'|\\?$)|"(?:\\[\s\S]|[^"\\])*(?:"|\\?$)|#[\da-fA-F]{3,8}|\b\d+(?:\.\d+)?(?:px|rem|em|%|s|ms)?\b)/g,
-      classifyScriptToken
-    );
-  }
-  if (normalized === 'shell') {
-    return highlightTokens(
-      code,
-      /(#.*$|'(?:\\[\s\S]|[^'\\])*(?:'|\\?$)|"(?:\\[\s\S]|[^"\\])*(?:"|\\?$)|\$[\w@#?$!*-]+|\b\d+(?:\.\d+)?\b)/gm,
-      classifyScriptToken
-    );
-  }
+  if (language === 'css') return highlightTokens(code, CSS_TOKENS, classifyScriptToken);
+  if (language === 'shell') return highlightTokens(code, SHELL_TOKENS, classifyScriptToken);
   return escapeHtml(code);
 }
 
@@ -440,9 +462,9 @@ function highlightTokens(
 ): string {
   let output = '';
   let lastIndex = 0;
-  for (const match of code.matchAll(pattern)) {
+  for (let match = pattern.exec(code); match; match = pattern.exec(code)) {
     const token = match[0];
-    const index = match.index ?? 0;
+    const index = match.index;
     output += escapeHtml(code.slice(lastIndex, index));
     output += `<span class="c7-token c7-token--${classify(token, index)}">${escapeHtml(token)}</span>`;
     lastIndex = index + token.length;

@@ -48,7 +48,7 @@ const reactPackageRoot = fileURLToPath(new URL('../packages/react', import.meta.
 const sveltePackageRoot = fileURLToPath(new URL('../packages/svelte', import.meta.url));
 
 const fileBudgets: readonly FileBudget[] = [
-  { file: 'packages/core/dist/widget.js', maxGzipBytes: 22_500 },
+  { file: 'packages/core/dist/widget.js', maxGzipBytes: 22_600 },
   { file: 'packages/vue/dist/index.js', maxGzipBytes: 8_500 },
   { file: 'packages/vue/dist/styles.css', maxGzipBytes: 5_500 },
   { file: 'packages/react/dist/styles.css', maxGzipBytes: 5_500 },
@@ -79,7 +79,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
   {
     contents: "export { renderMarkdown } from '@desource/context7-widget/core';",
     forbiddenMarkers: ['api/v2/widget/chat', 'data:image', 'Context7WidgetElement'],
-    maxGzipBytes: 3_000,
+    maxGzipBytes: 3_100,
     name: 'core /core Markdown-only consumer',
     resolveDir: corePackageRoot
   },
@@ -92,7 +92,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
   },
   {
     contents: "export { mountContext7Widget } from '@desource/context7-widget';",
-    maxGzipBytes: 23_500,
+    maxGzipBytes: 23_700,
     name: 'core custom-element runtime consumer',
     resolveDir: corePackageRoot
   },

@@ -106,6 +106,101 @@ describe('markdown', () => {
     expect(container.querySelectorAll('.c7-token--string')).toHaveLength(2);
   });
 
+  it.each(['js', 'ts', 'json', 'css', 'sh', 'html', 'unknown'])(
+    'escapes HTML characters inside and between %s tokens exactly once',
+    (language) => {
+      const code = `left & < > "quoted & < >" middle & < > 'tail & < >`;
+      const container = document.createElement('div');
+      container.innerHTML = renderMarkdown(`\`\`\`${language}\n${code}\n\`\`\``);
+
+      expect(container.querySelector('code')?.textContent).toBe(code);
+      expect(container.querySelectorAll('code *:not(span)')).toHaveLength(0);
+    }
+  );
+
+  it.each([
+    {
+      language: 'js',
+      code: `'/* text */' /* "comment" */ return 1.5`,
+      tokens: [
+        ['string', "'/* text */'"],
+        ['comment', '/* "comment" */'],
+        ['keyword', 'return'],
+        ['number', '1.5']
+      ]
+    },
+    {
+      language: 'jsonc',
+      code: '{"key": "value", "count": -1.5e+2, "ready": TRUE}',
+      tokens: [
+        ['property', '"key"'],
+        ['string', '"value"'],
+        ['property', '"count"'],
+        ['number', '-1.5e+2'],
+        ['property', '"ready"'],
+        ['keyword', 'TRUE']
+      ]
+    },
+    {
+      language: 'css',
+      code: `.card { content: '/* text */'; margin: 1.5rem; color: #abc; }`,
+      tokens: [
+        ['string', "'/* text */'"],
+        ['number', '1.5rem'],
+        ['comment', '#abc']
+      ]
+    },
+    {
+      language: 'bash',
+      code: 'echo "$HOME # text" $HOME 2\n# comment\necho 3',
+      tokens: [
+        ['string', '"$HOME # text"'],
+        ['variable', '$HOME'],
+        ['number', '2'],
+        ['comment', '# comment'],
+        ['number', '3']
+      ]
+    },
+    {
+      language: 'xml',
+      code: '<!-- <tag> --><tag title="&">text & more</tag>',
+      tokens: [
+        ['comment', '<!-- <tag> -->'],
+        ['keyword', '<tag title="&">'],
+        ['keyword', '</tag>']
+      ]
+    }
+  ])('preserves token precedence and classification in $language code', ({ language, code, tokens }) => {
+    const container = document.createElement('div');
+    container.innerHTML = renderMarkdown(`\`\`\`${language}\n${code}\n\`\`\``);
+
+    expect(container.querySelector('code')?.textContent).toBe(code);
+    expect(
+      Array.from(container.querySelectorAll('.c7-token'), (token) => [
+        token.className.replace('c7-token c7-token--', ''),
+        token.textContent
+      ])
+    ).toEqual(tokens);
+  });
+
+  it('keeps token positions stable across repeated code fences and renders', () => {
+    const fence = '```json\n{"&":"&","other" : "&"}\n```';
+    const markdown = `${fence}\n${fence}`;
+    const html = renderMarkdown(markdown);
+    renderMarkdown('```js\nconst value = "other";\n```');
+    const container = document.createElement('div');
+    container.innerHTML = renderMarkdown(markdown);
+
+    expect(renderMarkdown(markdown)).toBe(html);
+    expect(Array.from(container.querySelectorAll('.c7-token--property'), (token) => token.textContent)).toEqual([
+      '"&"',
+      '"other"',
+      '"&"',
+      '"other"'
+    ]);
+    expect(container.querySelectorAll('.c7-token--string')).toHaveLength(4);
+  });
+
   it('keeps markdown characters inside inline code literal', () => {
     expect(renderMarkdown('Use `**literal**` and **bold**.')).toContain(
       '<code>**literal**</code> and <strong>bold</strong>'
