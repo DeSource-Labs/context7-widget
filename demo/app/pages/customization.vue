@@ -63,9 +63,8 @@
         <p class="eyebrow">CSS variables</p>
         <h2>Override tokens without reaching into the widget.</h2>
         <p>
-          Set these on `context7-widget`, on a scoped instance such as `context7-widget[widget-id="docs"]`, or inside
-          theme and preset selectors. Use them for brand color, radius, surfaces, message bubbles, controls, and layout
-          dimensions.
+          Set these on `context7-widget` for core, or `.context7-widget` for a native framework package. Scope an
+          individual instance with `[widget-id="docs"]`, and use theme or preset selectors when needed.
         </p>
       </div>
 
@@ -87,8 +86,8 @@
         <p class="eyebrow">Shadow parts</p>
         <h2>Target exact blocks when variables are not enough.</h2>
         <p>
-          Use `::part(...)` when a product system needs direct styling for one stable surface. Prefer variables for
-          colors, radius, spacing, and typography; use parts for borders, shadows, text transform, and focused polish.
+          Use `::part(...)` with the core custom element, or `[part~='...']` with native framework DOM, when a product
+          system needs direct styling for one stable surface. Prefer variables for colors and layout.
         </p>
       </div>
 
@@ -111,7 +110,11 @@
         <CodeBlock id="customization-theme-code" label="Scoped dark theme" :code="darkThemeSnippet" />
         <CodeBlock id="customization-density-code" label="Dense product panel" :code="densePanelSnippet" />
         <CodeBlock id="customization-parts-code" label="Shadow part polish" :code="partOverrideSnippet" />
-        <CodeBlock id="customization-vue-trigger-code" label="Vue managed trigger" :code="vueTriggerSnippet" />
+        <CodeBlock
+          id="customization-framework-trigger-code"
+          label="Framework managed trigger"
+          :code="frameworkTriggerSnippet"
+        />
         <CodeBlock id="customization-center-code" label="Centered dialog surface" :code="centerDialogSnippet" />
       </div>
     </section>
@@ -123,8 +126,8 @@
           <h2>Variables are the contract. Parts are the precision tool.</h2>
         </div>
         <p>
-          Avoid styling `.c7-*` classes inside the shadow DOM. They are implementation details. The variables and
-          `::part` names documented here are the stable customization layer.
+          Avoid styling internal `.c7-*` classes. They are implementation details. CSS variables plus core `::part` and
+          framework `[part]` selectors are the stable customization layer.
         </p>
       </div>
     </section>
@@ -227,15 +230,15 @@ const tokenGroups = [
     tokens: ['--c7-control-background', '--c7-control-border', '--c7-control-color']
   },
   {
-    copy: 'Only applies to the Vue package managed trigger after importing `@desource/context7-widget-vue/styles.css`.',
-    title: 'Vue managed trigger',
+    copy: 'Applies to managed triggers rendered by a native framework package after its stylesheet is imported.',
+    title: 'Framework managed trigger',
     tokens: [
-      '--c7-vue-trigger-background',
-      '--c7-vue-trigger-border',
-      '--c7-vue-trigger-color',
-      '--c7-vue-trigger-focus',
-      '--c7-vue-trigger-radius',
-      '--c7-vue-trigger-shadow'
+      '--c7-trigger-background',
+      '--c7-trigger-border',
+      '--c7-trigger-color',
+      '--c7-trigger-focus',
+      '--c7-trigger-radius',
+      '--c7-trigger-shadow'
     ]
   }
 ];
@@ -320,13 +323,12 @@ context7-widget::part(code-block) {
   border: 1px solid rgba(255, 255, 255, 0.12);
 }`;
 
-const vueTriggerSnippet = `@import "@desource/context7-widget-vue/styles.css";
-
+const frameworkTriggerSnippet = `/* Import the Vue, React, Svelte, or Angular package stylesheet first. */
 .context7-widget-trigger {
-  --c7-vue-trigger-background: #111827;
-  --c7-vue-trigger-color: #f8fafc;
-  --c7-vue-trigger-radius: 8px;
-  --c7-vue-trigger-shadow: none;
+  --c7-trigger-background: #111827;
+  --c7-trigger-color: #f8fafc;
+  --c7-trigger-radius: 8px;
+  --c7-trigger-shadow: none;
 }`;
 
 const centerDialogSnippet = `context7-widget[position="center"] {

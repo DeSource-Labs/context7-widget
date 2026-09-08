@@ -10,6 +10,7 @@ const DATASET_ATTRIBUTE_MAP = [
   ['launcherLabel', 'launcher-label'],
   ['launcherVariant', 'launcher-variant'],
   ['library', 'library'],
+  ['linkBaseUrl', 'link-base-url'],
   ['panelHeight', 'panel-height'],
   ['panelWidth', 'panel-width'],
   ['placeholder', 'placeholder'],

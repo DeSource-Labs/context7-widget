@@ -115,6 +115,7 @@
           title="Context7 Widget Docs"
           widget-id="site-lab"
           @question="events.question += 1"
+          @cancel="events.cancel += 1"
           @answer-complete="events.answer += 1"
         >
           <button id="context7-lab-trigger" class="lab-trigger" type="button" :disabled="!customTriggerEnabled">
@@ -132,6 +133,7 @@
 
     <div class="event-strip" aria-live="polite">
       <span>Questions {{ events.question }}</span>
+      <span>Cancelled {{ events.cancel }}</span>
       <span>Completed answers {{ events.answer }}</span>
       <span>Widget id site-lab</span>
     </div>
@@ -140,12 +142,11 @@
 
 <script setup lang="ts">
 import { MessageSquare } from '@lucide/vue';
-import {
-  Context7Widget,
-  type Context7LauncherVariant,
-  type Context7Position,
-  type Context7Theme,
-  type Context7WidgetPreset
+import type {
+  Context7LauncherVariant,
+  Context7Position,
+  Context7Theme,
+  Context7WidgetPreset
 } from '@desource/context7-widget-vue';
 import { buildContext7WidgetScriptTag } from '@desource/context7-widget';
 
@@ -165,7 +166,7 @@ const color = ref('');
 const customTriggerEnabled = ref(true);
 const backdrop = ref(false);
 const closeOnOutsideClick = ref(true);
-const events = reactive({ answer: 0, question: 0 });
+const events = reactive({ answer: 0, cancel: 0, question: 0 });
 
 const scriptCode = computed(() =>
   buildContext7WidgetScriptTag({

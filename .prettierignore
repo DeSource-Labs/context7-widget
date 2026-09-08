@@ -4,8 +4,10 @@ node_modules
 upstream
 .nuxt
 .output
+.angular
+.svelte-kit
 .cache
-coverage
+coverage*
 test-results
 output
 demo/public/widget.js

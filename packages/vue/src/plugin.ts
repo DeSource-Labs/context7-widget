@@ -6,7 +6,7 @@ import type { Context7WidgetProps } from './types';
 export interface Context7WidgetPluginOptions {
   componentName?: string;
   /** Default props inherited by every Context7Widget in this Vue app. */
-  defaults?: Readonly<Partial<Context7WidgetProps>>;
+  defaults?: Readonly<Partial<Omit<Context7WidgetProps, 'open'>>>;
 }
 
 export { context7WidgetDefaultsKey };

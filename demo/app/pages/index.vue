@@ -101,10 +101,10 @@ context7-widget::part(send-button) {
     <section id="paths" class="paths-section">
       <div class="section-heading">
         <p class="eyebrow">Choose an entry point</p>
-        <h2>One widget contract, three ways to ship it.</h2>
+        <h2>One widget contract, seven ways to ship it.</h2>
         <p>
-          Start with a script tag. Move to TypeScript helpers or Vue when the widget becomes part of your application
-          code.
+          Start with a script tag. Move to TypeScript helpers or a native framework package when the widget becomes part
+          of your application code.
         </p>
       </div>
 
@@ -122,6 +122,10 @@ context7-widget::part(send-button) {
         <CodeBlock id="script-install" label="Drop-in script" :code="scriptInstall" />
         <CodeBlock id="core-install" label="Core package" :code="coreInstall" />
         <CodeBlock id="vue-install" label="Vue package" :code="vueInstall" />
+        <CodeBlock id="nuxt-install" label="Nuxt module" :code="nuxtInstall" />
+        <CodeBlock id="react-install" label="React package" :code="reactInstall" />
+        <CodeBlock id="svelte-install" label="Svelte package" :code="svelteInstall" />
+        <CodeBlock id="angular-install" label="Angular package" :code="angularInstall" />
       </div>
     </section>
 
@@ -150,12 +154,12 @@ import { ArrowUp, Braces, GitFork, Package, Palette, PanelRightOpen, SlidersHori
 const scriptInstall =
   `<script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-color="#10b981"
 ></scr` + `ipt>`;
 
-const coreInstall = `pnpm add @desource/context7-widget
+const coreInstall = `npm install @desource/context7-widget
 
 import { mountContext7Widget } from "@desource/context7-widget";
 
@@ -165,13 +169,57 @@ mountContext7Widget({
   color: "#10b981"
 });`;
 
-const vueInstall = `pnpm add @desource/context7-widget-vue
+const vueInstall = `npm install @desource/context7-widget-vue
 
 <Context7Widget
   library="/owner/repo"
   color="#10b981"
   @question="trackQuestion"
 />`;
+
+const nuxtInstall = `npm install @desource/context7-widget-nuxt
+
+export default defineNuxtConfig({
+  modules: ["@desource/context7-widget-nuxt"],
+  context7Widget: {
+    defaults: { library: "/owner/repo", preset: "glass" }
+  }
+});`;
+
+const reactInstall = `npm install @desource/context7-widget-react
+
+import { Context7Widget } from "@desource/context7-widget-react/component";
+import "@desource/context7-widget-react/styles.css";
+
+<Context7Widget
+  library="/owner/repo"
+  color="#10b981"
+  onQuestion={trackQuestion}
+/>`;
+
+const svelteInstall = `npm install @desource/context7-widget-svelte
+
+import { Context7Widget } from "@desource/context7-widget-svelte";
+import "@desource/context7-widget-svelte/styles.css";
+
+<Context7Widget
+  library="/owner/repo"
+  preset="glass"
+  customTrigger
+/>`;
+
+const angularInstall = `npm install @desource/context7-widget-angular
+
+import { Context7Widget } from "@desource/context7-widget-angular";
+
+@Component({
+  imports: [Context7Widget],
+  template: \`<context7-widget
+    library="/owner/repo"
+    preset="glass"
+    [customTrigger]="true"
+  />\`
+})`;
 
 const heroMarqueeItems = librariesArray.map(({ key, href, label, logo }) => ({ key, href, label, logo }));
 
@@ -199,6 +247,38 @@ const paths = [
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue',
     icon: Package,
     title: 'Vue package'
+  },
+  {
+    class: '',
+    copy: 'For Nuxt apps that want component and composable auto-imports, app defaults, global CSS, and SSR-safe setup.',
+    cta: 'View Nuxt module',
+    href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/nuxt',
+    icon: Package,
+    title: 'Nuxt module'
+  },
+  {
+    class: '',
+    copy: 'For React apps that want a native component, controlled state, typed callbacks, a hook, and managed triggers.',
+    cta: 'View React package',
+    href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/react',
+    icon: Package,
+    title: 'React package'
+  },
+  {
+    class: '',
+    copy: 'For Svelte 5 apps that want native rendering, bindable state, snippets, reactive controls, and scoped styles.',
+    cta: 'View Svelte package',
+    href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/svelte',
+    icon: Package,
+    title: 'Svelte package'
+  },
+  {
+    class: '',
+    copy: 'For Angular apps that want a standalone component, signals, DI defaults, injectable controls, and OnPush rendering.',
+    cta: 'View Angular package',
+    href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/angular',
+    icon: Package,
+    title: 'Angular package'
   }
 ];
 
@@ -214,13 +294,13 @@ const audiences = [
     title: 'Add docs help without building support chat.'
   },
   {
-    copy: 'Start with the script. Developers can move to Vue or TypeScript later without changing the visitor experience.',
+    copy: 'Start with the script. Developers can move to TypeScript or a native framework package later without changing the visitor experience.',
     kicker: 'Product owner',
     title: 'Ship a helpful assistant before a long roadmap.'
   }
 ];
 
-const eventPulses = ['ready', 'open', 'question', 'first-token', 'tool-call', 'answer-complete', 'error'];
+const eventPulses = ['ready', 'open', 'cancel', 'question', 'first-token', 'tool-call', 'answer-complete', 'error'];
 
 const useCases = [
   {
@@ -239,7 +319,7 @@ const useCases = [
     title: 'Custom help entry points'
   },
   {
-    copy: 'Use script, TypeScript, or Vue today. React, Nuxt, Svelte, and Angular packages are next on the same core.',
+    copy: 'Use script, TypeScript, Vue, Nuxt, React, Svelte, or Angular with the same options, events, styles, and conversation behavior.',
     number: '04',
     title: 'Framework-ready apps'
   }

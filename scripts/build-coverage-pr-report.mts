@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { readCoordinatedPublicPackages } from './public-packages.mts';
+
 const DEFAULT_OUTPUT = 'coverage-pr-report.md';
 
 type CoverageRow = {
@@ -64,18 +66,11 @@ type ReportHeaderParams = {
   baselineSource: string;
 };
 
-const PACKAGE_REPORTS: PackageReport[] = [
-  {
-    label: '@desource/context7-widget',
-    file: 'packages/core/coverage/lcov.info',
-    packagePath: 'packages/core/src'
-  },
-  {
-    label: '@desource/context7-widget-vue',
-    file: 'packages/vue/coverage/lcov.info',
-    packagePath: 'packages/vue/src'
-  }
-];
+const PACKAGE_REPORTS: PackageReport[] = (await readCoordinatedPublicPackages()).map(({ directory, name }) => ({
+  label: name,
+  file: `packages/${directory}/coverage/lcov.info`,
+  packagePath: `packages/${directory}/src`
+}));
 
 function shouldIncludeSourceFile(sourceFile: string, needle: string): boolean {
   if (needle === '') return true;

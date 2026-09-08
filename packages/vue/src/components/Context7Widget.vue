@@ -3,21 +3,22 @@
     ref="root"
     v-bind="attrs"
     class="context7-widget"
-    :backdrop-active="resolvedBackdrop ? '' : undefined"
+    :backdrop-active="resolvedConfig.backdrop ? '' : undefined"
     :close-on-outside-click="String(resolvedCloseOnOutsideClick)"
-    :color="resolvedColor || undefined"
+    :color="resolvedConfig.color || undefined"
     :custom-trigger="customTriggerSelector"
-    :default-open="String(resolvedDefaultOpen)"
-    :launcher-variant="resolvedLauncherVariant"
+    :custom-trigger-active="hasCustomTrigger ? '' : undefined"
+    :default-open="String(resolvedConfig.defaultOpen)"
+    :launcher-variant="resolvedConfig.launcherVariant"
     :library="resolvedLibrary"
     :open="isOpen ? '' : undefined"
-    :panel-height="resolvedPanelHeight || undefined"
-    :panel-width="resolvedPanelWidth || undefined"
+    :panel-height="resolvedConfig.panelHeight || undefined"
+    :panel-width="resolvedConfig.panelWidth || undefined"
     :position="resolvedPosition"
-    :preset="resolvedPreset"
+    :preset="resolvedConfig.preset"
     :style="widgetStyle"
-    :theme="resolvedTheme"
-    :widget-id="resolvedWidgetId"
+    :theme="resolvedConfig.theme"
+    :widget-id="resolvedConfig.widgetId"
     @keydown="onKeyDown"
   >
     <div class="c7-backdrop" data-c7-backdrop part="backdrop" aria-hidden="true" @click="onBackdropClick" />
@@ -30,29 +31,30 @@
       type="button"
       :aria-controls="panelId"
       :aria-expanded="isOpen"
+      :aria-label="resolvedConfig.launcherLabel"
       aria-haspopup="dialog"
-      :data-preset="resolvedPreset"
-      :data-theme="resolvedTheme"
+      :data-preset="resolvedConfig.preset"
+      :data-theme="resolvedConfig.theme"
       @click="openFrom($event.currentTarget)"
     >
-      <slot name="trigger" :label="resolvedLauncherLabel" :trigger-id="managedTriggerId">
-        {{ resolvedLauncherLabel }}
+      <slot name="trigger" :label="resolvedConfig.launcherLabel" :trigger-id="managedTriggerId">
+        {{ resolvedConfig.launcherLabel }}
       </slot>
     </button>
 
-    <section
+    <dialog
       :id="panelId"
       ref="panel"
-      :aria-label="resolvedTitle"
+      :open="isOpen"
+      :aria-label="resolvedConfig.title"
       :aria-busy="busy"
       :aria-modal="resolvedPosition === 'center'"
       class="c7-panel"
       part="panel"
-      role="dialog"
     >
       <header class="c7-header" part="header">
-        <div class="c7-title" part="title">{{ resolvedTitle }}</div>
-        <button class="c7-close" part="close-button" type="button" aria-label="Close chat" @click="close">
+        <div class="c7-title" part="title">{{ resolvedConfig.title }}</div>
+        <button class="c7-close" part="close-button" type="button" :aria-label="resolvedLabels.close" @click="close">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6 6 18" />
             <path d="m6 6 12 12" />
@@ -62,28 +64,66 @@
 
       <div
         ref="messagesElement"
-        aria-label="Documentation chat conversation"
+        :aria-label="resolvedLabels.conversation"
         aria-live="polite"
         aria-relevant="additions text"
         class="c7-messages"
         part="messages"
         role="log"
+        @click="onDelegatedCopyClick"
+        @scroll="onMessagesScroll"
       >
         <template v-for="item in displayItems" :key="item.id">
           <div
             v-if="item.kind === 'message'"
-            v-safe-html="renderMessage(item)"
             :class="['c7-message', `c7-message--${item.role}`]"
             :part="`message ${item.role}-message`"
-          />
+          >
+            <div v-if="item.role === 'assistant' && !item.streaming" v-html="renderCompletedMarkdown(item)" />
+            <div v-else>{{ item.content }}</div>
+            <button
+              v-if="item.role === 'assistant' && !item.streaming"
+              :aria-disabled="copiedAnswerIds.has(item.id) ? 'true' : undefined"
+              :aria-label="copiedAnswerIds.has(item.id) ? resolvedLabels.copied : resolvedLabels.copyAnswer"
+              class="c7-copy-answer"
+              data-c7-copy-answer
+              :data-c7-copied="copiedAnswerIds.has(item.id) ? '' : undefined"
+              :title="copiedAnswerIds.has(item.id) ? resolvedLabels.copied : resolvedLabels.copyAnswer"
+              type="button"
+              @click.stop="copyAnswer(item)"
+            >
+              <svg
+                class="c7-copy-icon"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path class="c7-copy-icon--copy" d="M5 5h9v9H5zM2 11V2h9"></path>
+                <path class="c7-copy-icon--copied" d="m3 8 3 3 7-7"></path>
+              </svg>
+              <span aria-live="polite" class="c7-copy-status">
+                {{ copiedAnswerIds.has(item.id) ? resolvedLabels.copied : '' }}
+              </span>
+            </button>
+          </div>
 
           <div
             v-else-if="item.kind === 'error'"
-            v-safe-html="item.html"
             class="c7-message c7-message--error"
             part="message error-message"
             role="alert"
-          />
+          >
+            <div v-html="item.html" />
+            <button class="c7-retry" type="button" @click="retryError(item.id)">
+              {{ resolvedLabels.retry }}
+            </button>
+          </div>
 
           <div v-else class="c7-tool-call" part="tool-call">
             <div class="c7-tool-header">
@@ -91,7 +131,7 @@
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.35-4.35" />
               </svg>
-              <span>Searching: {{ item.query }}</span>
+              <span>{{ resolvedLabels.searching }}: {{ item.query }}</span>
               <svg
                 v-if="!item.hasResult"
                 class="c7-spinner"
@@ -117,71 +157,103 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="m6 9 6 6 6-6" />
                 </svg>
-                <span>{{ item.expanded ? 'Hide results' : 'View results' }}</span>
+                <span>{{ item.expanded ? resolvedLabels.hideResults : resolvedLabels.viewResults }}</span>
               </button>
-              <div
-                v-show="item.expanded"
+              <section
                 :id="item.contentId"
-                aria-label="Documentation search results"
+                :aria-label="resolvedLabels.searchResults"
+                :hidden="!item.expanded"
                 class="c7-tool-content"
-                role="region"
               >
                 <pre>{{ item.result }}</pre>
-              </div>
+              </section>
             </div>
           </div>
         </template>
 
-        <div v-if="showTyping" aria-label="Context7 is responding" class="c7-typing" part="typing" role="status">
+        <output v-if="showTyping" :aria-label="resolvedLabels.responding" class="c7-typing" part="typing">
           <span aria-hidden="true" />
           <span aria-hidden="true" />
           <span aria-hidden="true" />
-        </div>
+        </output>
       </div>
 
       <form class="c7-composer" part="composer" @submit.prevent="busy ? cancel() : send()">
-        <input
+        <textarea
           ref="input"
           v-model="draft"
-          aria-label="Ask a documentation question"
+          :aria-label="resolvedLabels.input"
           class="c7-input"
           part="input"
-          type="text"
           autocomplete="off"
-          :disabled="busy"
-          :placeholder="resolvedPlaceholder"
+          :readonly="busy"
+          rows="1"
+          :placeholder="resolvedConfig.placeholder"
+          @input="resizeInput"
         />
-        <button :aria-label="busy ? 'Stop response' : 'Send question'" class="c7-send" part="send-button" type="submit">
-          {{ busy ? 'Stop' : 'Send' }}
+        <button
+          ref="sendButton"
+          :aria-label="busy ? resolvedLabels.stopResponse : resolvedLabels.sendQuestion"
+          class="c7-send"
+          part="send-button"
+          type="submit"
+        >
+          {{ busy ? resolvedLabels.stop : resolvedLabels.send }}
         </button>
       </form>
 
       <footer class="c7-footer" part="footer">
-        <span class="c7-branding" part="powered-by" aria-label="Powered by Context7, Enhanced by DeSource Labs">
+        <span class="c7-branding" part="powered-by" :aria-label="resolvedLabels.branding">
           <a
-            v-safe-html="`<span class='c7-brand-prefix'>Powered by</span>` + context7LogoSvg"
             class="c7-brand-link"
             :href="CONTEXT7_URL"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Powered by Context7"
-            title="Powered by Context7"
-          />
+            :aria-label="resolvedLabels.context7Attribution"
+            :title="resolvedLabels.context7Attribution"
+          >
+            <span class="c7-brand-prefix">{{ resolvedLabels.poweredBy }}</span>
+            <svg
+              class="c7-brand-logo c7-brand-logo--context7"
+              aria-hidden="true"
+              viewBox="0 0 28 28"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect width="28" height="28" rx="4" fill="currentColor"></rect>
+              <path
+                d="M10.5724 15.2565C10.5724 17.5025 9.6613 19.3778 8.17805 21.1047H11.6319L11.6319 22.7786H6.33459V21.1895C7.95557 19.3566 8.58065 17.8628 8.58065 15.2565L10.5724 15.2565Z"
+                fill="var(--c7-footer-background, #000000)"
+              ></path>
+              <path
+                d="M17.4276 15.2565C17.4276 17.5025 18.3387 19.3778 19.822 21.1047H16.3681V22.7786H21.6654V21.1895C20.0444 19.3566 19.4194 17.8628 19.4194 15.2565H17.4276Z"
+                fill="var(--c7-footer-background, #000000)"
+              ></path>
+              <path
+                d="M10.5724 12.7435C10.5724 10.4975 9.66131 8.62224 8.17807 6.89532L11.6319 6.89532V5.22137L6.33461 5.22137V6.81056C7.95558 8.64343 8.58066 10.1373 8.58066 12.7435L10.5724 12.7435Z"
+                fill="var(--c7-footer-background, #000000)"
+              ></path>
+              <path
+                d="M17.4276 12.7435C17.4276 10.4975 18.3387 8.62224 19.822 6.89532L16.3681 6.89532L16.3681 5.22138L21.6654 5.22138V6.81056C20.0445 8.64343 19.4194 10.1373 19.4194 12.7435H17.4276Z"
+                fill="var(--c7-footer-background, #000000)"
+              ></path>
+            </svg>
+          </a>
           <span class="c7-brand-separator" aria-hidden="true">·</span>
           <a
             class="c7-brand-link"
             :href="DESOURCE_LABS_URL"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Enhanced by DeSource Labs"
-            title="Enhanced by DeSource Labs"
+            :aria-label="resolvedLabels.deSourceLabsAttribution"
+            :title="resolvedLabels.deSourceLabsAttribution"
           >
-            <span class="c7-brand-prefix">Enhanced by</span>
+            <span class="c7-brand-prefix">{{ resolvedLabels.enhancedBy }}</span>
             <img class="c7-brand-logo c7-brand-logo--desource" :src="deSourceLabsLogoUrl" alt="" />
           </a>
         </span>
       </footer>
-    </section>
+    </dialog>
 
     <button
       v-if="!hasCustomTrigger"
@@ -191,7 +263,7 @@
       type="button"
       :aria-controls="panelId"
       :aria-expanded="isOpen"
-      :aria-label="resolvedLauncherLabel"
+      :aria-label="resolvedConfig.launcherLabel"
       aria-haspopup="dialog"
       @click="openFrom($event.currentTarget)"
     >
@@ -209,7 +281,7 @@
         <path d="M8 13h6" />
         <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-5l-5 3v-3H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h12" />
       </svg>
-      <span class="c7-launcher-label">{{ resolvedLauncherLabel }}</span>
+      <span class="c7-launcher-label">{{ resolvedConfig.launcherLabel }}</span>
     </button>
 
     <slot />
@@ -219,37 +291,40 @@
 <script setup lang="ts">
 import {
   CONTEXT7_URL,
-  Context7TransportError,
   DESOURCE_LABS_URL,
+  acquireContext7Modal,
   buildContext7ErrorHtml,
+  callContext7ListenerSafely,
   cancelRenderFrame,
   captureTriggerAccessibility,
   compactContext7WidgetOptions,
-  context7LogoSvg,
+  createContext7CopyActionController,
+  createContext7CompletedMarkdownRenderer,
+  createContext7ConversationEngine,
+  createContext7ConversationRenderBridge,
   deSourceLabsLogoUrl,
-  escapeHtml,
-  isAbortError,
+  formatContext7ToolResult,
+  getContext7ToolQuery,
+  isContext7WidgetTriggerElement,
+  mergeContext7WidgetOptions,
   normalizeContext7WidgetTrigger,
-  querySelectorSafely,
-  renderMarkdown,
   requestRenderFrame,
+  resolveContext7MarkdownBaseUrl,
+  resolveContext7CustomTrigger,
   resolveContext7WidgetConfig,
   restoreTriggerAccessibility,
-  streamContext7Response,
+  syncContext7CopyButton,
   trapFocus,
   updateAnchorPosition as _updateAnchorPosition,
+  type Context7ConversationEvent,
+  type Context7ConversationState,
   type Context7Message,
+  type Context7RenderedMarkdown,
   type Context7ToolCall,
   type Context7ToolResult,
   type Context7TriggerA11yState,
-  type Context7WidgetAnswerCompleteEventDetail,
-  type Context7WidgetAnswerEventDetail,
-  type Context7WidgetErrorEventDetail,
   type Context7WidgetLifecycleEventDetail,
-  type Context7WidgetOptions,
-  type Context7WidgetQuestionEventDetail,
-  type Context7WidgetToolCallEventDetail,
-  type Context7WidgetToolResultEventDetail
+  type Context7WidgetSendResult
 } from '@desource/context7-widget/kit';
 import {
   computed,
@@ -259,21 +334,22 @@ import {
   onMounted,
   reactive,
   ref,
+  toValue,
   useAttrs,
   useId,
   useTemplateRef,
   watch,
-  type Directive
+  type MaybeRefOrGetter
 } from 'vue';
 import { context7WidgetDefaultsKey } from '../internal/injection';
 import { registerVueContext7Widget, unregisterVueContext7Widget } from '../internal/registry';
 import type {
-  Context7ActiveRequest,
   Context7WidgetEmits,
   Context7WidgetExpose,
   Context7WidgetProps,
   Context7WidgetSlots,
   Context7WidgetStateListener,
+  Context7WidgetCustomTrigger,
   DisplayItem,
   MessageDisplayItem,
   ToolDisplayItem
@@ -287,9 +363,10 @@ defineOptions({
 const props = withDefaults(defineProps<Context7WidgetProps>(), {
   backdrop: undefined,
   closeOnOutsideClick: undefined,
-  defaultOpen: undefined
+  defaultOpen: undefined,
+  open: undefined
 });
-defineSlots<Context7WidgetSlots>();
+const slots = defineSlots<Context7WidgetSlots>();
 const emit = defineEmits<Context7WidgetEmits>();
 
 const attrs = useAttrs();
@@ -297,6 +374,7 @@ const defaults = inject(context7WidgetDefaultsKey, {});
 const root = useTemplateRef('root');
 const panel = useTemplateRef('panel');
 const input = useTemplateRef('input');
+const sendButton = useTemplateRef('sendButton');
 const launcher = useTemplateRef('launcher');
 const managedTrigger = useTemplateRef('managedTrigger');
 const messagesElement = useTemplateRef('messagesElement');
@@ -304,60 +382,52 @@ const isOpen = ref(false);
 const busy = ref(false);
 const draft = ref('');
 const displayItems = ref<DisplayItem[]>([]);
-const conversation = ref<Context7Message[]>([]);
+const copiedAnswerIds = ref<ReadonlySet<string>>(new Set());
 const showTyping = ref(false);
 const activeAnchor = ref<Element | null>(null);
+const hasBoundExternalTrigger = ref(false);
 const messageCounter = ref(0);
 const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '-');
 const managedTriggerId = `context7-widget-trigger-${instanceId}`;
 const panelId = `context7-widget-panel-${instanceId}`;
 const stateListeners = new Set<Context7WidgetStateListener>();
-let activeRequest: Context7ActiveRequest | null = null;
+let customTriggerObserver: MutationObserver | null = null;
+let customTriggerSelectorInvalid = false;
+let customTriggerWarningKey = '';
 let externalTrigger: Element | null = null;
 let externalTriggerAccessibility: Context7TriggerA11yState | null = null;
 let floatingLayoutFrame: number | null = null;
 let floatingResizeObserver: ResizeObserver | null = null;
 let floatingViewport: VisualViewport | null = null;
 let lastFocus: Element | null = null;
+let releaseModal: (() => void) | null = null;
 let registeredWidgetId = '';
+let shouldStickToBottom = true;
+let scrollFrame: number | null = null;
+let scrollGeneration = 0;
 
-const vSafeHtml: Directive<HTMLElement, string> = {
-  beforeMount(element, binding) {
-    element.innerHTML = binding.value;
-  },
-  updated(element, binding) {
-    if (binding.value !== binding.oldValue) element.innerHTML = binding.value;
-  }
+const STICKY_SCROLL_THRESHOLD = 48;
+const QUEUED_SCROLL_FRAME = -1;
+
+type VueAnswerRender = {
+  answer: string;
+  answerItem: MessageDisplayItem | undefined;
+  renderFrame: number | null;
 };
 
-const options = computed<Partial<Context7WidgetOptions>>(() => {
-  const { customTrigger: _customTrigger, ...widgetProps } = props;
+const resolvedConfig = computed(() => {
+  const { customTrigger: _customTrigger, open: _open, ...widgetProps } = props;
   const { customTrigger: _defaultCustomTrigger, ...defaultOptions } = defaults;
   const provided = compactContext7WidgetOptions(widgetProps);
-  return compactContext7WidgetOptions({ ...defaultOptions, ...provided });
+  return resolveContext7WidgetConfig(mergeContext7WidgetOptions(defaultOptions, provided));
 });
-const resolvedConfig = computed(() => resolveContext7WidgetConfig(options.value));
 const resolvedLibrary = computed(() => resolvedConfig.value.library);
 const resolvedPosition = computed(() => resolvedConfig.value.position);
-const resolvedPreset = computed(() => resolvedConfig.value.preset);
-const resolvedTheme = computed(() => resolvedConfig.value.theme);
-const resolvedBackdrop = computed(() => resolvedConfig.value.backdrop);
 const resolvedCloseOnOutsideClick = computed(() => resolvedConfig.value.closeOnOutsideClick);
-const resolvedColor = computed(() => resolvedConfig.value.color);
-const resolvedDefaultOpen = computed(() => resolvedConfig.value.defaultOpen);
-const resolvedInitialMessage = computed(() => resolvedConfig.value.initialMessage);
-const resolvedLauncherLabel = computed(() => resolvedConfig.value.launcherLabel);
-const resolvedLauncherVariant = computed(() => resolvedConfig.value.launcherVariant);
-const resolvedPanelHeight = computed(() => resolvedConfig.value.panelHeight);
-const resolvedPanelWidth = computed(() => resolvedConfig.value.panelWidth);
-const resolvedPlaceholder = computed(() => resolvedConfig.value.placeholder);
-const resolvedTitle = computed(() => resolvedConfig.value.title);
-const resolvedWidgetId = computed(() => resolvedConfig.value.widgetId);
-const resolvedCustomTrigger = computed(() => props.customTrigger ?? defaults.customTrigger);
+const resolvedLabels = computed(() => resolvedConfig.value.labels);
+const resolvedCustomTrigger = computed(() => resolveVueCustomTrigger(props.customTrigger ?? defaults.customTrigger));
 const rendersManagedTrigger = computed(() => resolvedCustomTrigger.value === true);
-const hasCustomTrigger = computed(
-  () => resolvedCustomTrigger.value === true || typeof resolvedCustomTrigger.value === 'string'
-);
+const hasCustomTrigger = computed(() => rendersManagedTrigger.value || hasBoundExternalTrigger.value);
 const customTriggerSelector = computed(() => {
   if (resolvedCustomTrigger.value === true) return `#${managedTriggerId}`;
   if (typeof resolvedCustomTrigger.value === 'string')
@@ -365,31 +435,72 @@ const customTriggerSelector = computed(() => {
   return undefined;
 });
 const widgetStyle = computed(() => ({
-  '--c7-accent': resolvedColor.value || undefined,
-  '--c7-panel-height': resolvedPanelHeight.value || undefined,
-  '--c7-panel-width': resolvedPanelWidth.value || undefined
+  '--c7-accent': resolvedConfig.value.color || undefined,
+  '--c7-panel-height': resolvedConfig.value.panelHeight || undefined,
+  '--c7-panel-width': resolvedConfig.value.panelWidth || undefined
 }));
+
+type CopyActionKey = HTMLButtonElement | string;
+
+const copyActions = createContext7CopyActionController<CopyActionKey>({
+  onChange(key, copied) {
+    if (typeof key === 'string') {
+      const next = new Set(copiedAnswerIds.value);
+      if (copied) next.add(key);
+      else next.delete(key);
+      copiedAnswerIds.value = next;
+      return;
+    }
+    syncContext7CopyButton(key, copied, resolvedLabels.value.copyCode, resolvedLabels.value.copied);
+  }
+});
 
 const detail = (): Context7WidgetLifecycleEventDetail => ({
   library: resolvedLibrary.value,
   widget: root.value as HTMLElement,
-  widgetId: resolvedWidgetId.value
+  widgetId: resolvedConfig.value.widgetId
 });
 
-const reset = () => {
-  cancel();
-  const intro = resolvedInitialMessage.value.replace(/\{library\}/g, resolvedLibrary.value || 'this library');
-  displayItems.value = [{ content: intro, id: nextMessageId(), kind: 'message', role: 'assistant' }];
-  conversation.value = [];
-  notifyState();
-};
+const renderCompletedMarkdownCached = createContext7CompletedMarkdownRenderer();
+const renderCompletedMarkdown = (item: MessageDisplayItem): Context7RenderedMarkdown =>
+  renderCompletedMarkdownCached(item, {
+    baseUrl: resolveContext7MarkdownBaseUrl(resolvedLibrary.value, resolvedConfig.value.linkBaseUrl),
+    copyCodeLabel: resolvedConfig.value.labels.copyCode
+  });
 
-const renderMessage = (item: MessageDisplayItem): string =>
-  item.role === 'assistant' ? renderMarkdown(item.content) : escapeHtml(item.content);
+const resolveVueCustomTrigger = (
+  value: Context7WidgetCustomTrigger | undefined
+): Element | string | true | undefined => {
+  const resolved = toValue(value as MaybeRefOrGetter<Element | boolean | string | null | undefined>);
+  return resolved === true || typeof resolved === 'string' || isContext7WidgetTriggerElement(resolved)
+    ? resolved
+    : undefined;
+};
 
 const nextMessageId = (): string => {
   messageCounter.value += 1;
   return `c7m-${messageCounter.value}`;
+};
+
+const engine = createContext7ConversationEngine({
+  missingLibraryMessage: () => resolvedLabels.value.missingLibrary,
+  nextMessageId,
+  resolveConfig: () => ({ library: resolvedLibrary.value })
+});
+
+const reset = () => {
+  engine.reset();
+  renderBridge.clearActiveAnswer();
+  copyActions.reset(false);
+  copiedAnswerIds.value = new Set();
+  const intro = resolvedConfig.value.initialMessage.replace(
+    /\{library\}/g,
+    resolvedLibrary.value || resolvedLabels.value.libraryFallback
+  );
+  displayItems.value = [{ content: intro, id: nextMessageId(), kind: 'message', role: 'assistant' }];
+  cancelScheduledScroll();
+  shouldStickToBottom = true;
+  scrollToBottom();
 };
 
 const openFrom = (target: EventTarget | null) => {
@@ -397,10 +508,22 @@ const openFrom = (target: EventTarget | null) => {
   toggle();
 };
 
-const open = () => {
-  if (isOpen.value) return;
+const commitOpen = (value: boolean) => {
+  if (isOpen.value === value) return;
+  if (!value) {
+    isOpen.value = false;
+    syncExternalTriggerExpandedState();
+    unbindFloatingListeners();
+    releaseModalState();
+    emit('close', detail());
+    notifyState();
+    if (lastFocus instanceof HTMLElement && lastFocus.isConnected) lastFocus.focus();
+    return;
+  }
+
   lastFocus = document.activeElement;
   isOpen.value = true;
+  syncModalState();
   syncExternalTriggerExpandedState();
   bindFloatingListeners();
   emit('open', detail());
@@ -411,175 +534,156 @@ const open = () => {
   });
 };
 
+const open = () => {
+  if (isOpen.value) return;
+  emit('update:open', true);
+  if (props.open !== undefined) {
+    return;
+  }
+  commitOpen(true);
+};
+
 const close = () => {
   if (!isOpen.value) return;
-  isOpen.value = false;
-  syncExternalTriggerExpandedState();
-  unbindFloatingListeners();
-  emit('close', detail());
-  notifyState();
-  if (lastFocus instanceof HTMLElement && lastFocus.isConnected) lastFocus.focus();
+  emit('update:open', false);
+  if (props.open !== undefined) {
+    return;
+  }
+  commitOpen(false);
 };
 
 const toggle = () => (isOpen.value ? close() : open());
 
 const cancel = () => {
-  const request = activeRequest;
-  if (!request) return;
-
-  activeRequest = null;
-  request.controller.abort();
-  cancelRenderFrame(request.renderFrame);
-  busy.value = false;
-  showTyping.value = false;
-  notifyState();
+  engine.cancel();
   void nextTick(() => input.value?.focus());
 };
 
-const send = async (rawQuestion?: string) => {
-  const question = (rawQuestion ?? draft.value).trim();
-  if (!question || busy.value) return;
+const releaseModalState = () => {
+  releaseModal?.();
+  releaseModal = null;
+};
 
-  if (!resolvedLibrary.value) {
-    const message = 'Missing library prop.';
-    displayItems.value.push({
-      html: buildContext7ErrorHtml(message, resolvedLibrary.value),
-      id: nextMessageId(),
-      kind: 'error'
-    });
-    emit('error', { ...detail(), error: message, question } satisfies Context7WidgetErrorEventDetail);
-    await scrollToBottom();
-    return;
-  }
-
-  open();
-  busy.value = true;
-  draft.value = '';
-
-  const userMessage: Context7Message = {
-    content: question,
-    id: nextMessageId(),
-    role: 'user'
-  };
-  conversation.value.push(userMessage);
-  displayItems.value.push({ ...userMessage, kind: 'message' });
-  emit('question', {
-    ...detail(),
-    message: userMessage,
-    messages: [...conversation.value],
-    question
-  } satisfies Context7WidgetQuestionEventDetail);
-
-  showTyping.value = true;
-  let answer = '';
-  let answerItem: MessageDisplayItem | undefined;
-  let sawFirstToken = false;
-  const request: Context7ActiveRequest = {
-    controller: new AbortController(),
-    renderFrame: null
-  };
-  activeRequest = request;
-  notifyState();
-
-  const renderAnswer = () => {
-    request.renderFrame = null;
-    if (activeRequest !== request || !answerItem) return;
-    answerItem.content = answer;
-    void scrollToBottom();
-  };
-
-  const flushAnswer = () => {
-    cancelRenderFrame(request.renderFrame);
-    request.renderFrame = null;
-    if (answerItem) answerItem.content = answer;
-  };
-
-  try {
-    await streamContext7Response(
-      { library: resolvedLibrary.value },
-      conversation.value,
-      {
-        onChunk(delta) {
-          if (activeRequest !== request) return;
-          showTyping.value = false;
-          answer += delta;
-          if (!answerItem) {
-            answerItem = reactive<MessageDisplayItem>({
-              content: '',
-              id: nextMessageId(),
-              kind: 'message',
-              role: 'assistant'
-            });
-            displayItems.value.push(answerItem);
-          }
-          request.renderFrame ??= requestRenderFrame(renderAnswer);
-
-          const answerDetail = { ...detail(), answer, question } satisfies Context7WidgetAnswerEventDetail;
-          if (!sawFirstToken) {
-            sawFirstToken = true;
-            emit('first-token', answerDetail);
-          }
-          emit('answer', answerDetail);
-        },
-        onToolCall(toolCall) {
-          if (activeRequest !== request) return;
-          showTyping.value = false;
-          appendToolCall(toolCall);
-          emit('tool-call', { ...detail(), question, toolCall } satisfies Context7WidgetToolCallEventDetail);
-        },
-        onToolResult(toolResult) {
-          if (activeRequest !== request) return;
-          updateToolResult(toolResult);
-          emit('tool-result', { ...detail(), question, toolResult } satisfies Context7WidgetToolResultEventDetail);
-        }
-      },
-      request.controller.signal
-    );
-
-    if (activeRequest !== request) return;
-    showTyping.value = false;
-    if (answer) {
-      flushAnswer();
-      const assistantMessage: Context7Message = {
-        content: answer,
-        id: answerItem?.id ?? nextMessageId(),
-        role: 'assistant'
-      };
-      conversation.value.push(assistantMessage);
-      notifyState();
-      emit('answer-complete', {
-        ...detail(),
-        answer,
-        message: assistantMessage,
-        messages: [...conversation.value],
-        question
-      } satisfies Context7WidgetAnswerCompleteEventDetail);
-    }
-  } catch (error) {
-    if (activeRequest === request) {
-      showTyping.value = false;
-    }
-    if (activeRequest === request && !isAbortError(error)) {
-      const message =
-        error instanceof Context7TransportError || error instanceof Error ? error.message : 'Something went wrong.';
-      displayItems.value.push({
-        html: buildContext7ErrorHtml(message, resolvedLibrary.value),
-        id: nextMessageId(),
-        kind: 'error'
-      });
-      emit('error', { ...detail(), error: message, question } satisfies Context7WidgetErrorEventDetail);
-    }
-  } finally {
-    if (activeRequest === request) {
-      cancelRenderFrame(request.renderFrame);
-      activeRequest = null;
-      busy.value = false;
-      notifyState();
-      await scrollToBottom();
-      input.value?.focus();
-    }
+const syncModalState = () => {
+  releaseModalState();
+  if (isOpen.value && resolvedPosition.value === 'center' && root.value) {
+    releaseModal = acquireContext7Modal(root.value);
   }
 };
+
+const retry = async (): Promise<Context7WidgetSendResult> => {
+  open();
+  const result = await engine.retry();
+  if (!busy.value) input.value?.focus();
+  return result;
+};
+
+const retryError = (id: string) => {
+  displayItems.value = displayItems.value.filter((item) => item.id !== id);
+  void retry();
+};
+
+const send = async (rawQuestion?: string): Promise<Context7WidgetSendResult> => {
+  const question = (rawQuestion ?? draft.value).trim();
+  if (question && !busy.value && resolvedLibrary.value) {
+    open();
+    draft.value = '';
+    void nextTick(resizeInput);
+  }
+  const result = await engine.send(question);
+  if (!busy.value) input.value?.focus();
+  return result;
+};
+
+const onConversationState = (state: Context7ConversationState) => {
+  const moveFocus = state.busy && document.activeElement === input.value;
+  busy.value = state.busy;
+  if (!state.busy) {
+    showTyping.value = false;
+    renderBridge.clearActiveAnswer();
+  }
+  notifyState(state.messages);
+  if (moveFocus) void nextTick(() => sendButton.value?.focus({ preventScroll: true }));
+};
+
+const onConversationEvent = (event: Context7ConversationEvent) => {
+  renderBridge.handleEvent(event);
+};
+
+const renderQuestion = (event: Context7ConversationEvent<'c7:question'>): VueAnswerRender => {
+  if (!event.detail.retry) displayItems.value.push({ ...event.detail.message, kind: 'message' });
+  showTyping.value = true;
+  scrollToBottom();
+  return { answer: '', answerItem: undefined, renderFrame: null };
+};
+
+const renderAnswer = (event: Context7ConversationEvent<'c7:answer'>, render: VueAnswerRender) => {
+  showTyping.value = false;
+  render.answer = event.detail.answer;
+  if (!render.answerItem) {
+    render.answerItem = reactive<MessageDisplayItem>({
+      content: '',
+      id: nextMessageId(),
+      kind: 'message',
+      role: 'assistant',
+      streaming: true
+    });
+    displayItems.value.push(render.answerItem);
+  }
+  render.renderFrame ??= requestRenderFrame(() => {
+    render.renderFrame = null;
+    render.answerItem!.content = render.answer;
+    void scrollToBottom();
+  });
+};
+
+const flushAnswerRender = (render: VueAnswerRender, answer: string) => {
+  cancelRenderFrame(render.renderFrame);
+  render.renderFrame = null;
+  if (render.answerItem) {
+    render.answerItem.content = answer;
+    render.answerItem.streaming = false;
+    void scrollToBottom();
+  }
+};
+
+const clearAnswerRender = (render: VueAnswerRender) => {
+  cancelRenderFrame(render.renderFrame);
+};
+
+const discardAnswerRender = (render: VueAnswerRender) => {
+  cancelRenderFrame(render.renderFrame);
+  if (render.answerItem) displayItems.value = displayItems.value.filter((item) => item !== render.answerItem);
+};
+
+const renderBridge = createContext7ConversationRenderBridge<VueAnswerRender>({
+  clearAnswer: clearAnswerRender,
+  discardAnswer: discardAnswerRender,
+  emit(event) {
+    emit(event.type.slice(3) as never, { ...detail(), ...event.detail });
+  },
+  flushAnswer: (render, event) => flushAnswerRender(render, event.detail.answer),
+  onAnswer: renderAnswer,
+  onError(event) {
+    displayItems.value.push({
+      html: buildContext7ErrorHtml(
+        String(event.detail.error || resolvedLabels.value.errorFallback),
+        resolvedLibrary.value,
+        resolvedLabels.value
+      ),
+      id: nextMessageId(),
+      kind: 'error',
+      question: event.detail.question
+    });
+    void scrollToBottom();
+  },
+  onQuestion: renderQuestion,
+  onToolCall(event) {
+    showTyping.value = false;
+    appendToolCall(event.detail.toolCall);
+  },
+  onToolResult: (event) => updateToolResult(event.detail.toolResult)
+});
 
 const appendToolCall = (toolCall: Context7ToolCall) => {
   const id = nextMessageId();
@@ -589,7 +693,7 @@ const appendToolCall = (toolCall: Context7ToolCall) => {
     hasResult: false,
     id,
     kind: 'tool',
-    query: typeof toolCall.args.query === 'string' ? toolCall.args.query : 'documentation',
+    query: getContext7ToolQuery(toolCall),
     result: '',
     toolCallId: toolCall.toolCallId
   });
@@ -602,18 +706,61 @@ const updateToolResult = (toolResult: Context7ToolResult) => {
       candidate.kind === 'tool' && candidate.toolCallId === toolResult.toolCallId
   );
   if (item) {
+    const result = formatContext7ToolResult(toolResult.result);
+    if (!result) return;
     item.hasResult = true;
-    item.result = formatToolResult(toolResult.result);
+    item.result = result;
   }
   void scrollToBottom();
 };
 
-const formatToolResult = (result: unknown) =>
-  typeof result === 'string' ? result : (JSON.stringify(result, null, 2) ?? String(result ?? ''));
+const scrollToBottom = () => {
+  if (!shouldStickToBottom || scrollFrame !== null) return;
+  scrollFrame = QUEUED_SCROLL_FRAME;
+  const generation = scrollGeneration;
 
-const scrollToBottom = async () => {
-  await nextTick();
-  if (messagesElement.value) messagesElement.value.scrollTop = messagesElement.value.scrollHeight;
+  void nextTick(() => {
+    if (generation !== scrollGeneration) return;
+    scrollFrame = requestRenderFrame(() => {
+      if (generation !== scrollGeneration) return;
+      scrollFrame = null;
+      const element = messagesElement.value;
+      if (shouldStickToBottom && element) element.scrollTop = element.scrollHeight;
+    });
+  });
+};
+
+const cancelScheduledScroll = () => {
+  scrollGeneration += 1;
+  if (scrollFrame !== QUEUED_SCROLL_FRAME) cancelRenderFrame(scrollFrame);
+  scrollFrame = null;
+};
+
+const onMessagesScroll = () => {
+  const element = messagesElement.value;
+  if (!element) return;
+  const wasSticky = shouldStickToBottom;
+  shouldStickToBottom = element.scrollHeight - element.clientHeight - element.scrollTop <= STICKY_SCROLL_THRESHOLD;
+  if (!wasSticky && shouldStickToBottom) scrollToBottom();
+};
+
+const resizeInput = () => {
+  const element = input.value;
+  if (!element) return;
+  element.style.height = 'auto';
+  element.style.height = `${Math.min(element.scrollHeight, 84)}px`;
+};
+
+const copyAnswer = (item: MessageDisplayItem) => void copyActions.copy(item.id, item.content);
+
+const onDelegatedCopyClick = (event: Event) => {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const button = target.closest<HTMLButtonElement>('[data-c7-copy-code]');
+  if (!button || !messagesElement.value?.contains(button)) return;
+  event.stopPropagation();
+  const code = button.closest('.c7-code-block')?.querySelector('code')?.textContent ?? '';
+  void copyActions.copy(button, code);
 };
 
 const onBackdropClick = () => {
@@ -634,6 +781,11 @@ const onKeyDown = (event: KeyboardEvent) => {
     close();
     return;
   }
+  if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.target === input.value && !busy.value) {
+    event.preventDefault();
+    void send();
+    return;
+  }
   if (event.key === 'Tab' && isOpen.value && resolvedPosition.value === 'center' && root.value) {
     if (panel.value) trapFocus(event, panel.value);
   }
@@ -641,31 +793,86 @@ const onKeyDown = (event: KeyboardEvent) => {
 
 const bindExternalTrigger = () => {
   unbindExternalTrigger();
-  if (typeof resolvedCustomTrigger.value !== 'string') return;
-  const selector = normalizeContext7WidgetTrigger(resolvedCustomTrigger.value);
-  if (!selector) return;
-  externalTrigger = querySelectorSafely(selector);
-  externalTrigger?.addEventListener('click', onExternalTriggerClick);
-  if (externalTrigger) {
+  customTriggerSelectorInvalid = false;
+
+  const trigger = normalizeExternalTrigger(resolvedCustomTrigger.value);
+  if (!trigger) return;
+
+  const resolution = resolveContext7CustomTrigger(trigger, false);
+  customTriggerSelectorInvalid = resolution.invalidSelector;
+
+  if (resolution.element?.isConnected) {
+    externalTrigger = resolution.element;
+    externalTrigger.addEventListener('click', onExternalTriggerClick);
     externalTriggerAccessibility = captureTriggerAccessibility(externalTrigger);
     externalTrigger.setAttribute('aria-controls', panelId);
     externalTrigger.setAttribute('aria-haspopup', 'dialog');
     externalTrigger.setAttribute('aria-expanded', String(isOpen.value));
+    hasBoundExternalTrigger.value = true;
+    customTriggerWarningKey = '';
+  } else {
+    warnExternalTriggerBindingFailure(trigger, resolution.invalidSelector);
   }
+
+  observeExternalTrigger();
 };
 
 const unbindExternalTrigger = () => {
+  customTriggerObserver?.disconnect();
+  customTriggerObserver = null;
+  if (activeAnchor.value === externalTrigger) activeAnchor.value = null;
   externalTrigger?.removeEventListener('click', onExternalTriggerClick);
   if (externalTriggerAccessibility) restoreTriggerAccessibility(externalTriggerAccessibility);
   externalTriggerAccessibility = null;
   externalTrigger = null;
+  hasBoundExternalTrigger.value = false;
 };
 
 const syncExternalTriggerExpandedState = () => externalTrigger?.setAttribute('aria-expanded', String(isOpen.value));
 
+const normalizeExternalTrigger = (trigger: Element | string | true | undefined): Element | string | null => {
+  if (typeof trigger === 'string') return normalizeContext7WidgetTrigger(trigger) || null;
+  return isContext7WidgetTriggerElement(trigger) ? trigger : null;
+};
+
+const observeExternalTrigger = () => {
+  const trigger = normalizeExternalTrigger(resolvedCustomTrigger.value);
+  if (!trigger || customTriggerSelectorInvalid || typeof MutationObserver !== 'function') return;
+
+  customTriggerObserver = new MutationObserver(() => {
+    if (externalTrigger?.isConnected) return;
+    bindExternalTrigger();
+    if (isOpen.value) {
+      bindFloatingListeners();
+      updateAnchorPosition();
+    }
+  });
+  customTriggerObserver.observe(document.documentElement, { childList: true, subtree: true });
+};
+
+const warnExternalTriggerBindingFailure = (trigger: Element | string, invalidSelector: boolean) => {
+  const warningKey = isContext7WidgetTriggerElement(trigger) ? 'element' : `selector:${trigger}`;
+  if (customTriggerWarningKey === warningKey) return;
+  customTriggerWarningKey = warningKey;
+
+  if (isContext7WidgetTriggerElement(trigger)) {
+    console.warn('[Context7 Widget] Custom trigger element is not connected. Keeping the built-in launcher visible.');
+    return;
+  }
+
+  if (invalidSelector) {
+    console.warn(`[Context7 Widget] Invalid custom trigger selector: ${trigger}`);
+    return;
+  }
+
+  console.warn(
+    `[Context7 Widget] Custom trigger selector was not found: ${trigger}. Keeping the built-in launcher visible.`
+  );
+};
+
 const onExternalTriggerClick = (event: Event) => {
   event.preventDefault();
-  if (event.currentTarget instanceof Element) activeAnchor.value = event.currentTarget;
+  activeAnchor.value = event.currentTarget as Element;
   toggle();
 };
 
@@ -726,34 +933,38 @@ const updateAnchorPosition = () =>
   _updateAnchorPosition(resolvedPosition.value, getAnchorElement(), panel.value, root.value?.style);
 
 const register = () => {
-  if (registeredWidgetId && registeredWidgetId !== resolvedWidgetId.value) {
+  const widgetId = resolvedConfig.value.widgetId;
+  if (registeredWidgetId && registeredWidgetId !== widgetId) {
     unregisterVueContext7Widget(registeredWidgetId, exposed);
   }
-  registerVueContext7Widget(resolvedWidgetId.value, exposed);
-  registeredWidgetId = resolvedWidgetId.value;
+  registerVueContext7Widget(widgetId, exposed);
+  registeredWidgetId = widgetId;
 };
 
-const getMessages = (): readonly Context7Message[] => [...conversation.value];
+const getMessages = (): readonly Context7Message[] => engine.getMessages();
 
-const notifyState = () => {
+const notifyState = (messages?: readonly Context7Message[]) => {
   if (stateListeners.size === 0) return;
   const state = {
     busy: busy.value,
-    messages: getMessages(),
+    messages: messages ?? getMessages(),
     open: isOpen.value
   } as const;
-  for (const listener of stateListeners) listener(state);
+  for (const listener of stateListeners) callContext7ListenerSafely(listener, state);
 };
 
 function subscribe(listener: Context7WidgetStateListener): () => void {
   stateListeners.add(listener);
-  listener({
+  callContext7ListenerSafely(listener, {
     busy: busy.value,
     messages: getMessages(),
     open: isOpen.value
   });
   return () => stateListeners.delete(listener);
 }
+
+const unsubscribeEngineState = engine.subscribe(onConversationState, { includeTransient: false });
+const unsubscribeEngineEvents = engine.subscribeEvents(onConversationEvent);
 
 const exposed: Context7WidgetExpose = {
   get element() {
@@ -766,12 +977,13 @@ const exposed: Context7WidgetExpose = {
   isOpen: () => isOpen.value,
   open,
   reset,
+  retry,
   send,
   subscribe,
   toggle
 };
 
-watch([resolvedLibrary, resolvedInitialMessage], reset);
+watch([resolvedLibrary, () => resolvedConfig.value.initialMessage], reset);
 watch(
   resolvedCustomTrigger,
   () => {
@@ -780,10 +992,14 @@ watch(
   },
   { flush: 'post' }
 );
-watch(resolvedDefaultOpen, (value) => {
-  if (value) open();
-});
+watch(
+  () => resolvedConfig.value.defaultOpen,
+  (value) => {
+    if (value && props.open === undefined) open();
+  }
+);
 watch(resolvedPosition, () => {
+  syncModalState();
   unbindFloatingListeners();
   if (isOpen.value) {
     bindFloatingListeners();
@@ -793,20 +1009,32 @@ watch(resolvedPosition, () => {
 watch(resolvedCloseOnOutsideClick, () => {
   if (isOpen.value) bindFloatingListeners();
 });
-watch(resolvedWidgetId, register);
+watch(() => resolvedConfig.value.widgetId, register);
+watch(
+  () => props.open,
+  (value) => {
+    if (value !== undefined) commitOpen(value);
+  }
+);
 
 onMounted(() => {
   reset();
   bindExternalTrigger();
   register();
   emit('ready', detail());
-  if (resolvedDefaultOpen.value) open();
+  if (props.open !== undefined) commitOpen(props.open);
+  else if (resolvedConfig.value.defaultOpen) open();
 });
 
 onBeforeUnmount(() => {
   cancel();
+  cancelScheduledScroll();
+  copyActions.reset(false);
+  unsubscribeEngineState();
+  unsubscribeEngineEvents();
   unbindFloatingListeners();
   unbindExternalTrigger();
+  releaseModalState();
   stateListeners.clear();
   if (registeredWidgetId) unregisterVueContext7Widget(registeredWidgetId, exposed);
 });
@@ -814,7 +1042,6 @@ onBeforeUnmount(() => {
 defineExpose(exposed);
 
 const focusInput = () => {
-  const inputElement = input.value ?? root.value?.querySelector<HTMLInputElement>('.c7-input');
-  inputElement?.focus({ preventScroll: true });
+  input.value?.focus({ preventScroll: true });
 };
 </script>

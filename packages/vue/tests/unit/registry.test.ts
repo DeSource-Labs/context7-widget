@@ -1,16 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import {
-  getVueContext7Widget,
-  registerVueContext7Widget,
-  unregisterVueContext7Widget
-} from '../../src/internal/registry';
-import type { Context7WidgetExpose } from '../../src/types';
+import { getVueContext7Widget, registerVueContext7Widget, unregisterVueContext7Widget } from '@src/internal/registry';
+import type { Context7WidgetExpose } from '@src/types';
 
 describe('Vue widget registry', () => {
   it('restores the previous registration when duplicate widget ids unmount out of order', () => {
     const first = createController();
     const second = createController();
     const unrelated = createController();
+
+    unregisterVueContext7Widget('missing-docs', unrelated);
 
     registerVueContext7Widget('shared-docs', first);
     registerVueContext7Widget('shared-docs', first);
@@ -41,6 +39,7 @@ function createController(): Context7WidgetExpose {
     isOpen: () => false,
     open() {},
     reset() {},
+    retry: async () => undefined,
     send: async () => undefined,
     subscribe: () => () => undefined,
     toggle() {}

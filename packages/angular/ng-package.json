@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/ng-packagr/ng-package.schema.json",
+  "dest": "dist",
+  "lib": {
+    "entryFile": "src/public-api.ts",
+    "flatModuleFile": "context7-widget-angular"
+  },
+  "allowedNonPeerDependencies": ["@desource/context7-widget", "tslib"]
+}

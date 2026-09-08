@@ -1,8 +1,10 @@
 import {
   assertBrowser,
   compactContext7WidgetOptions,
+  mergeContext7WidgetOptions,
   resolveTarget,
   type Context7Message,
+  type Context7WidgetSendResult,
   type Context7WidgetTarget
 } from '@desource/context7-widget/kit';
 import {
@@ -46,10 +48,11 @@ export interface UseContext7WidgetReturn {
   isOpen: Readonly<Ref<boolean>>;
   messages: Readonly<ShallowRef<readonly Context7Message[]>>;
   /** Mount or update an owned widget. Overrides persist across reactive source changes. */
-  mount: (overrides?: Partial<Context7WidgetProps>) => HTMLElement;
+  mount: (overrides?: Partial<UseContext7WidgetOptions>) => HTMLElement;
   open: () => void;
   reset: () => void;
-  send: (message: string) => Promise<void>;
+  retry: () => Promise<Context7WidgetSendResult | undefined>;
+  send: (message: string) => Promise<Context7WidgetSendResult | undefined>;
   toggle: () => void;
   unmount: () => void;
   widget: Readonly<ShallowRef<HTMLElement | null>>;
@@ -68,18 +71,29 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
   const isBusy = ref(false);
   const isOpen = ref(false);
   const messages = shallowRef<readonly Context7Message[]>([]);
-  const mountOverrides = shallowRef<Partial<Context7WidgetProps>>({});
+  const mountOverrides = shallowRef<Partial<UseContext7WidgetOptions>>({});
   const ownsWidget = ref(false);
   let container: HTMLElement | null = null;
   let vnode: VNode | null = null;
   let subscribedController: Context7WidgetExpose | null = null;
   let unsubscribe: (() => void) | null = null;
 
-  const options = computed<UseContext7WidgetOptions>(() => ({
-    ...defaults,
-    ...toValue(source),
-    ...mountOverrides.value
-  }));
+  const options = computed<UseContext7WidgetOptions>(() => {
+    const sourceOptions = toValue(source);
+    const overrides = mountOverrides.value;
+    const mergedLabels = mergeContext7WidgetOptions(
+      { labels: defaults.labels },
+      { labels: sourceOptions.labels },
+      { labels: overrides.labels }
+    ).labels;
+
+    return {
+      ...defaults,
+      ...sourceOptions,
+      ...overrides,
+      ...(mergedLabels ? { labels: mergedLabels } : {})
+    };
+  });
   const widgetId = computed(() => options.value.widgetId ?? 'default');
 
   function resolveController(): Context7WidgetExpose | null {
@@ -107,20 +121,30 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
     messages.value = resolved?.getMessages() ?? [];
   }
 
-  function mount(overrides: Partial<Context7WidgetProps> = {}): HTMLElement {
+  function mount(overrides: Partial<UseContext7WidgetOptions> = {}): HTMLElement {
     assertBrowser();
-    const nextOptions = { ...options.value, ...overrides };
+    const mergedLabels = mergeContext7WidgetOptions(
+      { labels: options.value.labels },
+      { labels: overrides.labels }
+    ).labels;
+    const nextOptions = {
+      ...options.value,
+      ...overrides,
+      ...(mergedLabels ? { labels: mergedLabels } : {})
+    };
     if (!nextOptions.library) {
       throw new Error('useContext7Widget mount requires a library option.');
     }
     mountOverrides.value = { ...overrides };
 
+    const target = resolveTarget(nextOptions.target ?? document.body);
+
     if (!container) {
       container = document.createElement('div');
       container.className = 'context7-widget-programmatic-root';
-      resolveTarget(options.value.target ?? document.body).append(container);
       ownsWidget.value = true;
     }
+    if (container.parentNode !== target) target.append(container);
     renderWidget(nextOptions);
     syncState();
     const element = widget.value ?? container.querySelector<HTMLElement>('.context7-widget');
@@ -183,11 +207,12 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
     syncState();
   }
 
-  async function send(message: string): Promise<void> {
+  async function send(message: string): Promise<Context7WidgetSendResult | undefined> {
     const pending = resolveController()?.send(message);
     syncState();
-    await pending;
+    const result = await pending;
     syncState();
+    return result;
   }
 
   function cancel(): void {
@@ -198,6 +223,14 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
   function reset(): void {
     resolveController()?.reset();
     syncState();
+  }
+
+  async function retry(): Promise<Context7WidgetSendResult | undefined> {
+    const pending = resolveController()?.retry();
+    syncState();
+    const result = await pending;
+    syncState();
+    return result;
   }
 
   function getMessages(): readonly Context7Message[] {
@@ -245,6 +278,7 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
     mount,
     open,
     reset,
+    retry,
     send,
     toggle,
     unmount,

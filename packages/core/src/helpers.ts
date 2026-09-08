@@ -6,12 +6,14 @@ import type {
   Context7WidgetScriptOptions,
   Context7WidgetTarget
 } from './types.js';
-import { assertBrowser, resolveTarget } from './dom.js';
+import { assertBrowser, isContext7WidgetTriggerElement, resolveTarget } from './dom.js';
 
-const DEFAULT_SCRIPT_SRC = 'https://context7.desource-labs.org/widget.js';
+const DEFAULT_SCRIPT_SRC = 'https://context7.desourcelabs.com/widget.js';
+
+type Context7SerializableOptionKey = Exclude<keyof Context7WidgetOptions, 'labels'>;
 
 const OPTION_ATTRIBUTES: ReadonlyArray<
-  readonly [key: keyof Context7WidgetOptions, elementAttribute: string, scriptAttribute: string]
+  readonly [key: Context7SerializableOptionKey, elementAttribute: string, scriptAttribute: string]
 > = [
   ['backdrop', 'backdrop', 'data-backdrop'],
   ['closeOnOutsideClick', 'close-on-outside-click', 'data-close-on-outside-click'],
@@ -22,6 +24,7 @@ const OPTION_ATTRIBUTES: ReadonlyArray<
   ['launcherLabel', 'launcher-label', 'data-launcher-label'],
   ['launcherVariant', 'launcher-variant', 'data-launcher-variant'],
   ['library', 'library', 'data-library'],
+  ['linkBaseUrl', 'link-base-url', 'data-link-base-url'],
   ['panelHeight', 'panel-height', 'data-panel-height'],
   ['panelWidth', 'panel-width', 'data-panel-width'],
   ['placeholder', 'placeholder', 'data-placeholder'],
@@ -38,6 +41,7 @@ export function toContext7WidgetAttributes(options: Context7WidgetOptions): Reco
   for (const [key, attribute] of OPTION_ATTRIBUTES) {
     const value = options[key];
     if (value === undefined || value === '') continue;
+    if (key === 'customTrigger' && isContext7WidgetTriggerElement(value)) continue;
     if (typeof value === 'boolean') {
       attributes[attribute] = String(value);
       continue;
@@ -71,8 +75,14 @@ export function setContext7WidgetAttributes(
   options: Partial<Context7WidgetOptions>,
   clearMissing = false
 ): void {
+  syncContext7WidgetLabels(widget, options.labels, clearMissing);
   for (const [key, attribute] of OPTION_ATTRIBUTES) {
     const value = options[key];
+    if (key === 'customTrigger') {
+      syncContext7WidgetTrigger(widget, value, clearMissing);
+      continue;
+    }
+
     if (value === undefined) {
       if (clearMissing) {
         widget.removeAttribute(attribute);
@@ -89,6 +99,15 @@ export function setContext7WidgetAttributes(
       widget.setAttribute(attribute, String(value));
     }
   }
+}
+
+function syncContext7WidgetLabels(
+  widget: HTMLElement,
+  value: Context7WidgetOptions['labels'] | undefined,
+  clearMissing: boolean
+): void {
+  if (value === undefined && !clearMissing) return;
+  if ('labels' in widget) (widget as Context7WidgetElement).labels = value;
 }
 
 export function getContext7WidgetApi(): Context7WidgetApi | undefined {
@@ -124,6 +143,7 @@ export function buildContext7WidgetScriptTag(options: Context7WidgetScriptOption
   for (const [key, , attribute] of OPTION_ATTRIBUTES) {
     const value = options[key];
     if (value === undefined || value === '') continue;
+    if (key === 'customTrigger' && isContext7WidgetTriggerElement(value)) continue;
     if (typeof value === 'boolean') {
       attributes[attribute] = String(value);
       continue;
@@ -140,4 +160,38 @@ export function buildContext7WidgetScriptTag(options: Context7WidgetScriptOption
 
 function escapeAttribute(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function syncContext7WidgetTrigger(widget: HTMLElement, value: unknown, clearMissing: boolean): void {
+  if (value === undefined) {
+    if (!clearMissing) return;
+    setContext7WidgetTriggerProperty(widget, undefined);
+    widget.removeAttribute('custom-trigger');
+    return;
+  }
+
+  if (value === '') {
+    setContext7WidgetTriggerProperty(widget, undefined);
+    widget.removeAttribute('custom-trigger');
+    return;
+  }
+
+  if (typeof value === 'string' || isContext7WidgetTriggerElement(value))
+    setContext7WidgetTriggerProperty(widget, value);
+}
+
+function setContext7WidgetTriggerProperty(
+  widget: HTMLElement,
+  value: Context7WidgetOptions['customTrigger'] | undefined
+): void {
+  if ('customTrigger' in widget) {
+    (widget as Context7WidgetElement).customTrigger = value;
+    return;
+  }
+
+  if (typeof value === 'string') {
+    widget.setAttribute('custom-trigger', value);
+  } else {
+    widget.removeAttribute('custom-trigger');
+  }
 }

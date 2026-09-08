@@ -20,7 +20,7 @@
     "typescript",
     "vite"
   ],
-  "author": "Stefan Popov <stefan@desource-labs.org>",
+  "author": "Stefan Popov <stefan@desourcelabs.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -58,6 +58,11 @@
       "types": "./dist/kit.d.ts",
       "import": "./dist/kit.js",
       "default": "./dist/kit.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js",
+      "default": "./dist/core.js"
     },
     "./widget.js": {
       "types": "./dist/auto.d.ts",

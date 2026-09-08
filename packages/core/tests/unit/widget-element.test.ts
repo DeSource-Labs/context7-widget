@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Context7WidgetElement, defineContext7Widget } from '../../src';
+import { Context7WidgetElement, defineContext7Widget } from '@src/index';
 import { setDocumentClientSize, setElementRect, setElementSize, setViewportSize } from '@common/tests/unit/dom';
 import { createSseStream } from '@common/tests/unit/stream';
 
@@ -50,6 +50,148 @@ describe('Context7WidgetElement', () => {
     expect(widget.hasAttribute('open')).toBe(true);
   });
 
+  it('keeps the launcher reachable until a selector custom trigger binds', async () => {
+    defineContext7Widget();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    const widget = document.createElement('context7-widget');
+    widget.setAttribute('library', '/vercel/next.js');
+    widget.setAttribute('custom-trigger', '#late-ask');
+    document.body.append(widget);
+
+    const launcher = widget.shadowRoot?.querySelector<HTMLButtonElement>('[data-c7-launcher]');
+    expect(widget.hasAttribute('custom-trigger-active')).toBe(false);
+    expect(warn).toHaveBeenCalledWith(
+      '[Context7 Widget] Custom trigger selector was not found: #late-ask. Keeping the built-in launcher visible.'
+    );
+
+    launcher?.click();
+    expect(widget.hasAttribute('open')).toBe(true);
+
+    const trigger = document.createElement('button');
+    trigger.id = 'late-ask';
+    document.body.append(trigger);
+
+    await vi.waitFor(() => expect(widget.hasAttribute('custom-trigger-active')).toBe(true));
+    trigger.click();
+    expect(widget.hasAttribute('open')).toBe(false);
+  });
+
+  it('keeps streaming pinned only while the reader remains near the latest message', async () => {
+    defineContext7Widget();
+    const encoder = new TextEncoder();
+    let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            new ReadableStream<Uint8Array>({
+              start(controller) {
+                stream = controller;
+              }
+            })
+          )
+      )
+    );
+
+    const widget = document.createElement('context7-widget') as Context7WidgetElement;
+    widget.setAttribute('library', '/vercel/next.js');
+    document.body.append(widget);
+    const messages = widget.shadowRoot?.querySelector<HTMLElement>('[data-c7-messages]');
+    const panel = widget.shadowRoot?.querySelector<HTMLElement>('.c7-panel');
+    if (!messages || !panel) throw new Error('Expected the widget message viewport and panel.');
+    Object.defineProperties(messages, {
+      clientHeight: { configurable: true, value: 200 },
+      scrollHeight: { configurable: true, value: 1_000 }
+    });
+    const setPanelAttribute = vi.spyOn(panel, 'setAttribute');
+
+    const pending = widget.send('Stream a long answer');
+    await vi.waitFor(() => expect(stream).toBeDefined());
+    messages.scrollTop = 100;
+    messages.dispatchEvent(new Event('scroll'));
+    stream?.enqueue(encoder.encode('data: {"type":"text-delta","delta":"First"}\n'));
+    await vi.waitFor(() => expect(widget.shadowRoot?.textContent).toContain('First'));
+    expect(messages.scrollTop).toBe(100);
+
+    messages.scrollTop = 790;
+    messages.dispatchEvent(new Event('scroll'));
+    stream?.enqueue(encoder.encode('data: {"type":"text-delta","delta":" second"}\n'));
+    await vi.waitFor(() => expect(widget.shadowRoot?.textContent).toContain('First second'));
+    expect(messages.scrollTop).toBe(1_000);
+
+    stream?.close();
+    await pending;
+    expect(
+      setPanelAttribute.mock.calls.filter(([name, value]) => name === 'aria-busy' && value === 'true')
+    ).toHaveLength(1);
+  });
+
+  it('fails open again when a bound selector trigger is removed', async () => {
+    defineContext7Widget();
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    const trigger = document.createElement('button');
+    trigger.id = 'removable-ask';
+    const widget = document.createElement('context7-widget');
+    widget.setAttribute('library', '/vercel/next.js');
+    widget.setAttribute('custom-trigger', '#removable-ask');
+    document.body.append(trigger, widget);
+
+    expect(widget.hasAttribute('custom-trigger-active')).toBe(true);
+    trigger.remove();
+
+    await vi.waitFor(() => expect(widget.hasAttribute('custom-trigger-active')).toBe(false));
+    widget.shadowRoot?.querySelector<HTMLButtonElement>('[data-c7-launcher]')?.click();
+
+    expect(widget.hasAttribute('open')).toBe(true);
+  });
+
+  it('accepts an Element customTrigger option through the custom element property', () => {
+    defineContext7Widget();
+
+    const trigger = document.createElement('button');
+    const widget = document.createElement('context7-widget') as Context7WidgetElement;
+    widget.customTrigger = trigger;
+    widget.setAttribute('library', '/vercel/next.js');
+    document.body.append(trigger, widget);
+
+    expect(widget.hasAttribute('custom-trigger-active')).toBe(true);
+    expect(widget.hasAttribute('custom-trigger')).toBe(false);
+
+    trigger.click();
+    expect(widget.hasAttribute('open')).toBe(true);
+  });
+
+  it('localizes static text and safely rebinds connected trigger options while open', () => {
+    defineContext7Widget();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const widget = document.createElement('context7-widget') as Context7WidgetElement;
+    widget.setAttribute('library', '/vercel/next.js');
+    document.body.append(widget);
+    widget.open();
+
+    widget.labels = { close: 'Dismiss docs', send: 'Ask now' };
+    expect(widget.labels.close).toBe('Dismiss docs');
+    expect(widget.shadowRoot?.querySelector('[data-c7-close]')?.getAttribute('aria-label')).toBe('Dismiss docs');
+    expect(widget.shadowRoot?.querySelector('[data-c7-send]')?.textContent).toBe('Ask now');
+
+    const detachedTrigger = document.createElement('button');
+    widget.customTrigger = detachedTrigger;
+    widget.customTrigger = detachedTrigger;
+    expect(widget.customTrigger).toBe(detachedTrigger);
+    expect(warn).toHaveBeenCalledWith(
+      '[Context7 Widget] Custom trigger element is not connected. Keeping the built-in launcher visible.'
+    );
+
+    widget.customTrigger = '[';
+    expect(warn).toHaveBeenCalledWith('[Context7 Widget] Invalid custom trigger selector: [');
+
+    widget.labels = null;
+    expect(widget.labels.close).toBe('Close chat');
+  });
+
   it('closes when clicking outside by default', () => {
     defineContext7Widget();
 
@@ -81,6 +223,60 @@ describe('Context7WidgetElement', () => {
     widget.shadowRoot?.querySelector<HTMLElement>('[data-c7-backdrop]')?.click();
 
     expect(widget.hasAttribute('open')).toBe(false);
+  });
+
+  it('synchronizes an open state authored before connection', () => {
+    defineContext7Widget();
+    const widget = document.createElement('context7-widget') as Context7WidgetElement;
+    widget.setAttribute('library', '/vercel/next.js');
+    widget.setAttribute('open', '');
+
+    document.body.append(widget);
+
+    expect(widget.isOpen()).toBe(true);
+    expect(widget.shadowRoot?.querySelector('[data-c7-launcher]')?.getAttribute('aria-expanded')).toBe('true');
+
+    widget.close();
+    widget.setAttribute('default-open', 'true');
+    expect(widget.isOpen()).toBe(true);
+  });
+
+  it('keeps dynamic data attributes authoritative over internally reflected styling attributes', () => {
+    defineContext7Widget();
+
+    const widget = document.createElement('context7-widget');
+    widget.setAttribute('data-library', '/vercel/next.js');
+    widget.setAttribute('data-position', 'bottom-left');
+    widget.setAttribute('data-preset', 'glass');
+    document.body.append(widget);
+
+    expect(widget.getAttribute('position')).toBe('bottom-left');
+    expect(widget.getAttribute('preset')).toBe('glass');
+
+    widget.setAttribute('data-position', 'top-right');
+    widget.setAttribute('data-preset', 'terminal');
+
+    expect(widget.getAttribute('position')).toBe('top-right');
+    expect(widget.getAttribute('preset')).toBe('terminal');
+
+    widget.removeAttribute('data-position');
+    widget.removeAttribute('data-preset');
+
+    expect(widget.getAttribute('position')).toBe('bottom-right');
+    expect(widget.getAttribute('preset')).toBe('default');
+  });
+
+  it('preserves explicitly authored canonical attribute precedence over data aliases', () => {
+    defineContext7Widget();
+
+    const widget = document.createElement('context7-widget');
+    widget.setAttribute('library', '/vercel/next.js');
+    widget.setAttribute('position', 'top-left');
+    widget.setAttribute('data-position', 'bottom-left');
+    document.body.append(widget);
+
+    widget.setAttribute('data-position', 'top-right');
+    expect(widget.getAttribute('position')).toBe('top-left');
   });
 
   it('lets presets own the accent color when no color is provided', () => {
@@ -292,7 +488,7 @@ describe('Context7WidgetElement', () => {
     document.body.append(widget);
     widget.open();
 
-    const input = widget.shadowRoot?.querySelector<HTMLInputElement>('[data-c7-input]');
+    const input = widget.shadowRoot?.querySelector<HTMLTextAreaElement>('[data-c7-input]');
     const send = widget.shadowRoot?.querySelector<HTMLButtonElement>('[data-c7-send]');
     if (!input || !send) throw new Error('Expected the widget composer to exist.');
     for (const element of [input, send]) {

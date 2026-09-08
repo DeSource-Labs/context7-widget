@@ -1,4 +1,9 @@
-import type { Context7Position, Context7TriggerA11yState, Context7WidgetTarget } from './types.js';
+import type {
+  Context7Position,
+  Context7TriggerA11yState,
+  Context7WidgetTarget,
+  Context7WidgetTrigger
+} from './types.js';
 
 export interface Context7AnchorRect {
   readonly bottom: number;
@@ -26,6 +31,12 @@ export interface Context7AnchorLayout {
   readonly origin: string;
   readonly placement: 'bottom' | 'top';
   readonly top: number;
+}
+
+export interface Context7CustomTriggerResolution {
+  readonly element: Element | null;
+  readonly invalidSelector: boolean;
+  readonly selector: string;
 }
 
 /** Resolve an end-aligned floating panel within the visible visual viewport. */
@@ -122,13 +133,40 @@ export function cancelRenderFrame(frame: number | null): void {
   }
 }
 
-export function querySelectorSafely(selector: string): Element | null {
-  try {
-    return document.querySelector(selector);
-  } catch {
-    console.warn(`[Context7 Widget] Invalid custom trigger selector: ${selector}`);
-    return null;
+export function isContext7WidgetTriggerElement(value: unknown): value is Element {
+  return typeof Element !== 'undefined' && value instanceof Element;
+}
+
+export function resolveContext7CustomTrigger(
+  trigger: Context7WidgetTrigger,
+  warnInvalidSelector = true
+): Context7CustomTriggerResolution {
+  if (isContext7WidgetTriggerElement(trigger)) {
+    return {
+      element: trigger,
+      invalidSelector: false,
+      selector: ''
+    };
   }
+
+  try {
+    return {
+      element: document.querySelector(trigger),
+      invalidSelector: false,
+      selector: trigger
+    };
+  } catch {
+    if (warnInvalidSelector) console.warn(`[Context7 Widget] Invalid custom trigger selector: ${trigger}`);
+    return {
+      element: null,
+      invalidSelector: true,
+      selector: trigger
+    };
+  }
+}
+
+export function querySelectorSafely(selector: string): Element | null {
+  return resolveContext7CustomTrigger(selector).element;
 }
 
 export function captureTriggerAccessibility(element: Element): Context7TriggerA11yState {

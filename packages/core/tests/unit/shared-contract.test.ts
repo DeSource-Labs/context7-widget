@@ -1,4 +1,4 @@
-import { Context7WidgetElement, defineContext7Widget } from '../../src';
+import { Context7WidgetElement, defineContext7Widget } from '@src/index';
 import { testContext7WidgetContract, type Context7WidgetContractAdapter } from '@common/tests/unit/context7-widget';
 
 const adapter: Context7WidgetContractAdapter = {
@@ -9,6 +9,8 @@ const adapter: Context7WidgetContractAdapter = {
     widget.setAttribute('library', props.library);
     if (props.customTrigger !== undefined) widget.setAttribute('custom-trigger', props.customTrigger);
     if (props.initialMessage !== undefined) widget.setAttribute('initial-message', props.initialMessage);
+    if (props.position !== undefined) widget.setAttribute('position', props.position);
+    if (props.labels !== undefined) widget.labels = props.labels;
     document.body.append(widget);
 
     const view = widget.shadowRoot;

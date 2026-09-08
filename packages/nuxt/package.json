@@ -1,0 +1,84 @@
+{
+  "name": "@desource/context7-widget-nuxt",
+  "version": "0.1.0",
+  "description": "Nuxt 3 and Nuxt 4 module for the native Vue Context7 documentation chat widget.",
+  "keywords": [
+    "context7",
+    "context7-widget",
+    "chat-widget",
+    "ai-docs",
+    "docs-chat",
+    "nuxt",
+    "nuxt3",
+    "nuxt4",
+    "nuxt-module",
+    "vue",
+    "component",
+    "composable",
+    "documentation",
+    "typescript",
+    "ssr"
+  ],
+  "author": "Stefan Popov <stefan@desourcelabs.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeSource-Labs/context7-widget.git",
+    "directory": "packages/nuxt"
+  },
+  "bugs": {
+    "url": "https://github.com/DeSource-Labs/context7-widget/issues"
+  },
+  "homepage": "https://github.com/DeSource-Labs/context7-widget/tree/main/packages/nuxt#readme",
+  "type": "module",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/module.mjs",
+  "types": "./dist/types.d.mts",
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.mts",
+      "import": "./dist/module.mjs",
+      "default": "./dist/module.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "clean": "rimraf dist .nuxt coverage 'tests/fixtures/**/.nuxt' 'tests/fixtures/**/.output'",
+    "clean:modules": "rimraf node_modules",
+    "dev:prepare": "nuxt prepare",
+    "build": "pnpm clean && pnpm dev:prepare && nuxt-module-build build",
+    "typecheck": "pnpm dev:prepare && tsc -p tsconfig.json --noEmit",
+    "test:unit": "pnpm dev:prepare && vitest run --config vitest.unit.config.ts",
+    "test:unit:coverage": "pnpm dev:prepare && vitest run --config vitest.unit.config.ts --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",
+    "test:e2e": "pnpm test:e2e:fixtures && pnpm test:e2e:packed",
+    "test:e2e:fixtures": "pnpm dev:prepare && vitest run --config vitest.e2e.config.ts",
+    "test:e2e:packed": "node tests/release/packed-consumer.mts"
+  },
+  "dependencies": {
+    "@desource/context7-widget": "workspace:*",
+    "@desource/context7-widget-vue": "workspace:*",
+    "@nuxt/kit": "^4.5.2",
+    "@nuxt/schema": "^4.5.2"
+  },
+  "peerDependencies": {
+    "nuxt": "^3.17.0 || ^4.0.0",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@nuxt/module-builder": "^1.0.3",
+    "@nuxt/test-utils": "^4.2.0",
+    "nuxt": "^4.5.2",
+    "vue": "^3.5.42"
+  }
+}

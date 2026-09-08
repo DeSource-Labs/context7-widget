@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Context7TransportError, streamContext7Response } from '../../src/transport';
-import type { Context7Message } from '../../src/types';
+import { Context7TransportError, streamContext7Response } from '@src/transport';
+import type { Context7Message } from '@src/types';
 import { createSseStream } from '@common/tests/unit/stream';
 
 const messages: Context7Message[] = [{ id: '1', role: 'user', content: 'How do I install it?' }];

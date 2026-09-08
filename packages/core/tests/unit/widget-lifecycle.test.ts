@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { defineContext7Widget } from '../../src';
+import { defineContext7Widget } from '@src/index';
 import { createSseStream } from '@common/tests/unit/stream';
 import { expectAlwaysVisibleBranding } from '@common/tests/unit/widget-contract';
 
@@ -22,7 +22,7 @@ describe('Context7WidgetElement lifecycle behavior', () => {
 
     expect(widget.hasAttribute('open')).toBe(true);
     expect(widget.shadowRoot?.querySelector('[part~="title"]')?.textContent).toBe('Product docs');
-    expect(widget.shadowRoot?.querySelector<HTMLInputElement>('[part~="input"]')?.placeholder).toBe('Search docs');
+    expect(widget.shadowRoot?.querySelector<HTMLTextAreaElement>('[part~="input"]')?.placeholder).toBe('Search docs');
     expect(widget.shadowRoot?.textContent).toContain('/desource-labs/context7-widget');
     expectAlwaysVisibleBranding(widget.shadowRoot as ShadowRoot);
   });
@@ -115,87 +115,57 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     expect(window.Context7Widget?.get()).toBe(first);
   });
 
-  it('cancels an in-flight request without appending an error', async () => {
+  it('emits cancel and commits a visible partial answer as cancelled', async () => {
     defineContext7Widget();
 
-    let abortSignal: AbortSignal | undefined;
+    const encoder = new TextEncoder();
     vi.stubGlobal(
       'fetch',
       vi.fn(
-        (_url, init?: RequestInit) =>
-          new Promise<Response>((_resolve, reject) => {
-            abortSignal = init?.signal ?? undefined;
-            init?.signal?.addEventListener('abort', () => {
-              reject(new DOMException('Aborted', 'AbortError'));
-            });
-          })
+        async (_url, init?: RequestInit) =>
+          new Response(
+            new ReadableStream<Uint8Array>({
+              start(controller) {
+                init?.signal?.addEventListener(
+                  'abort',
+                  () => controller.error(new DOMException('Aborted', 'AbortError')),
+                  { once: true }
+                );
+                controller.enqueue(encoder.encode('data: {"type":"text-delta","delta":"Partial core answer"}\n'));
+              }
+            })
+          )
       )
     );
 
     const widget = document.createElement('context7-widget') as HTMLElement & {
       cancel: () => void;
-      send: (question: string) => Promise<void>;
+      getMessages: () => readonly { content: string; status?: string }[];
+      send: (question: string) => Promise<{ status?: string } | undefined>;
     };
+    const cancel = vi.fn();
     widget.setAttribute('library', '/desource-labs/context7-widget');
+    widget.addEventListener('c7:cancel', (event) => cancel((event as CustomEvent).detail));
     document.body.append(widget);
 
-    const pending = widget.send('Please stop');
+    const pending = widget.send('Stop after a token');
+    await vi.waitFor(() => expect(widget.shadowRoot?.textContent).toContain('Partial core answer'));
     widget.cancel();
-    await expect(pending).resolves.toBeUndefined();
+    const result = await pending;
 
-    expect(abortSignal?.aborted).toBe(true);
-    expect(widget.shadowRoot?.textContent).not.toContain('Aborted');
-  });
-
-  it('isolates a replacement request from late frames and cleanup in a cancelled request', async () => {
-    defineContext7Widget();
-
-    let staleStream: ReadableStreamDefaultController<Uint8Array> | undefined;
-    const encoder = new TextEncoder();
-    const fetchMock = vi
-      .fn()
-      .mockImplementationOnce(
-        async () =>
-          new Response(
-            new ReadableStream<Uint8Array>({
-              start(controller) {
-                staleStream = controller;
-              }
-            })
-          )
-      )
-      .mockImplementationOnce(
-        async () => new Response(createSseStream(['data: {"type":"text-delta","delta":"Fresh answer"}\n']))
-      );
-    vi.stubGlobal('fetch', fetchMock);
-
-    const widget = document.createElement('context7-widget') as HTMLElement & {
-      cancel: () => void;
-      getMessages: () => readonly { content: string }[];
-      isBusy: () => boolean;
-      send: (question: string) => Promise<void>;
-    };
-    widget.setAttribute('library', '/desource-labs/context7-widget');
-    document.body.append(widget);
-
-    const staleRequest = widget.send('Old question');
-    widget.cancel();
-    const freshRequest = widget.send('New question');
-
-    expect(widget.isBusy()).toBe(true);
-    await freshRequest;
-    staleStream?.enqueue(encoder.encode('data: {"type":"text-delta","delta":"Stale answer"}\n'));
-    staleStream?.close();
-    await staleRequest;
-
-    expect(widget.isBusy()).toBe(false);
-    expect(widget.shadowRoot?.textContent).toContain('Fresh answer');
-    expect(widget.shadowRoot?.textContent).not.toContain('Stale answer');
+    expect(result?.status).toBe('cancelled');
+    expect(cancel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        answer: 'Partial core answer',
+        message: expect.objectContaining({ status: 'cancelled' }),
+        question: 'Stop after a token'
+      })
+    );
     expect(widget.getMessages().map((message) => message.content)).toEqual([
-      'Old question',
-      'New question',
-      'Fresh answer'
+      'Stop after a token',
+      'Partial core answer'
     ]);
+    expect(widget.getMessages()[1]?.status).toBe('cancelled');
   });
 
   it('turns the send control into an accessible stop action while streaming', async () => {
@@ -216,7 +186,7 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     const widget = document.createElement('context7-widget');
     widget.setAttribute('library', '/desource-labs/context7-widget');
     document.body.append(widget);
-    const input = widget.shadowRoot?.querySelector<HTMLInputElement>('[data-c7-input]');
+    const input = widget.shadowRoot?.querySelector<HTMLTextAreaElement>('[data-c7-input]');
     const form = widget.shadowRoot?.querySelector<HTMLFormElement>('[data-c7-form]');
     const submit = widget.shadowRoot?.querySelector<HTMLButtonElement>('[data-c7-send]');
     input!.value = 'Stop this response';
@@ -243,7 +213,7 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     widget.remove();
     document.body.append(widget);
 
-    const input = widget.shadowRoot?.querySelector<HTMLInputElement>('[data-c7-input]');
+    const input = widget.shadowRoot?.querySelector<HTMLTextAreaElement>('[data-c7-input]');
     input!.value = 'One request';
     widget.shadowRoot
       ?.querySelector<HTMLFormElement>('[data-c7-form]')
@@ -291,7 +261,7 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     widget.setAttribute('library', '/desource-labs/context7-widget');
     document.body.append(widget);
 
-    const input = widget.shadowRoot?.querySelector<HTMLInputElement>('[data-c7-input]');
+    const input = widget.shadowRoot?.querySelector<HTMLTextAreaElement>('[data-c7-input]');
     const form = widget.shadowRoot?.querySelector<HTMLFormElement>('[data-c7-form]');
     input!.value = 'Use the form';
     form?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
@@ -315,91 +285,14 @@ describe('Context7WidgetElement lifecycle behavior', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     const widget = document.createElement('context7-widget') as HTMLElement & {
-      send: (question: string) => Promise<void>;
+      send: (question: string) => Promise<unknown>;
     };
     document.body.append(widget);
 
     await widget.send('Can you help?');
 
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(widget.shadowRoot?.textContent).toContain('Missing data-library attribute.');
-  });
-
-  it('renders and toggles tool results from streamed responses', async () => {
-    defineContext7Widget();
-
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(
-        async () =>
-          new Response(
-            createSseStream([
-              'data: {"type":"tool-input-available","toolCallId":"tool-1","toolName":"search","input":{}}\n',
-              'data: {"type":"tool-output-available","toolCallId":"tool-1","output":{"snippet":"Install with npm."}}\n',
-              'data: [DONE]\n'
-            ])
-          )
-      )
-    );
-
-    const widget = document.createElement('context7-widget') as HTMLElement & {
-      send: (question: string) => Promise<void>;
-    };
-    widget.setAttribute('library', '/desource-labs/context7-widget');
-    document.body.append(widget);
-
-    await widget.send('Find install docs');
-
-    expect(widget.shadowRoot?.textContent).toContain('Searching: documentation');
-
-    const toggle = widget.shadowRoot?.querySelector<HTMLButtonElement>('.c7-tool-toggle');
-    const content = widget.shadowRoot?.querySelector<HTMLElement>('.c7-tool-content');
-    expect(content?.hidden).toBe(true);
-
-    toggle?.click();
-    expect(toggle?.getAttribute('aria-expanded')).toBe('true');
-    expect(content?.hidden).toBe(false);
-    expect(content?.textContent).toContain('Install with npm.');
-
-    toggle?.click();
-    expect(toggle?.getAttribute('aria-expanded')).toBe('false');
-    expect(content?.hidden).toBe(true);
-  });
-
-  it('safely renders string tool results and ignores unmatched or empty results', async () => {
-    defineContext7Widget();
-
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(
-        async () =>
-          new Response(
-            createSseStream([
-              'data: {"type":"tool-output-available","toolCallId":"missing","output":"orphan"}\n',
-              'data: {"type":"tool-input-available","toolCallId":"empty","toolName":"search","input":{"query":"empty"}}\n',
-              'data: {"type":"tool-output-available","toolCallId":"empty","output":""}\n',
-              'data: {"type":"tool-input-available","toolCallId":"string","toolName":"search","input":{"query":"<img src=x onerror=alert(1)>"}}\n',
-              'data: {"type":"tool-output-available","toolCallId":"string","output":"Plain <result>"}\n'
-            ])
-          )
-      )
-    );
-
-    const widget = document.createElement('context7-widget') as HTMLElement & {
-      send: (question: string) => Promise<void>;
-    };
-    widget.setAttribute('library', '/desource-labs/context7-widget');
-    document.body.append(widget);
-
-    await widget.send('Find safe results');
-
-    const tools = widget.shadowRoot?.querySelectorAll('.c7-tool-call');
-    expect(tools).toHaveLength(2);
-    expect(widget.shadowRoot?.querySelector('.c7-tool-call img')).toBeNull();
-    expect(widget.shadowRoot?.textContent).toContain('<img src=x onerror=alert(1)>');
-    expect(widget.shadowRoot?.querySelectorAll('.c7-tool-result')).toHaveLength(1);
-    expect(widget.shadowRoot?.querySelector('.c7-tool-content')?.textContent).toContain('Plain <result>');
-    expect(widget.shadowRoot?.textContent).not.toContain('orphan');
+    expect(widget.shadowRoot?.textContent).toContain('Missing library configuration.');
   });
 });
 

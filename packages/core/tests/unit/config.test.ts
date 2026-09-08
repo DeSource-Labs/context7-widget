@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { context7WidgetDefaults, normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from '../../src/kit';
+import { context7WidgetDefaults, normalizeContext7WidgetTrigger, resolveContext7WidgetConfig } from '@src/kit';
 
 describe('widget config', () => {
   it('provides immutable documented defaults', () => {
@@ -55,5 +55,16 @@ describe('widget config', () => {
     expect(normalizeContext7WidgetTrigger('docs-help')).toBe('#docs-help');
     expect(normalizeContext7WidgetTrigger('.navigation [data-docs]')).toBe('.navigation [data-docs]');
     expect(normalizeContext7WidgetTrigger('  ')).toBe('');
+  });
+
+  it('accepts every non-default theme and managed launcher variant', () => {
+    expect(resolveContext7WidgetConfig({ launcherVariant: 'pill', theme: 'light' })).toMatchObject({
+      launcherVariant: 'pill',
+      theme: 'light'
+    });
+    expect(resolveContext7WidgetConfig({ launcherVariant: 'badge', theme: 'dark' })).toMatchObject({
+      launcherVariant: 'badge',
+      theme: 'dark'
+    });
   });
 });

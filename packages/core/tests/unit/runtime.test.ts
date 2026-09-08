@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildContext7ErrorHtml, isAbortError } from '../../src/kit';
+import { buildContext7ErrorHtml, isAbortError } from '@src/kit';
 
 describe('runtime helpers', () => {
   it('builds an escaped, library-specific owner recovery link', () => {
@@ -11,11 +11,27 @@ describe('runtime helpers', () => {
   });
 
   it('provides a useful fallback message without duplicating a leading slash', () => {
-    const html = buildContext7ErrorHtml('', '/owner/repo');
+    const html = buildContext7ErrorHtml('', '/owner/repo/');
 
     expect(html).toContain('Something went wrong.');
     expect(html).toContain('https://context7.com/owner/repo/admin?tab=chat');
     expect(html).not.toContain('context7.com//owner');
+  });
+
+  it('links missing library configuration to the general Context7 admin page', () => {
+    const html = buildContext7ErrorHtml('Missing library configuration.', '');
+
+    expect(html).toContain('https://context7.com/admin?tab=chat');
+    expect(html).not.toContain('context7.com//admin');
+  });
+
+  it('preserves long internal slash runs and trims slash-only library paths', () => {
+    const path = `owner${'/'.repeat(50_000)}repo`;
+
+    expect(buildContext7ErrorHtml('Failed', `  ///${path}///  `)).toContain(
+      `https://context7.com/${path}/admin?tab=chat`
+    );
+    expect(buildContext7ErrorHtml('Failed', ' /// ')).toContain('https://context7.com/admin?tab=chat');
   });
 
   it('recognizes native and structurally compatible abort errors', () => {

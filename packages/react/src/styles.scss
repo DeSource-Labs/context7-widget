@@ -1,0 +1,10 @@
+@use '../../../common/styles/framework-trigger' as trigger;
+@use '../../../common/styles/widget' as widget;
+
+.context7-widget {
+  @include widget.context7-widget;
+}
+
+.context7-widget-trigger {
+  @include trigger.context7-framework-trigger;
+}

@@ -4,20 +4,44 @@ This guide is for teams that want an AI documentation assistant on a site, but
 do not want a generic widget that clashes with the product.
 
 Context7 provides the hosted documentation backend and grounded answers. This
-repo provides the customizable client layer: script replacement, custom element,
-TypeScript helpers, Vue bindings, styling contract, event stream, and
-positioning modes.
+repo provides the customizable client layer: script replacement, custom
+element, TypeScript helpers, native Vue, React, Svelte, and Angular bindings, a
+Nuxt module, styling contract, event stream, and positioning modes.
 
 ## Which Integration Should I Use?
 
-| Project type                           | Recommended path                                      |
-| -------------------------------------- | ----------------------------------------------------- |
-| Existing Context7 script install       | Replace only the script URL                           |
-| Static docs or marketing page          | Use `/widget.js`                                      |
-| Docusaurus, Astro, Next.js, Nuxt, Vite | Use `/widget.js` in the root layout                   |
-| Product app with custom controls       | Use `@desource/context7-widget`                       |
-| Vue 3 app                              | Use `@desource/context7-widget-vue`                   |
-| Nuxt, React, Svelte, Angular app later | Use script/core today; dedicated packages are planned |
+| Project type                     | Recommended path                        |
+| -------------------------------- | --------------------------------------- |
+| Existing Context7 script install | Replace only the script URL             |
+| Static docs or marketing page    | Use `/widget.js`                        |
+| Docusaurus, Astro, or plain Vite | Use `/widget.js` in the root layout     |
+| Product app with custom controls | Use `@desource/context7-widget`         |
+| Vue 3 app                        | Use `@desource/context7-widget-vue`     |
+| Nuxt 3 or 4 app                  | Use `@desource/context7-widget-nuxt`    |
+| React or Next.js app             | Use `@desource/context7-widget-react`   |
+| Svelte 5 or SvelteKit app        | Use `@desource/context7-widget-svelte`  |
+| Angular 22 app                   | Use `@desource/context7-widget-angular` |
+
+## Data Flow And Privacy
+
+All package surfaces use the same browser transport. When a visitor sends a
+question, the browser posts the configured `libraryName` and the current
+conversation messages to `https://context7.com/api/v2/widget/chat`. Each
+message includes its id, role, content, and an equivalent text part. Theme,
+preset, position, `widgetId`, and other presentation options are not included
+in the chat request.
+
+The request does not pass through DeSource Labs. Loading the optional hosted
+script is a separate file request to `context7.desourcelabs.com`; npm package
+users do not make that request. The widget itself adds no analytics, cookies,
+`localStorage`, or `sessionStorage`, and keeps the conversation in memory until
+the widget is released; `reset()` clears it explicitly.
+
+Questions and answers are exposed in public widget events. If the host
+application forwards those events to analytics, logging, or support systems,
+that is a separate application-controlled data flow. Avoid submitting secrets
+or sensitive personal data and consult Context7's terms and privacy practices
+for backend processing and retention.
 
 ## Drop-In Replacement
 
@@ -30,7 +54,7 @@ Official Context7:
 Customizable replacement:
 
 ```html
-<script async src="https://context7.desource-labs.org/widget.js" data-library="/owner/repo"></script>
+<script async src="https://context7.desourcelabs.com/widget.js" data-library="/owner/repo"></script>
 ```
 
 Keep your Context7 library and allowed-domain configuration unchanged. Chat
@@ -41,7 +65,7 @@ requests still go to `https://context7.com`.
 ```html
 <script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-position="anchor"
   data-preset="glass"
@@ -63,7 +87,7 @@ menu, help item, or navigation action.
 
 <script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-custom-trigger="#docs-chat"
   data-position="anchor"
@@ -87,7 +111,7 @@ onboarding flow, command palette, empty state, or support menu.
 
 <script
   async
-  src="https://context7.desource-labs.org/widget.js"
+  src="https://context7.desourcelabs.com/widget.js"
   data-library="/owner/repo"
   data-custom-trigger="#docs-help"
   data-position="center"
@@ -100,7 +124,7 @@ onboarding flow, command palette, empty state, or support menu.
 ## Core TypeScript
 
 ```bash
-pnpm add @desource/context7-widget
+npm install @desource/context7-widget
 ```
 
 ```ts
@@ -127,7 +151,7 @@ const script = buildContext7WidgetScriptTag({
 ## Vue
 
 ```bash
-pnpm add @desource/context7-widget-vue
+npm install @desource/context7-widget-vue
 ```
 
 ```vue
@@ -170,12 +194,170 @@ docs.open();
 await docs.send('Show setup examples');
 console.log(docs.isBusy.value, docs.messages.value);
 docs.cancel();
+await docs.retry();
 docs.reset();
 ```
 
+For parent-owned visibility, use Vue's controlled API:
+
+```vue
+<Context7Widget v-model:open="docsOpen" library="/owner/repo" />
+```
+
+## Nuxt
+
+```bash
+npm install @desource/context7-widget-nuxt
+```
+
+Register the module once. Defaults apply to every auto-imported component and
+composable, while instance props still win:
+
+```ts
+export default defineNuxtConfig({
+  modules: ['@desource/context7-widget-nuxt'],
+  context7Widget: {
+    defaults: {
+      library: '/owner/repo',
+      preset: 'glass',
+      theme: 'auto'
+    }
+  }
+});
+```
+
+```vue
+<template>
+  <Context7Widget position="anchor" custom-trigger />
+</template>
+```
+
+The module adds the Vue stylesheet before application CSS and auto-imports
+`Context7Widget` and `useContext7Widget`. Set `component`, `composable`, or `css`
+to `false` when that integration is unused.
+
+## React
+
+```bash
+npm install @desource/context7-widget-react
+```
+
+```tsx
+import { useState } from 'react';
+import { Context7Widget } from '@desource/context7-widget-react/component';
+import '@desource/context7-widget-react/styles.css';
+
+export function DocsAssistant() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Context7Widget
+      library="/owner/repo"
+      open={open}
+      onOpenChange={setOpen}
+      position="anchor"
+      preset="glass"
+      customTrigger
+      onQuestion={(detail) => analytics.track('Docs question', detail)}
+    />
+  );
+}
+```
+
+Hook-owned programmatic widget:
+
+```tsx
+import { useContext7Widget } from '@desource/context7-widget-react/hook';
+
+const docs = useContext7Widget({
+  autoMount: true,
+  library: '/owner/repo',
+  widgetId: 'docs'
+});
+
+await docs.send('Show setup examples');
+await docs.retry();
+```
+
+Without `autoMount`, the hook resolves the newest React registration for its
+`widgetId`; this is a package-level registry, not a DOM ancestry lookup. The id
+defaults to `default`, and if that registration is absent the default lookup
+falls back to the first available widget. If duplicate ids are intentional,
+unmounting the newest registration restores the previous one.
+
+## Svelte
+
+```bash
+npm install @desource/context7-widget-svelte
+```
+
+```svelte
+<script lang="ts">
+  import { Context7Widget } from '@desource/context7-widget-svelte';
+  import '@desource/context7-widget-svelte/styles.css';
+
+  let open = $state(false);
+</script>
+
+<Context7Widget
+  bind:open
+  library="/owner/repo"
+  position="anchor"
+  preset="glass"
+  customTrigger
+  onQuestion={(detail) => analytics.track('Docs question', detail)}
+/>
+```
+
+Use `createContext7Widget` for reactive programmatic control. Component and
+controller imports are SSR-safe; DOM work begins only after mount.
+
+## Angular
+
+```bash
+npm install @desource/context7-widget-angular
+```
+
+Import `@desource/context7-widget-angular/styles.css` once, then add the
+standalone component:
+
+```ts
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Context7Widget, type Context7WidgetQuestionEventDetail } from '@desource/context7-widget-angular';
+
+@Component({
+  selector: 'app-docs-assistant',
+  standalone: true,
+  imports: [Context7Widget],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <context7-widget
+      library="/owner/repo"
+      position="anchor"
+      preset="glass"
+      [customTrigger]="true"
+      (question)="trackQuestion($event)"
+    />
+  `
+})
+export class DocsAssistant {
+  trackQuestion(detail: Context7WidgetQuestionEventDetail): void {
+    analytics.track('Docs question', detail);
+  }
+}
+```
+
+`Context7WidgetService` exposes signal state and imperative mount, open, send,
+cancel, retry, reset, and unmount controls. Add `provideContext7Widget(...)` to
+`bootstrapApplication` or route providers for defaults without mounting
+anything.
+
 ## Next.js App Router
 
-Add the script in `app/layout.tsx`:
+The native React entries preserve `"use client"`, so
+`@desource/context7-widget-react/component` can establish the client boundary
+when imported from an App Router tree. Alternatively, add the hosted custom
+element script in `app/layout.tsx`:
 
 ```tsx
 import Script from 'next/script';
@@ -186,7 +368,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <Script
-          src="https://context7.desource-labs.org/widget.js"
+          src="https://context7.desourcelabs.com/widget.js"
           data-library="/owner/repo"
           data-preset="minimal"
           strategy="afterInteractive"
@@ -205,7 +387,7 @@ Add the script in `docusaurus.config.js`:
 export default {
   scripts: [
     {
-      src: 'https://context7.desource-labs.org/widget.js',
+      src: 'https://context7.desourcelabs.com/widget.js',
       async: true,
       'data-library': '/owner/repo',
       'data-preset': 'minimal'
@@ -233,12 +415,45 @@ context7-widget::part(send-button) {
 }
 ```
 
-Do not target internal `.c7-*` classes. They are implementation details. In
-Vue, apply the same CSS variables to `.context7-widget`; shadow parts apply only
-to the core custom element.
+Do not target internal `.c7-*` classes. They are implementation details. In a
+native framework package, apply the same CSS variables to `.context7-widget`;
+shadow parts apply only to the core custom element.
 
-Vue’s `part` attributes remain stable light-DOM selectors and can be targeted as
-`[part~='send-button']`; they are not shadow-DOM `::part()` exports.
+Framework `part` attributes remain stable light-DOM selectors and can be
+targeted as `[part~='send-button']`; they are not shadow-DOM `::part()` exports.
+
+## Localization, Links, And Chat UX
+
+Every package accepts a partial `labels` object. Only supplied keys replace the
+English defaults:
+
+```ts
+const labels = {
+  send: 'Enviar',
+  stop: 'Detener',
+  retry: 'Reintentar',
+  close: 'Cerrar chat',
+  poweredBy: 'Con tecnología de',
+  enhancedBy: 'Mejorado por',
+  libraryFallback: 'esta biblioteca',
+  missingLibrary: 'Falta la configuración de la biblioteca.'
+};
+```
+
+The shared `Context7WidgetLabels` type is exported by each framework package.
+Attribution prefixes, attribution accessibility labels, the initial-message
+library fallback, and missing-library guidance use the same dictionary as the
+chat controls.
+
+Pass `linkBaseUrl="https://docs.example.com/"` when relative links in generated
+Markdown should resolve to your own docs rather than the Context7 library page.
+Raw HTML is escaped and only safe HTTP(S)/relative links are emitted.
+
+The composer supports code paste and multiline questions: Enter sends and
+Shift+Enter adds a newline. Streaming moves keyboard focus to Stop without
+disabling the composer. Completed answers and code blocks are copyable, failed
+requests are retryable, centered dialogs isolate the background, and mobile
+safe-area/overscroll behavior is built in.
 
 ## Analytics
 
@@ -266,7 +481,7 @@ For the hosted script and default Context7 backend:
 
 ```http
 Content-Security-Policy:
-  script-src 'self' https://context7.desource-labs.org;
+  script-src 'self' https://context7.desourcelabs.com;
   connect-src 'self' https://context7.com;
   img-src 'self' data:;
 ```

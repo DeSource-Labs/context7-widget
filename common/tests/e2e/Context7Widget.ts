@@ -44,12 +44,18 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
     test('renders managed trigger and opens the anchored panel', async () => {
       const trigger = container.locator('.context7-widget-trigger');
 
+      await expect(panel(widget)).toHaveJSProperty('tagName', 'DIALOG');
+      await expect(panel(widget)).toHaveJSProperty('open', false);
+      await expect(widget.getByRole('dialog')).toHaveCount(0);
       await expect(trigger).toHaveText(/Ask docs/);
       await expect(trigger).toHaveAttribute('aria-expanded', 'false');
-      await trigger.click();
+      await trigger.focus();
+      await trigger.press('Enter');
 
       await expect(panel(widget)).toBeVisible();
       await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      await expect(panel(widget)).toHaveJSProperty('open', true);
+      await expect(widget.getByRole('dialog')).toBeVisible();
       const controlledPanelId = await panel(widget).getAttribute('id');
       if (!controlledPanelId) throw new Error('The widget panel must have an id.');
       await expect(trigger).toHaveAttribute('aria-controls', controlledPanelId);
@@ -59,6 +65,8 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await widget.getByRole('button', { name: 'Close chat' }).click();
       await expect(trigger).toBeFocused();
       await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      await expect(panel(widget)).toHaveJSProperty('open', false);
+      await expect(widget.getByRole('dialog')).toHaveCount(0);
     });
 
     test('updates public attributes from demo controls', async () => {
@@ -97,6 +105,54 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await expect(container.locator(selectors.eventLog)).toContainText('answerComplete:1');
       await expect(container.locator(selectors.eventLog)).toContainText('toolCall:1');
       await expect(container.locator(selectors.eventLog)).toContainText('toolResult:1');
+      const results = widget.getByRole('region', { name: 'Documentation search results' });
+      await expect(results).toHaveCount(0);
+      await widget.locator('.c7-tool-toggle').click();
+      await expect(results).toHaveJSProperty('tagName', 'SECTION');
+      await expect(results).toContainText('"ok": true');
+      await widget.locator('.c7-tool-toggle').click();
+      await expect(results).toHaveCount(0);
+    });
+
+    test('copies only explicit actions and suppresses repeated writes until feedback resets', async ({ page }) => {
+      await page.evaluate(() => {
+        const context = window as Window & { __context7Copies?: string[] };
+        context.__context7Copies = [];
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          value: {
+            writeText(value: string) {
+              context.__context7Copies?.push(value);
+              return Promise.resolve();
+            }
+          }
+        });
+      });
+      await container.locator(selectors.programmaticSend).click();
+
+      const answer = widget.locator('.c7-message--assistant').last();
+      const answerCopy = answer.locator('.c7-copy-answer');
+      const codeCopy = answer.locator('[data-c7-copy-code]');
+
+      await answer.locator('p').click();
+      await expect.poll(() => copiedValues(page)).toEqual([]);
+
+      await answerCopy.click();
+      await expect(answerCopy).toHaveAttribute('aria-label', 'Copied');
+      await answerCopy.click({ force: true });
+      await expect
+        .poll(() => copiedValues(page))
+        .toEqual(['Mocked Context7 answer.\n\n```ts\nconst ready = true;\n```']);
+
+      await codeCopy.click();
+      await expect(codeCopy).toHaveAttribute('aria-label', 'Copied');
+      await codeCopy.click({ force: true });
+      await expect
+        .poll(() => copiedValues(page))
+        .toEqual(['Mocked Context7 answer.\n\n```ts\nconst ready = true;\n```', 'const ready = true;']);
+
+      await expect(answerCopy).toHaveAttribute('aria-label', 'Copy answer');
+      await expect(codeCopy).toHaveAttribute('aria-label', 'Copy code');
     });
 
     test('offers an enabled Stop action that aborts without an error event', async ({ page }) => {
@@ -115,12 +171,16 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
 
       await container.locator(selectors.programmaticSend).click();
       const stop = widget.getByRole('button', { name: 'Stop response' });
+      const typing = widget.getByRole('status', { name: 'Context7 is responding' });
+      await expect(typing).toHaveJSProperty('tagName', 'OUTPUT');
+      await expect(typing).toHaveCSS('display', 'flex');
       await expect(stop).toBeEnabled();
       await expect(stop).toHaveText('Stop');
       await stop.click();
 
       await expect(widget.getByRole('button', { name: 'Send question' })).toHaveText('Send');
       await expect(container.locator(selectors.eventLog)).toContainText('error:0');
+      await expect(typing).toHaveCount(0);
     });
 
     test('closes when clicking outside if the option is enabled', async ({ page }) => {
@@ -138,7 +198,7 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await container.locator(selectors.backdrop).check();
       await container.locator('.context7-widget-trigger').click();
 
-      await expect(widget).toHaveAttribute('open', '');
+      await expect(widget).toHaveAttribute('open', /^(?:true)?$/);
       await expect(widget).toHaveAttribute('backdrop-active', '');
       await expect(panel(widget)).toBeVisible();
 
@@ -196,13 +256,17 @@ async function mockContext7Chat(page: Page): Promise<void> {
         'data: {"type":"tool-input-available","toolCallId":"tool-1","toolName":"search","input":{"query":"demo"}}\n',
         'data: {"type":"tool-output-available","toolCallId":"tool-1","output":{"ok":true}}\n',
         'data: {"type":"text-delta","delta":"Mocked "}\n',
-        'data: {"type":"text-delta","delta":"Context7 answer."}\n',
+        'data: {"type":"text-delta","delta":"Context7 answer.\\n\\n```ts\\nconst ready = true;\\n```"}\n',
         'data: [DONE]\n'
       ].join(''),
       contentType: 'text/event-stream',
       status: 200
     });
   });
+}
+
+async function copiedValues(page: Page): Promise<string[]> {
+  return page.evaluate(() => [...((window as Window & { __context7Copies?: string[] }).__context7Copies ?? [])]);
 }
 
 function panel(widget: Locator): Locator {

@@ -1,5 +1,5 @@
 import { createApp, h, nextTick, ref } from 'vue';
-import { Context7Widget, type Context7WidgetExpose } from '../../src';
+import { Context7Widget, type Context7WidgetExpose } from '@src/index';
 import { testContext7WidgetContract, type Context7WidgetContractAdapter } from '@common/tests/unit/context7-widget';
 
 const adapter: Context7WidgetContractAdapter = {
@@ -12,7 +12,9 @@ const adapter: Context7WidgetContractAdapter = {
         h(Context7Widget, {
           customTrigger: props.customTrigger,
           initialMessage: props.initialMessage,
+          labels: props.labels,
           library: props.library,
+          position: props.position,
           ref: widget
         })
     });

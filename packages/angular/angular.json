@@ -1,0 +1,83 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "context7-widget-angular": {
+      "projectType": "library",
+      "root": ".",
+      "sourceRoot": ".",
+      "prefix": "context7",
+      "architect": {
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "demo:build:development",
+            "tsConfig": "tsconfig.spec.json",
+            "runner": "vitest",
+            "runnerConfig": "vitest.config.ts",
+            "include": ["tests/unit/**/*.test.ts"],
+            "isolate": true,
+            "setupFiles": ["tests/setup.ts"],
+            "coverageInclude": ["src/**/*.ts"],
+            "coverageExclude": ["src/**/*.d.ts", "src/public-api.ts"],
+            "coverageReporters": ["text", "lcov"],
+            "coverageThresholds": {
+              "branches": 95,
+              "functions": 98,
+              "lines": 99,
+              "statements": 98
+            }
+          }
+        }
+      }
+    },
+    "demo": {
+      "projectType": "application",
+      "root": "demo",
+      "sourceRoot": "demo",
+      "prefix": "demo",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist-demo",
+            "index": "demo/index.html",
+            "browser": "demo/main.ts",
+            "polyfills": [],
+            "tsConfig": "demo/tsconfig.app.json",
+            "assets": [],
+            "styles": ["src/styles.scss", "demo/styles.css"]
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false
+            },
+            "development": {
+              "optimization": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "demo:build:production"
+            },
+            "development": {
+              "buildTarget": "demo:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    }
+  },
+  "cli": {
+    "analytics": false
+  }
+}

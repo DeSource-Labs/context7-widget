@@ -1,22 +1,26 @@
 import type {
-  Context7ActiveRequest as _Context7ActiveRequest,
   Context7Message,
-  Context7Role,
+  Context7DisplayItem,
+  Context7MessageDisplayItem,
+  Context7ToolDisplayItem,
   Context7WidgetController,
   Context7WidgetOptions,
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
+  Context7WidgetCancelEventDetail,
   Context7WidgetErrorEventDetail,
   Context7WidgetLifecycleEventDetail,
   Context7WidgetQuestionEventDetail,
   Context7WidgetToolCallEventDetail,
   Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
+import type { MaybeRefOrGetter } from 'vue';
 
 export type {
   Context7WidgetAnswerCompleteEventDetail,
   Context7WidgetAnswerEventDetail,
   Context7WidgetBaseEventDetail,
+  Context7WidgetCancelEventDetail,
   Context7WidgetDomEvent,
   Context7WidgetDomEventMap,
   Context7WidgetErrorEventDetail,
@@ -28,21 +32,25 @@ export type {
   Context7WidgetToolResultEventDetail
 } from '@desource/context7-widget/kit';
 
-export type Context7WidgetCustomTrigger = boolean | string;
+export type Context7WidgetCustomTrigger = boolean | MaybeRefOrGetter<Element | null | undefined> | string;
 
 export interface Context7WidgetProps extends Omit<Context7WidgetOptions, 'customTrigger'> {
   /**
    * Use a custom trigger instead of the built-in widget launcher.
    * - true renders the Vue package trigger button.
    * - a simple string binds an external trigger id; CSS selector syntax is also supported.
+   * - an Element or Vue ref/getter binds that external trigger directly.
    * - undefined keeps the built-in widget launcher.
    */
   customTrigger?: Context7WidgetCustomTrigger;
+  /** Controlled open state. Pair with v-model:open; omit for internal state. */
+  open?: boolean;
 }
 
 export interface Context7WidgetVueEventMap {
   answer: Context7WidgetAnswerEventDetail;
   'answer-complete': Context7WidgetAnswerCompleteEventDetail;
+  cancel: Context7WidgetCancelEventDetail;
   close: Context7WidgetLifecycleEventDetail;
   error: Context7WidgetErrorEventDetail;
   'first-token': Context7WidgetAnswerEventDetail;
@@ -58,10 +66,14 @@ export type Context7WidgetVueEventName = keyof Context7WidgetVueEventMap;
 export type Context7WidgetVueEventDetail = Context7WidgetVueEventMap[Context7WidgetVueEventName];
 
 export interface Context7WidgetEmits {
+  /** Requests a controlled open-state change for v-model:open. */
+  (event: 'update:open', open: boolean): void;
   /** Emitted on every streamed answer update. */
   (event: 'answer', detail: Context7WidgetAnswerEventDetail): void;
   /** Emitted when the final assistant answer is available. */
   (event: 'answer-complete', detail: Context7WidgetAnswerCompleteEventDetail): void;
+  /** Emitted when an active response is cancelled. */
+  (event: 'cancel', detail: Context7WidgetCancelEventDetail): void;
   /** Emitted when the widget panel closes. */
   (event: 'close', detail: Context7WidgetLifecycleEventDetail): void;
   /** Emitted when a Context7 request fails. */
@@ -104,30 +116,8 @@ export interface Context7WidgetState {
 
 export type Context7WidgetStateListener = (state: Context7WidgetState) => void;
 
-type ErrorDisplayItem = {
-  html: string;
-  id: string;
-  kind: 'error';
-};
+export type MessageDisplayItem = Context7MessageDisplayItem;
+export type ToolDisplayItem = Context7ToolDisplayItem;
+export type DisplayItem = Context7DisplayItem;
 
-export type MessageDisplayItem = {
-  content: string;
-  id: string;
-  kind: 'message';
-  role: Context7Role;
-};
-
-export type ToolDisplayItem = {
-  contentId: string;
-  expanded: boolean;
-  hasResult: boolean;
-  id: string;
-  kind: 'tool';
-  query: string;
-  result: string;
-  toolCallId: string;
-};
-
-export type DisplayItem = ErrorDisplayItem | MessageDisplayItem | ToolDisplayItem;
-
-export type Context7ActiveRequest = Omit<_Context7ActiveRequest, 'typing'>;
+export type { Context7WidgetSendResult } from '@desource/context7-widget/kit';

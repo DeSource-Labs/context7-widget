@@ -1,4 +1,6 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
+
+import { context7E2EProjects } from '../../common/tests/e2e/projects';
 
 // Playwright forces colored output in its worker processes. Forwarding NO_COLOR
 // alongside it makes Node emit a warning for every worker and web server.
@@ -10,12 +12,7 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:5174',
     trace: 'retain-on-failure'
   },
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] }
-    }
-  ],
+  projects: context7E2EProjects,
   webServer: {
     command: 'pnpm exec vite demo --config demo/vite.config.ts --host 127.0.0.1 --port 5174',
     reuseExistingServer: !process.env.CI,

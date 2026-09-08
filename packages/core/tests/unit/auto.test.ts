@@ -12,7 +12,7 @@ describe('auto entrypoint', () => {
     setReadyState('complete');
     document.body.append(createLoaderScript('/vercel/next.js'));
 
-    await import('../../src/auto');
+    await import('@src/auto');
 
     expect(document.querySelector('context7-widget')?.getAttribute('library')).toBe('/vercel/next.js');
   });
@@ -21,7 +21,7 @@ describe('auto entrypoint', () => {
     setReadyState('loading');
     document.body.append(createLoaderScript('/desource-labs/context7-widget'));
 
-    await import('../../src/auto');
+    await import('@src/auto');
 
     expect(document.querySelector('context7-widget')).toBeNull();
 
@@ -33,11 +33,11 @@ describe('auto entrypoint', () => {
   it('retains the matching script when multiple async installs wait for DOMContentLoaded', async () => {
     setReadyState('loading');
     document.body.append(createLoaderScript('/first/library'));
-    await import('../../src/auto');
+    await import('@src/auto');
 
     vi.resetModules();
     document.body.append(createLoaderScript('/second/library'));
-    await import('../../src/auto');
+    await import('@src/auto');
 
     document.dispatchEvent(new Event('DOMContentLoaded'));
 

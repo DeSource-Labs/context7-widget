@@ -29,13 +29,13 @@
         </a>
         <a
           class="external"
-          href="https://github.com/DeSource-Labs/browser-ai/blob/main/SECURITY.md"
+          href="https://github.com/DeSource-Labs/context7-widget/blob/main/SECURITY.md"
           target="_blank"
           rel="noopener noreferrer"
         >
           Security
         </a>
-        <a class="external" href="https://desource-labs.org" target="_blank" rel="noopener noreferrer">
+        <a class="external" href="https://desourcelabs.com" target="_blank" rel="noopener noreferrer">
           DeSource Labs
         </a>
       </div>

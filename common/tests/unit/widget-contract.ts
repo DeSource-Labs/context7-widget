@@ -10,7 +10,7 @@ export function expectAlwaysVisibleBranding(container: ParentNode): void {
   expect(context7?.href).toBe('https://context7.com/');
   expect(context7?.querySelector('.c7-brand-prefix')?.textContent).toBe('Powered by');
   expect(context7Logo?.parentElement).toBe(context7);
-  expect(deSourceLabs?.href).toBe('https://desource-labs.org/');
+  expect(deSourceLabs?.href).toBe('https://desourcelabs.com/');
   expect(deSourceLabs?.querySelector('.c7-brand-prefix')?.textContent).toBe('Enhanced by');
   expect(deSourceLabsLogo?.parentElement).toBe(deSourceLabs);
   expect(branding?.classList.contains('c7-branding')).toBe(true);

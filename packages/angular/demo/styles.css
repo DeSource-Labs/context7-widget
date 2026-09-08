@@ -1,0 +1,97 @@
+:root {
+  color-scheme: dark;
+  background: #070b09;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.demo-shell {
+  color: #f8fafc;
+  display: grid;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  gap: 1rem;
+  grid-template-columns: 18rem minmax(0, 1fr);
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.demo-controls,
+.demo-stage {
+  background: #101513;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.demo-controls {
+  align-content: start;
+  display: grid;
+  gap: 0.8rem;
+}
+
+label {
+  color: rgba(248, 250, 252, 0.72);
+  display: grid;
+  font-size: 0.85rem;
+  gap: 0.35rem;
+}
+
+.checkbox-control {
+  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+input,
+select,
+button {
+  font: inherit;
+}
+
+input[type='text'],
+select {
+  background: #070b09;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 7px;
+  color: #f8fafc;
+  min-height: 2.4rem;
+  padding: 0 0.7rem;
+  width: 100%;
+}
+
+button {
+  background: #7cffb2;
+  border: 0;
+  border-radius: 8px;
+  color: #07120c;
+  cursor: pointer;
+  font-weight: 800;
+  min-height: 2.55rem;
+  padding: 0 0.9rem;
+}
+
+.demo-stage {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  place-content: start;
+}
+
+.event-log {
+  color: rgba(248, 250, 252, 0.72);
+  font: 0.78rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  grid-column: 1 / -1;
+  max-width: 54rem;
+}
+
+@media (max-width: 760px) {
+  .demo-shell {
+    grid-template-columns: 1fr;
+  }
+}

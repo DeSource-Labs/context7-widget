@@ -9,8 +9,13 @@ export default defineConfig({
       formats: ['iife'],
       name: 'Context7WidgetLoader'
     },
-    minify: true,
-    sourcemap: true,
-    target: 'es2020'
+    minify: 'terser',
+    sourcemap: false,
+    target: 'es2020',
+    terserOptions: {
+      compress: { passes: 3, pure_getters: true, toplevel: true },
+      format: { comments: false },
+      mangle: { toplevel: true }
+    }
   }
 });

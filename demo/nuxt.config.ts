@@ -2,7 +2,14 @@ import { defineNuxtConfig } from 'nuxt/config';
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-15',
-  css: ['@desource/context7-widget-vue/styles.css', '~/assets/styles/main.scss'],
+  modules: ['@desource/context7-widget-nuxt'],
+  context7Widget: {
+    defaults: {
+      library: '/desource-labs/context7-widget',
+      theme: 'auto'
+    }
+  },
+  css: ['~/assets/styles/main.scss'],
   devtools: { enabled: false },
   ssr: true,
   app: {
@@ -15,7 +22,7 @@ export default defineNuxtConfig({
         {
           name: 'description',
           content:
-            'Customizable Context7 documentation chat widget for product sites, docs portals, dashboards, and developer tools. Script, TypeScript core, and Vue integrations.'
+            'Customizable Context7 documentation chat widget for product sites, docs portals, dashboards, and developer tools. Hosted script, TypeScript core, Vue, Nuxt, React, Svelte, and Angular integrations.'
         },
         { property: 'og:title', content: 'Context7 Widget by DeSource Labs' },
         {
@@ -24,7 +31,7 @@ export default defineNuxtConfig({
             'Add a Context7-powered AI docs assistant to your site, then match it to your product with presets, CSS variables, events, and framework bindings.'
         },
         { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: 'https://context7.desource-labs.org' },
+        { property: 'og:url', content: 'https://context7.desourcelabs.com' },
         { name: 'twitter:card', content: 'summary_large_image' }
       ],
       link: [{ rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' }]
@@ -32,7 +39,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     prerender: {
-      routes: ['/']
+      routes: ['/', '/customization', '/examples', '/live']
     }
   },
   vite: {

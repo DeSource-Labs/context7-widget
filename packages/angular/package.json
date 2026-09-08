@@ -1,0 +1,91 @@
+{
+  "name": "@desource/context7-widget-angular",
+  "version": "0.1.0",
+  "description": "Native Angular component and injectable controls for a customizable Context7 documentation chat widget.",
+  "keywords": [
+    "context7",
+    "context7-widget",
+    "widget",
+    "chat-widget",
+    "ai-docs",
+    "docs-chat",
+    "angular",
+    "standalone",
+    "signals",
+    "component",
+    "documentation",
+    "typescript",
+    "customizable",
+    "themeable"
+  ],
+  "author": "Stefan Popov <stefan@desourcelabs.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeSource-Labs/context7-widget.git",
+    "directory": "packages/angular"
+  },
+  "bugs": {
+    "url": "https://github.com/DeSource-Labs/context7-widget/issues"
+  },
+  "homepage": "https://github.com/DeSource-Labs/context7-widget/tree/main/packages/angular#readme",
+  "type": "module",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/fesm2022/context7-widget-angular.mjs",
+  "module": "./dist/fesm2022/context7-widget-angular.mjs",
+  "types": "./dist/types/context7-widget-angular.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/types/context7-widget-angular.d.ts",
+        "default": "./dist/fesm2022/context7-widget-angular.mjs"
+      }
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "sideEffects": [
+    "./dist/styles.css"
+  ],
+  "scripts": {
+    "clean": "rimraf dist dist-demo tsconfig.tsbuildinfo test-results coverage",
+    "clean:modules": "rimraf node_modules",
+    "build": "pnpm clean && ng-packagr -p ng-package.json -c tsconfig.lib.json && node scripts/finalize-dist.mts && pnpm build:css",
+    "build:css": "sass src/styles.scss dist/styles.css --no-source-map --style=compressed",
+    "dev:demo": "ng serve demo --host 127.0.0.1 --port 5176",
+    "typecheck": "ngc -p tsconfig.lib.json --noEmit && ngc -p tsconfig.spec.json --noEmit && ngc -p demo/tsconfig.app.json --noEmit",
+    "test:e2e": "playwright test",
+    "test:unit": "ng test context7-widget-angular --watch=false",
+    "test:unit:coverage": "ng test context7-widget-angular --watch=false --coverage"
+  },
+  "dependencies": {
+    "@desource/context7-widget": "workspace:*",
+    "tslib": "^2.8.1"
+  },
+  "peerDependencies": {
+    "@angular/common": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@angular/platform-browser": "^22.0.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.1.7",
+    "@angular/cli": "^22.1.7",
+    "@angular/common": "^22.1.5",
+    "@angular/compiler": "^22.1.5",
+    "@angular/compiler-cli": "^22.1.5",
+    "@angular/core": "^22.1.5",
+    "@angular/platform-browser": "^22.1.5",
+    "@angular/platform-server": "^22.1.5",
+    "ng-packagr": "^22.1.1",
+    "typescript": "~6.0.3"
+  }
+}

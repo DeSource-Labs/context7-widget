@@ -5,11 +5,8 @@ import vue from '@vitejs/plugin-vue';
 export default defineConfig({
   plugins: [vue()],
   resolve: {
-    alias: [
-      {
-        find: '@desource/context7-widget/kit',
-        replacement: fileURLToPath(new URL('../../core/src/kit.ts', import.meta.url))
-      }
-    ]
+    alias: {
+      '@desource/context7-widget/kit': fileURLToPath(new URL('../../core/src/kit.ts', import.meta.url))
+    }
   }
 });

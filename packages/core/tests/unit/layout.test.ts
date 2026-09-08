@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveContext7AnchorLayout } from '../../src';
+import { resolveContext7AnchorLayout } from '@src/core';
 
 describe('resolveContext7AnchorLayout', () => {
   it('opens above an end-aligned trigger when space is available', () => {
