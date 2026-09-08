@@ -442,6 +442,37 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       expect(codeCopy().getAttribute('aria-label')).toBe('Copy code');
     });
 
+    it('keeps a second centered widget interactive while the first remains open', async () => {
+      const first = await mount({ position: 'center' });
+      const second = await mount({ position: 'center' });
+      const outside = document.createElement('button');
+      document.body.append(outside);
+      await interact(first, () => first.controller.open());
+      await first.flush();
+      await interact(second, () => second.controller.open());
+      await second.flush();
+
+      for (const { view } of [first, second]) {
+        const input = required<HTMLElement>(view, '.c7-input');
+        const root = input.getRootNode();
+        let branch: Element | null = root instanceof ShadowRoot ? root.host : input;
+        while (branch) {
+          expect(branch.hasAttribute('inert')).toBe(false);
+          branch = branch.parentElement;
+        }
+      }
+      expect(outside.inert).toBe(true);
+      await interact(first, () => first.controller.close());
+      await first.flush();
+      expect(second.controller.isOpen()).toBe(true);
+      expect(outside.inert).toBe(true);
+      expect(document.body.style.overflow).toBe('hidden');
+      await interact(second, () => second.controller.close());
+      await second.flush();
+      expect(outside.inert).toBeFalsy();
+      expect(document.body.style.overflow).toBe('');
+    });
+
     it('localizes controls and isolates centered dialogs from the host page', async () => {
       const outside = document.createElement('button');
       outside.textContent = 'Host action';

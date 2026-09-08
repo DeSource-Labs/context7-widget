@@ -1,6 +1,7 @@
 interface InertRecord {
+  /** Number of active modal containers in this branch. */
+  active: number;
   count: number;
-  readonly element: HTMLElement;
   readonly hadAttribute: boolean;
   readonly inert: boolean;
 }
@@ -15,67 +16,61 @@ const inertRecords = new Map<HTMLElement, InertRecord>();
 const scrollLocks = new WeakMap<Document, ScrollLockRecord>();
 
 /**
- * Make everything outside `container` non-interactive and lock page scrolling.
+ * Make everything outside active modal containers non-interactive and lock page scrolling.
  * Calls are reference counted so independently mounted modal widgets compose.
  */
 export function acquireContext7Modal(container: HTMLElement): () => void {
   const document = container.ownerDocument;
-  const inerted = collectOutsideElements(container, document.body);
+  const { branches, outside } = collectModalElements(container, document.body);
 
-  for (const element of inerted) retainInert(element);
+  for (const element of branches) updateInert(element, 0, 1);
+  for (const element of outside) updateInert(element, 1);
   retainScrollLock(document);
 
   let released = false;
   return () => {
     if (released) return;
     released = true;
-    for (const element of inerted) releaseInert(element);
+    for (const element of outside) updateInert(element, -1);
+    for (const element of branches) updateInert(element, 0, -1);
     releaseScrollLock(document);
   };
 }
 
-function collectOutsideElements(container: HTMLElement, body: HTMLElement): HTMLElement[] {
-  const elements = new Set<HTMLElement>();
+function collectModalElements(container: HTMLElement, body: HTMLElement) {
+  const branches: HTMLElement[] = [];
+  const outside: HTMLElement[] = [];
   let branch: HTMLElement | null = container;
 
   while (branch && branch !== body) {
+    branches.push(branch);
     const parentElement: HTMLElement | null = branch.parentElement;
     if (!parentElement) break;
     for (const sibling of parentElement.children) {
-      if (sibling !== branch && sibling instanceof HTMLElement) elements.add(sibling);
+      if (sibling !== branch && sibling instanceof HTMLElement) outside.push(sibling);
     }
     branch = parentElement;
   }
 
-  return [...elements];
+  return { branches, outside };
 }
 
-function retainInert(element: HTMLElement): void {
-  const existing = inertRecords.get(element);
-  if (existing) {
-    existing.count += 1;
-    return;
+function updateInert(element: HTMLElement, count: number, active = 0): void {
+  let record = inertRecords.get(element);
+  if (!record) {
+    record = { active: 0, count: 0, hadAttribute: element.hasAttribute('inert'), inert: element.inert };
+    inertRecords.set(element, record);
   }
 
-  inertRecords.set(element, {
-    count: 1,
-    element,
-    hadAttribute: element.hasAttribute('inert'),
-    inert: element.inert
-  });
-  element.inert = true;
-  element.setAttribute('inert', '');
-}
-
-function releaseInert(element: HTMLElement): void {
-  const record = inertRecords.get(element);
-  if (!record) return;
-  record.count -= 1;
-  if (record.count > 0) return;
-
-  inertRecords.delete(element);
-  record.element.inert = record.inert;
-  if (!record.hadAttribute) record.element.removeAttribute('inert');
+  const wasInerted = record.count > 0 && record.active === 0;
+  record.count += count;
+  record.active += active;
+  const inerted = record.count > 0 && record.active === 0;
+  if (wasInerted !== inerted) {
+    element.inert = inerted || record.inert;
+    element.toggleAttribute('inert', inerted || record.hadAttribute);
+  }
+  if (!record.count && !record.active) inertRecords.delete(element);
 }
 
 function retainScrollLock(document: Document): void {

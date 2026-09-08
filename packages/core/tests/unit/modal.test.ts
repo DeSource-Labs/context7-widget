@@ -49,6 +49,65 @@ describe('modal isolation helper', () => {
     expect(document.body.style.overflow).toBe('');
   });
 
+  it.each([false, true])('keeps separate modal branches interactive (close first: %s)', (closeFirst) => {
+    const firstBranch = document.createElement('section');
+    const secondBranch = document.createElement('section');
+    const first = document.createElement('div');
+    const second = document.createElement('div');
+    const outside = document.createElement('button');
+    firstBranch.append(first);
+    secondBranch.append(second);
+    document.body.append(firstBranch, secondBranch, outside);
+
+    const releaseFirst = acquireContext7Modal(first);
+    expect(secondBranch.inert).toBe(true);
+    const releaseSecond = acquireContext7Modal(second);
+    try {
+      expect(firstBranch.inert).toBeFalsy();
+      expect(secondBranch.inert).toBeFalsy();
+      expect(outside.inert).toBe(true);
+      expect(document.body.style.overflow).toBe('hidden');
+
+      (closeFirst ? releaseFirst : releaseSecond)();
+      expect((closeFirst ? firstBranch : secondBranch).inert).toBe(true);
+      expect((closeFirst ? secondBranch : firstBranch).inert).toBeFalsy();
+      expect(outside.inert).toBe(true);
+      expect(document.body.style.overflow).toBe('hidden');
+    } finally {
+      releaseSecond();
+      releaseFirst();
+    }
+    expect(firstBranch.inert).toBeFalsy();
+    expect(secondBranch.inert).toBeFalsy();
+    expect(outside.inert).toBeFalsy();
+    expect(document.body.style.overflow).toBe('');
+  });
+
+  it('releases nested active branches after their container is removed', () => {
+    const outer = document.createElement('div');
+    const inner = document.createElement('div');
+    const outside = document.createElement('button');
+    outer.append(inner);
+    document.body.append(outer, outside);
+    const releaseOuter = acquireContext7Modal(outer);
+    const releaseInner = acquireContext7Modal(inner);
+    outer.remove();
+    releaseOuter();
+    expect(outside.inert).toBe(true);
+    releaseInner();
+    expect(outside.inert).toBeFalsy();
+    expect(document.body.style.overflow).toBe('');
+
+    document.body.append(outer);
+    const releaseOutside = acquireContext7Modal(outside);
+    try {
+      expect(outer.inert).toBe(true);
+    } finally {
+      releaseOutside();
+    }
+    expect(outer.inert).toBeFalsy();
+  });
+
   it('supports detached documents without a browsing context', () => {
     const detached = document.implementation.createHTMLDocument('Detached');
     const outside = detached.createElement('button');
