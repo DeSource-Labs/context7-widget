@@ -411,7 +411,7 @@ const CSS_TOKENS = /* @__PURE__ */ combineTokenPatterns([
   /\b\d+(?:\.\d+)?(?:px|rem|em|%|s|ms)?\b/
 ]);
 const SHELL_TOKENS = /* @__PURE__ */ combineTokenPatterns(
-  [/#.*$/, SINGLE_QUOTED, DOUBLE_QUOTED, /\$[\w@#?$!*-]+/, CODE_NUMBER],
+  [/#.*/, SINGLE_QUOTED, DOUBLE_QUOTED, /\$[\w@#?$!*-]+/, CODE_NUMBER],
   'gm'
 );
 

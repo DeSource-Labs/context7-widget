@@ -94,6 +94,23 @@ describe('markdown', () => {
     ]);
   });
 
+  it.each(['\n', '\r', '\r\n', '\u2028', '\u2029'])('ends shell comments at line terminator %j', (separator) => {
+    const code = `echo 1 # comment # "quoted"${separator}echo $HOME 2 #`;
+    const container = document.createElement('div');
+    container.innerHTML = renderMarkdown(`\`\`\`sh\n${code}\n\`\`\``);
+
+    expect(container.querySelector('code')?.textContent).toBe(code.replace(/\r\n?/g, '\n'));
+    expect(Array.from(container.querySelectorAll('.c7-token--comment'), (token) => token.textContent)).toEqual([
+      '# comment # "quoted"',
+      '#'
+    ]);
+    expect(container.querySelector('.c7-token--variable')?.textContent).toBe('$HOME');
+    expect(Array.from(container.querySelectorAll('.c7-token--number'), (token) => token.textContent)).toEqual([
+      '1',
+      '2'
+    ]);
+  });
+
   it('classifies JSON properties by position when keys and values repeat', () => {
     const html = renderMarkdown('```json\n{"name":"name","other":"name"}\n```');
     const container = document.createElement('div');
