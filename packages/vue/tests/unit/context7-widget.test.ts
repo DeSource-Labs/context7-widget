@@ -1555,7 +1555,7 @@ describe('@desource/context7-widget-vue', () => {
     );
     await nextTick();
 
-    const panel = root.querySelector<HTMLElement>('[role="dialog"]');
+    const panel = root.querySelector<HTMLElement>('dialog');
     expect(external.getAttribute('aria-controls')).toBe(panel?.id);
     expect(external.getAttribute('aria-expanded')).toBe('false');
     external.click();

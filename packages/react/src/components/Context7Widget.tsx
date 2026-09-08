@@ -249,7 +249,7 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
     propsRef.current = props;
 
     const rootRef = useRef<HTMLDivElement>(null);
-    const panelRef = useRef<HTMLElement>(null);
+    const panelRef = useRef<HTMLDialogElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const sendButtonRef = useRef<HTMLButtonElement>(null);
     const launcherRef = useRef<HTMLButtonElement>(null);
@@ -908,15 +908,15 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
           </button>
         ) : null}
 
-        <section
+        <dialog
           id={panelId}
           ref={panelRef}
+          open={actualOpen}
           aria-label={config.title}
           aria-busy={busy}
           aria-modal={config.position === 'center'}
           className="c7-panel"
           part="panel"
-          role="dialog"
         >
           <header className="c7-header" part="header">
             <div className="c7-title" part="title">
@@ -1008,15 +1008,14 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
                         </svg>
                         <span>{item.expanded ? config.labels.hideResults : config.labels.viewResults}</span>
                       </button>
-                      <div
+                      <section
                         id={item.contentId}
                         aria-label={config.labels.searchResults}
                         className="c7-tool-content"
-                        role="region"
                         hidden={!item.expanded}
                       >
                         <pre>{item.result}</pre>
-                      </div>
+                      </section>
                     </div>
                   ) : null}
                 </div>
@@ -1024,11 +1023,11 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
             })}
 
             {showTyping ? (
-              <div aria-label={config.labels.responding} className="c7-typing" part="typing" role="status">
+              <output aria-label={config.labels.responding} className="c7-typing" part="typing">
                 <span aria-hidden="true" />
                 <span aria-hidden="true" />
                 <span aria-hidden="true" />
-              </div>
+              </output>
             ) : null}
           </div>
 
@@ -1112,7 +1111,7 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
               </a>
             </span>
           </footer>
-        </section>
+        </dialog>
 
         {!hasCustomTrigger ? (
           <button

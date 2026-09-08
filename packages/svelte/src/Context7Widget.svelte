@@ -838,15 +838,15 @@
     </button>
   {/if}
 
-  <div
+  <dialog
     id={panelId}
     bind:this={panel}
+    open={isOpenState}
     aria-label={resolvedConfig.title}
     aria-busy={busy}
     aria-modal={resolvedConfig.position === 'center'}
     class="c7-panel"
     part="panel"
-    role="dialog"
   >
     <header class="c7-header" part="header">
       <div class="c7-title" part="title">{resolvedConfig.title}</div>
@@ -961,15 +961,14 @@
                   </svg>
                   <span>{item.expanded ? resolvedConfig.labels.hideResults : resolvedConfig.labels.viewResults}</span>
                 </button>
-                <div
+                <section
                   id={item.contentId}
                   aria-label={resolvedConfig.labels.searchResults}
                   class="c7-tool-content"
-                  role="region"
                   hidden={!item.expanded}
                 >
                   <pre>{item.result}</pre>
-                </div>
+                </section>
               </div>
             {/if}
           </div>
@@ -977,9 +976,9 @@
       {/each}
 
       {#if showTyping}
-        <div aria-label={resolvedConfig.labels.responding} class="c7-typing" part="typing" role="status">
+        <output aria-label={resolvedConfig.labels.responding} class="c7-typing" part="typing">
           <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
-        </div>
+        </output>
       {/if}
     </div>
 
@@ -1045,7 +1044,7 @@
         </a>
       </span>
     </footer>
-  </div>
+  </dialog>
 
   {#if !hasCustomTrigger}
     <button

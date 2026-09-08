@@ -26,7 +26,7 @@ describe('Angular server rendering', () => {
 
     expect(html).toContain('<context7-widget');
     expect(html).toContain('class="context7-widget"');
-    expect(html).toContain('role="dialog"');
+    expect(html).toContain('<dialog');
     expect(html).not.toContain('context7-widget-panel-');
   });
 });

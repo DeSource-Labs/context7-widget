@@ -42,15 +42,15 @@
       </slot>
     </button>
 
-    <section
+    <dialog
       :id="panelId"
       ref="panel"
+      :open="isOpen"
       :aria-label="resolvedConfig.title"
       :aria-busy="busy"
       :aria-modal="resolvedPosition === 'center'"
       class="c7-panel"
       part="panel"
-      role="dialog"
     >
       <header class="c7-header" part="header">
         <div class="c7-title" part="title">{{ resolvedConfig.title }}</div>
@@ -159,24 +159,23 @@
                 </svg>
                 <span>{{ item.expanded ? resolvedLabels.hideResults : resolvedLabels.viewResults }}</span>
               </button>
-              <div
-                v-show="item.expanded"
+              <section
                 :id="item.contentId"
                 :aria-label="resolvedLabels.searchResults"
+                :hidden="!item.expanded"
                 class="c7-tool-content"
-                role="region"
               >
                 <pre>{{ item.result }}</pre>
-              </div>
+              </section>
             </div>
           </div>
         </template>
 
-        <div v-if="showTyping" :aria-label="resolvedLabels.responding" class="c7-typing" part="typing" role="status">
+        <output v-if="showTyping" :aria-label="resolvedLabels.responding" class="c7-typing" part="typing">
           <span aria-hidden="true" />
           <span aria-hidden="true" />
           <span aria-hidden="true" />
-        </div>
+        </output>
       </div>
 
       <form class="c7-composer" part="composer" @submit.prevent="busy ? cancel() : send()">
@@ -254,7 +253,7 @@
           </a>
         </span>
       </footer>
-    </section>
+    </dialog>
 
     <button
       v-if="!hasCustomTrigger"

@@ -58,7 +58,7 @@ interface WidgetElements {
   readonly launcher: HTMLButtonElement;
   readonly launcherLabel: HTMLElement;
   readonly messages: HTMLElement;
-  readonly panel: HTMLElement;
+  readonly panel: HTMLDialogElement;
   readonly poweredBy: HTMLElement;
   readonly sendButton: HTMLButtonElement;
   readonly title: HTMLElement;
@@ -454,14 +454,13 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.root.innerHTML = `
       ${styleElement}
       <div class="c7-backdrop" data-c7-backdrop part="backdrop"></div>
-      <section
+      <dialog
         aria-label="Context7 documentation chat"
         aria-busy="false"
         aria-modal="false"
         class="c7-panel"
         id="${this.panelId}"
         part="panel"
-        role="dialog"
       >
         <header class="c7-header" part="header">
           <div class="c7-title" data-c7-title part="title"></div>
@@ -495,7 +494,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
           </button>
         </form>
         ${renderWidgetFooter()}
-      </section>
+      </dialog>
       <button
         aria-controls="${this.panelId}"
         aria-expanded="false"
@@ -687,10 +686,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
   }
 
   private appendTyping(): HTMLElement {
-    const typing = document.createElement('div');
+    const typing = document.createElement('output');
     typing.className = 'c7-typing';
     typing.setAttribute('part', 'typing');
-    typing.setAttribute('role', 'status');
     typing.setAttribute('aria-label', this.config.labels.responding);
     typing.innerHTML =
       '<span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>';
@@ -747,9 +745,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
         </svg>
         <span>${escapeHtml(this.config.labels.viewResults)}</span>
       </button>
-      <div aria-label="${escapeHtml(this.config.labels.searchResults)}" class="c7-tool-content" hidden id="${resultId}" role="region">
+      <section aria-label="${escapeHtml(this.config.labels.searchResults)}" class="c7-tool-content" hidden id="${resultId}">
         <pre>${escapeHtml(result)}</pre>
-      </div>
+      </section>
     `;
 
     const toggle = wrapper.querySelector<HTMLButtonElement>('.c7-tool-toggle');
@@ -948,7 +946,9 @@ export class Context7WidgetElement extends BaseHTMLElement {
   }
 
   private syncExpandedState(): void {
-    const expanded = String(this.isOpen());
+    const open = this.isOpen();
+    this.panel.open = open;
+    const expanded = String(open);
     this.launcher?.setAttribute('aria-expanded', expanded);
     this.triggerElement?.setAttribute('aria-expanded', expanded);
   }
@@ -1038,7 +1038,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     return this.elements.messages;
   }
 
-  private get panel(): HTMLElement {
+  private get panel(): HTMLDialogElement {
     return this.elements.panel;
   }
 

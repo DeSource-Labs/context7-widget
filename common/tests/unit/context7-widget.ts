@@ -106,6 +106,23 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       document.body.replaceChildren();
     });
 
+    it('keeps native dialog state synchronized without replacing its content', async () => {
+      const harness = await mount();
+      const { controller, flush, view } = harness;
+      const panel = required<HTMLDialogElement>(view, 'dialog[part="panel"]');
+      const input = required<HTMLTextAreaElement>(panel, '.c7-input');
+      expect(panel.open).toBe(false);
+      expect(panel.getAttribute('role')).toBeNull();
+      expect(panel.getAttribute('aria-label')).toBeTruthy();
+
+      for (const action of [() => controller.open(), () => controller.close(), () => controller.toggle()]) {
+        await interact(harness, action);
+        await flush();
+        expect(panel.open).toBe(controller.isOpen());
+        expect(required(view, '.c7-input')).toBe(input);
+      }
+    });
+
     it('renders assistant Markdown without treating user or assistant input as trusted HTML', async () => {
       const question = '**user text** <img src=x onerror=alert(1)>';
       const answer = '**assistant text** <script>alert(1)</script>';
@@ -354,6 +371,10 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
 
       const stop = required<HTMLButtonElement>(view, '.c7-send');
       expect(stop.textContent).toContain('Stop');
+      const typing = required<HTMLOutputElement>(view, 'output[part="typing"]');
+      expect(typing.getAttribute('role')).toBeNull();
+      expect(typing.getAttribute('aria-label')).toBe('Context7 is responding');
+      expect(typing.querySelectorAll('span[aria-hidden="true"]')).toHaveLength(3);
       const activeElement = view instanceof ShadowRoot ? view.activeElement : document.activeElement;
       expect(activeElement).toBe(stop);
       expect(input.readOnly).toBe(true);
@@ -364,6 +385,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       });
       await vi.waitFor(() => expect(controller.isBusy()).toBe(false));
       expect(input.readOnly).toBe(false);
+      expect(view.querySelector('[part="typing"]')).toBeNull();
     });
 
     it('copies only explicit answer/code actions and suppresses repeats until feedback resets', async () => {
@@ -570,11 +592,20 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       expect(view.textContent).toContain('<img src=x onerror=alert(1)>');
       expect(view.textContent).toContain('Plain <result>');
 
+      const result = required<HTMLElement>(view, 'section.c7-tool-content');
+      expect(result.getAttribute('role')).toBeNull();
+      expect(result.getAttribute('aria-label')).toBe('Documentation search results');
+      expect(result.hidden).toBe(true);
       const toggle = required<HTMLButtonElement>(view, '.c7-tool-toggle');
+      expect(toggle.getAttribute('aria-controls')).toBe(result.id);
       expect(toggle.getAttribute('aria-expanded')).toBe('false');
       await interact(harness, () => toggle.click());
       await flush();
       expect(toggle.getAttribute('aria-expanded')).toBe('true');
+      expect(result.hidden).toBe(false);
+      await interact(harness, () => toggle.click());
+      await flush();
+      expect(result.hidden).toBe(true);
     });
 
     it('isolates cancelled requests from late stream frames and cleanup', async () => {
@@ -684,7 +715,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       document.body.append(trigger);
 
       const harness = await mount({ customTrigger: '#shared-contract-trigger' });
-      const panel = required<HTMLElement>(harness.view, '[role="dialog"]');
+      const panel = required<HTMLElement>(harness.view, 'dialog');
 
       expect(trigger.getAttribute('aria-controls')).toBe(panel.id);
       expect(trigger.getAttribute('aria-expanded')).toBe('false');

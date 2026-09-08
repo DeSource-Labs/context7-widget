@@ -35,7 +35,7 @@ describe('Nuxt module basic fixture', () => {
 
       const hydrationStatus = page.locator('#hydration-status');
       const trigger = page.locator('.context7-widget .c7-launcher');
-      const panel = page.locator('.context7-widget [role="dialog"]');
+      const panel = page.locator('.context7-widget dialog');
 
       await hydrationStatus.waitFor({ state: 'visible' });
       expect(await hydrationStatus.textContent()).toBe('hydration:ready');

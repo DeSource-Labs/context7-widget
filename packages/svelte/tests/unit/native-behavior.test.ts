@@ -146,7 +146,7 @@ describe('native Svelte widget behavior', () => {
 
     expect(widget.hasAttribute('custom-trigger-active')).toBe(true);
     expect(late.container.querySelector('.c7-launcher')).toBeNull();
-    expect(external.getAttribute('aria-controls')).toBe(late.container.querySelector('[role="dialog"]')?.id);
+    expect(external.getAttribute('aria-controls')).toBe(late.container.querySelector('dialog')?.id);
     expect(external.getAttribute('aria-expanded')).toBe('false');
     expect(external.getAttribute('aria-haspopup')).toBe('dialog');
 

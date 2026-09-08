@@ -140,11 +140,11 @@ type CopyActionKey = HTMLButtonElement | string;
       </button>
     }
 
-    <section
+    <dialog
       #panel
+      [open]="isOpen()"
       class="c7-panel"
       part="panel"
-      role="dialog"
       [id]="panelId()"
       [attr.aria-label]="resolvedConfig().title"
       [attr.aria-busy]="busy()"
@@ -263,15 +263,14 @@ type CopyActionKey = HTMLButtonElement | string;
                     </svg>
                     <span>{{ item.expanded ? resolvedLabels().hideResults : resolvedLabels().viewResults }}</span>
                   </button>
-                  <div
+                  <section
                     class="c7-tool-content"
-                    role="region"
                     [hidden]="!item.expanded"
                     [id]="item.contentId"
                     [attr.aria-label]="resolvedLabels().searchResults"
                   >
                     <pre>{{ item.result }}</pre>
-                  </div>
+                  </section>
                 </div>
               }
             </div>
@@ -279,9 +278,9 @@ type CopyActionKey = HTMLButtonElement | string;
         }
 
         @if (showTyping()) {
-          <div class="c7-typing" part="typing" role="status" [attr.aria-label]="resolvedLabels().responding">
+          <output class="c7-typing" part="typing" [attr.aria-label]="resolvedLabels().responding">
             <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
-          </div>
+          </output>
         }
       </div>
 
@@ -360,7 +359,7 @@ type CopyActionKey = HTMLButtonElement | string;
           </a>
         </span>
       </footer>
-    </section>
+    </dialog>
 
     @if (!hasCustomTrigger()) {
       <button

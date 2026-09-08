@@ -44,6 +44,9 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
     test('renders managed trigger and opens the anchored panel', async () => {
       const trigger = container.locator('.context7-widget-trigger');
 
+      await expect(panel(widget)).toHaveJSProperty('tagName', 'DIALOG');
+      await expect(panel(widget)).toHaveJSProperty('open', false);
+      await expect(widget.getByRole('dialog')).toHaveCount(0);
       await expect(trigger).toHaveText(/Ask docs/);
       await expect(trigger).toHaveAttribute('aria-expanded', 'false');
       await trigger.focus();
@@ -51,6 +54,8 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
 
       await expect(panel(widget)).toBeVisible();
       await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      await expect(panel(widget)).toHaveJSProperty('open', true);
+      await expect(widget.getByRole('dialog')).toBeVisible();
       const controlledPanelId = await panel(widget).getAttribute('id');
       if (!controlledPanelId) throw new Error('The widget panel must have an id.');
       await expect(trigger).toHaveAttribute('aria-controls', controlledPanelId);
@@ -60,6 +65,8 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await widget.getByRole('button', { name: 'Close chat' }).click();
       await expect(trigger).toBeFocused();
       await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      await expect(panel(widget)).toHaveJSProperty('open', false);
+      await expect(widget.getByRole('dialog')).toHaveCount(0);
     });
 
     test('updates public attributes from demo controls', async () => {
@@ -98,6 +105,13 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await expect(container.locator(selectors.eventLog)).toContainText('answerComplete:1');
       await expect(container.locator(selectors.eventLog)).toContainText('toolCall:1');
       await expect(container.locator(selectors.eventLog)).toContainText('toolResult:1');
+      const results = widget.getByRole('region', { name: 'Documentation search results' });
+      await expect(results).toHaveCount(0);
+      await widget.locator('.c7-tool-toggle').click();
+      await expect(results).toHaveJSProperty('tagName', 'SECTION');
+      await expect(results).toContainText('"ok": true');
+      await widget.locator('.c7-tool-toggle').click();
+      await expect(results).toHaveCount(0);
     });
 
     test('copies only explicit actions and suppresses repeated writes until feedback resets', async ({ page }) => {
@@ -157,12 +171,16 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
 
       await container.locator(selectors.programmaticSend).click();
       const stop = widget.getByRole('button', { name: 'Stop response' });
+      const typing = widget.getByRole('status', { name: 'Context7 is responding' });
+      await expect(typing).toHaveJSProperty('tagName', 'OUTPUT');
+      await expect(typing).toHaveCSS('display', 'flex');
       await expect(stop).toBeEnabled();
       await expect(stop).toHaveText('Stop');
       await stop.click();
 
       await expect(widget.getByRole('button', { name: 'Send question' })).toHaveText('Send');
       await expect(container.locator(selectors.eventLog)).toContainText('error:0');
+      await expect(typing).toHaveCount(0);
     });
 
     test('closes when clicking outside if the option is enabled', async ({ page }) => {
