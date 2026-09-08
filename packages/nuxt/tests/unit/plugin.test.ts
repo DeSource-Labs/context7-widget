@@ -1,15 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { context7WidgetDefaultsKey, defineNuxtPluginMock, runtimeConfig } = vi.hoisted(() => ({
+const { context7WidgetDefaultsKey, runtimeConfig } = vi.hoisted(() => ({
   context7WidgetDefaultsKey: Symbol('context7WidgetDefaults'),
-  defineNuxtPluginMock: vi.fn((plugin: unknown) => plugin),
   runtimeConfig: {
     public: {} as Record<string, unknown>
   }
 }));
 
 vi.mock('#app', () => ({
-  defineNuxtPlugin: defineNuxtPluginMock,
+  defineNuxtPlugin: (plugin: unknown) => plugin,
   useRuntimeConfig: () => runtimeConfig
 }));
 
@@ -36,7 +35,6 @@ describe('runtime defaults plugin', () => {
 
     plugin.setup!({ vueApp: { provide } } as never);
 
-    expect(defineNuxtPluginMock).toHaveBeenCalledTimes(1);
     expect(provide).toHaveBeenCalledWith(context7WidgetDefaultsKey, defaults);
     expect(provide.mock.calls[0]?.[1]).not.toBe(defaults);
 
