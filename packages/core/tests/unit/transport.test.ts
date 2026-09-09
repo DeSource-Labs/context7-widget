@@ -6,6 +6,10 @@ import { createSseStream } from '@common/tests/unit/stream';
 const messages: Context7Message[] = [{ id: '1', role: 'user', content: 'How do I install it?' }];
 
 describe('streamContext7Response', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('cancels the response body when a stream error ends reading early', async () => {
     const cancel = vi.fn();
     const body = new ReadableStream({
@@ -51,10 +55,6 @@ describe('streamContext7Response', () => {
     await expect(streamContext7Response({ library: '/owner/repo' }, messages, { onChunk: vi.fn() })).rejects.toThrow(
       'Context7 chat response failed.'
     );
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it('parses Context7 SSE frames', async () => {

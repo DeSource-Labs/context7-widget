@@ -2,6 +2,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createContext7CopyActionController, syncContext7CopyButton } from '@src/copy-action';
 
 describe('copy action controller', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
   it('keeps a new pending write protected when an older write settles after reset', async () => {
     const completions: ((copied: boolean) => void)[] = [];
     const copy = vi.fn(() => new Promise<boolean>((resolve) => completions.push(resolve)));
@@ -19,11 +24,6 @@ describe('copy action controller', () => {
     await expect(duplicate).resolves.toBe(false);
     expect(calls).toBe(2);
     actions.reset();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
   });
 
   it('deduplicates pending and copied clicks, then resets after the feedback delay', async () => {
