@@ -34,11 +34,6 @@
   --hero-shade-secondary: rgba(122, 184, 255, 0.08);
 }
 
-.site-hero__shade {
-  inset: 0;
-  position: absolute;
-}
-
 .site-hero > .site-hero__background.grid-scan {
   background: #070b09;
   height: 100%;
@@ -54,6 +49,8 @@
 }
 
 .site-hero__shade {
+  inset: 0;
+  position: absolute;
   background:
     radial-gradient(circle at 78% 22%, rgba(255, 177, 89, 0.14), transparent 26rem),
     radial-gradient(circle at 68% 49%, var(--hero-shade-primary), transparent 26rem),

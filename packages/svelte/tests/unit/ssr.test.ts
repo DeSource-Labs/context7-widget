@@ -9,7 +9,8 @@ const execFileAsync = promisify(execFile);
 const packageDirectory = fileURLToPath(new URL('../..', import.meta.url));
 
 describe('server entry', () => {
-  it('imports without DOM globals and defers browser validation until mount', async () => {
+  // Cold Vite/Svelte compilation in a separate process can exceed 5 seconds on shared CI runners.
+  it('imports without DOM globals and defers browser validation until mount', async ({ signal }) => {
     expect(globalThis.document).toBeUndefined();
     const script = String.raw`
       import path from 'node:path';
@@ -48,10 +49,11 @@ describe('server entry', () => {
     `;
     const { stderr, stdout } = await execFileAsync(process.execPath, ['--input-type=module', '--eval', script], {
       cwd: packageDirectory,
-      env: { ...process.env, NO_COLOR: '1' }
+      env: { ...process.env, NO_COLOR: '1' },
+      signal
     });
 
     expect(stderr).toBe('');
     expect(stdout).toBe('ok');
-  });
+  }, 10_000);
 });

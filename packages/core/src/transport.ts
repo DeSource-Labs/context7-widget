@@ -143,15 +143,15 @@ function consumeJsonFrame(payload: string, callbacks: Context7StreamCallbacks): 
 function toToolCall(value: Record<string, unknown>): Context7ToolCall {
   return {
     args: isRecord(value.input) ? value.input : {},
-    toolCallId: String(value.toolCallId ?? ''),
-    toolName: String(value.toolName ?? 'tool')
+    toolCallId: typeof value.toolCallId === 'string' ? value.toolCallId : '',
+    toolName: typeof value.toolName === 'string' ? value.toolName : 'tool'
   };
 }
 
 function toToolResult(value: Record<string, unknown>): Context7ToolResult {
   return {
     result: value.output,
-    toolCallId: String(value.toolCallId ?? '')
+    toolCallId: typeof value.toolCallId === 'string' ? value.toolCallId : ''
   };
 }
 

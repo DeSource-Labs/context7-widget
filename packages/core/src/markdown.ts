@@ -340,6 +340,43 @@ function resolveTableAlignment(value: string): 'center' | 'left' | 'right' | nul
   return null;
 }
 
+function findInlineLinkTargets(value: string): Map<number, number> {
+  // Scan backwards and pair parentheses once, without rescanning malformed URL suffixes.
+  const targets = new Map<number, number>();
+  const ends: number[] = [];
+  for (let index = value.length - 1; index >= 0; index -= 1) {
+    const character = value[index]!;
+    if (character === ')') {
+      ends.push(index);
+    } else if (character === '(') {
+      const end = ends.pop();
+      if (value[index - 1] === ']' && end !== undefined && end > index + 1) targets.set(index, end);
+    } else if (ends.length && (character === ' ' || ((character < '!' || character > '~') && /\s/.test(character)))) {
+      ends.length = 0;
+    }
+  }
+
+  return targets;
+}
+
+function replaceInlineLinks(value: string, render: (label: string, href: string) => string): string {
+  if (!value.includes('](')) return value;
+
+  const targets = findInlineLinkTargets(value);
+  const labels = /\[([^\]]*)/g;
+  let output = '';
+  let consumed = 0;
+  for (let match = labels.exec(value); match; match = labels.exec(value)) {
+    const start = labels.lastIndex + 1;
+    const targetEnd = targets.get(start);
+    if (!match[1] || targetEnd === undefined) continue;
+    output += value.slice(consumed, match.index) + render(match[1], value.slice(start + 1, targetEnd));
+    consumed = targetEnd + 1;
+    labels.lastIndex = consumed;
+  }
+  return output + value.slice(consumed);
+}
+
 function renderInline(value: string, options: Context7MarkdownOptions): string {
   const tokens: string[] = [];
   const stash = (html: string): string => {
@@ -348,15 +385,14 @@ function renderInline(value: string, options: Context7MarkdownOptions): string {
     return token;
   };
 
-  let output = value
-    .replace(/`([^`\n]+)`/g, (_match, code: string) => stash(`<code>${escapeHtml(code)}</code>`))
-    .replace(/\[([^\]]+)]\(((?:[^()\s]|\([^)]*\))+)\)/g, (_match, label: string, href: string) => {
-      const safeHref = toSafeHttpUrl(href, options.baseUrl);
-      if (!safeHref) return stash(renderInline(label, options));
-      return stash(
-        `<a href="${escapeHtml(safeHref)}" target="_blank" rel="noopener noreferrer">${renderInline(label, options)}</a>`
-      );
-    });
+  let output = value.replace(/`([^`\n]+)`/g, (_match, code: string) => stash(`<code>${escapeHtml(code)}</code>`));
+  output = replaceInlineLinks(output, (label, href) => {
+    const safeHref = toSafeHttpUrl(href, options.baseUrl);
+    if (!safeHref) return stash(renderInline(label, options));
+    return stash(
+      `<a href="${escapeHtml(safeHref)}" target="_blank" rel="noopener noreferrer">${renderInline(label, options)}</a>`
+    );
+  });
 
   output = escapeHtml(output)
     .replace(/~~([^~]+)~~/g, '<del>$1</del>')

@@ -86,7 +86,7 @@ function sha256(value: string): string {
 }
 
 function ensureTrailingNewline(value: string): string {
-  return `${value.replace(/\s+$/u, '')}\n`;
+  return `${value.trimEnd()}\n`;
 }
 
 async function readJson(path: string): Promise<UpstreamMetadata | null> {

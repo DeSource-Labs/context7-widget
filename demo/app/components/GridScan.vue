@@ -9,6 +9,9 @@ import * as THREE from 'three';
 type LineStyle = 'solid' | 'dashed' | 'dotted';
 type ScanDirection = 'forward' | 'backward' | 'pingpong';
 
+const LINE_STYLE_VALUES: Record<LineStyle, number> = { solid: 0, dashed: 1, dotted: 2 };
+const SCAN_DIRECTION_VALUES: Record<ScanDirection, number> = { forward: 0, backward: 1, pingpong: 2 };
+
 interface GridScanProps {
   sensitivity?: number;
   lineThickness?: number;
@@ -450,7 +453,7 @@ const setupAnimation = () => {
     uLinesColor: { value: srgbColor(props.linesColor) },
     uScanColor: { value: srgbColor(props.scanColor) },
     uGridScale: { value: props.gridScale },
-    uLineStyle: { value: props.lineStyle === 'dashed' ? 1 : props.lineStyle === 'dotted' ? 2 : 0 },
+    uLineStyle: { value: LINE_STYLE_VALUES[props.lineStyle] },
     uLineJitter: { value: Math.max(0, Math.min(1, props.lineJitter)) },
     uScanOpacity: { value: props.scanOpacity },
     uNoise: { value: props.noiseIntensity },
@@ -460,7 +463,7 @@ const setupAnimation = () => {
     uPhaseTaper: { value: props.scanPhaseTaper },
     uScanDuration: { value: props.scanDuration },
     uScanDelay: { value: props.scanDelay },
-    uScanDirection: { value: props.scanDirection === 'backward' ? 1 : props.scanDirection === 'pingpong' ? 2 : 0 },
+    uScanDirection: { value: SCAN_DIRECTION_VALUES[props.scanDirection] },
     uScanStarts: { value: new Array(maxScans).fill(0) },
     uScanCount: { value: 0 }
   };
@@ -602,14 +605,13 @@ const setupAnimation = () => {
       uniforms.uLinesColor.value.copy(srgbColor(props.linesColor));
       uniforms.uScanColor.value.copy(srgbColor(props.scanColor));
       uniforms.uGridScale.value = props.gridScale;
-      uniforms.uLineStyle.value = props.lineStyle === 'dashed' ? 1 : props.lineStyle === 'dotted' ? 2 : 0;
+      uniforms.uLineStyle.value = LINE_STYLE_VALUES[props.lineStyle];
       uniforms.uLineJitter.value = Math.max(0, Math.min(1, props.lineJitter));
       uniforms.uBloomOpacity.value = Math.max(0, props.bloomIntensity);
       uniforms.uNoise.value = Math.max(0, props.noiseIntensity);
       uniforms.uScanGlow.value = props.scanGlow;
       uniforms.uScanOpacity.value = Math.max(0, Math.min(1, props.scanOpacity));
-      uniforms.uScanDirection.value =
-        props.scanDirection === 'backward' ? 1 : props.scanDirection === 'pingpong' ? 2 : 0;
+      uniforms.uScanDirection.value = SCAN_DIRECTION_VALUES[props.scanDirection];
       uniforms.uScanSoftness.value = props.scanSoftness;
       uniforms.uPhaseTaper.value = props.scanPhaseTaper;
       uniforms.uScanDuration.value = Math.max(0.05, props.scanDuration);
@@ -692,9 +694,7 @@ const setupAnimation = () => {
     composer?.dispose();
     renderer.dispose();
 
-    if (container.contains(renderer.domElement)) {
-      container.removeChild(renderer.domElement);
-    }
+    renderer.domElement.remove();
   };
 };
 

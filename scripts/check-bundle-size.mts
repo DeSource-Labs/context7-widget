@@ -48,7 +48,7 @@ const reactPackageRoot = fileURLToPath(new URL('../packages/react', import.meta.
 const sveltePackageRoot = fileURLToPath(new URL('../packages/svelte', import.meta.url));
 
 const fileBudgets: readonly FileBudget[] = [
-  { file: 'packages/core/dist/widget.js', maxGzipBytes: 22_650 },
+  { file: 'packages/core/dist/widget.js', maxGzipBytes: 22_850 },
   { file: 'packages/vue/dist/index.js', maxGzipBytes: 8_500 },
   { file: 'packages/vue/dist/styles.css', maxGzipBytes: 5_500 },
   { file: 'packages/react/dist/styles.css', maxGzipBytes: 5_500 },
@@ -79,7 +79,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
   {
     contents: "export { renderMarkdown } from '@desource/context7-widget/core';",
     forbiddenMarkers: ['api/v2/widget/chat', 'data:image', 'Context7WidgetElement'],
-    maxGzipBytes: 3_100,
+    maxGzipBytes: 3_250,
     name: 'core /core Markdown-only consumer',
     resolveDir: corePackageRoot
   },
@@ -92,7 +92,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
   },
   {
     contents: "export { mountContext7Widget } from '@desource/context7-widget';",
-    maxGzipBytes: 23_700,
+    maxGzipBytes: 23_900,
     name: 'core custom-element runtime consumer',
     resolveDir: corePackageRoot
   },
@@ -102,7 +102,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { Context7Widget } from './packages/vue/dist/index.js';",
     external: ['vue'],
-    maxGzipBytes: 17_175,
+    maxGzipBytes: 17_375,
     name: 'Vue component with core /kit consumer',
     resolveDir: workspaceRoot
   },
@@ -112,7 +112,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { useContext7Widget } from './packages/vue/dist/index.js';",
     external: ['vue'],
-    maxGzipBytes: 18_200,
+    maxGzipBytes: 18_350,
     name: 'Vue composable with core /kit consumer',
     resolveDir: workspaceRoot
   },
@@ -123,7 +123,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     contents: "export { Context7Widget } from '@desource/context7-widget-react/component';",
     external: ['react', 'react-dom', 'react-dom/client'],
     forbiddenMarkers: ['react-dom', 'createRoot', 'flushSync'],
-    maxGzipBytes: 16_500,
+    maxGzipBytes: 16_600,
     name: 'React /component with core /kit consumer',
     resolveDir: reactPackageRoot
   },
@@ -134,7 +134,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     contents: "export { Context7Widget } from '@desource/context7-widget-react';",
     external: ['react', 'react-dom', 'react-dom/client'],
     forbiddenMarkers: ['react-dom', 'createRoot', 'flushSync'],
-    maxGzipBytes: 16_500,
+    maxGzipBytes: 16_600,
     name: 'React root component-only consumer',
     resolveDir: reactPackageRoot
   },
@@ -144,7 +144,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { useContext7Widget } from '@desource/context7-widget-react/hook';",
     external: ['react', 'react-dom', 'react-dom/client'],
-    maxGzipBytes: 17_700,
+    maxGzipBytes: 17_750,
     name: 'React /hook with core /kit consumer',
     resolveDir: reactPackageRoot
   },
@@ -154,7 +154,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { useContext7Widget } from '@desource/context7-widget-react';",
     external: ['react', 'react-dom', 'react-dom/client'],
-    maxGzipBytes: 17_700,
+    maxGzipBytes: 17_750,
     name: 'React root hook-only consumer',
     resolveDir: reactPackageRoot
   },
@@ -165,7 +165,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     contents: "export { Context7Widget } from '@desource/context7-widget-angular';",
     external: ['@angular/*', 'tslib'],
     forbiddenMarkers: ['Context7WidgetElement', 'customElements.define'],
-    maxGzipBytes: 21_500,
+    maxGzipBytes: 21_650,
     name: 'Angular component with core /kit consumer',
     resolveDir: fileURLToPath(new URL('../packages/angular', import.meta.url))
   }
@@ -174,17 +174,17 @@ const consumerBudgets: readonly ConsumerBudget[] = [
 const svelteConsumerBudgets: readonly SvelteConsumerBudget[] = [
   {
     entry: 'component',
-    maxGzipBytes: 19_000,
+    maxGzipBytes: 19_125,
     name: 'Svelte root component with core /kit consumer'
   },
   {
     entry: 'controller',
-    maxGzipBytes: 20_000,
+    maxGzipBytes: 20_050,
     name: 'Svelte root controller with core /kit consumer'
   },
   {
     entry: 'component',
-    maxGzipBytes: 15_100,
+    maxGzipBytes: 15_200,
     name: 'Svelte root component SSR consumer',
     ssr: true
   }

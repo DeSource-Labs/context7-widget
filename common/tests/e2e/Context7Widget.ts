@@ -159,7 +159,8 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await page.evaluate((endpoint) => {
         const originalFetch = window.fetch;
         window.fetch = (input, init) => {
-          if (String(input) !== endpoint) return originalFetch(input, init);
+          const url = input instanceof Request ? input.url : input.toString();
+          if (url !== endpoint) return originalFetch(input, init);
 
           return new Promise<Response>((_resolve, reject) => {
             init?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), {
