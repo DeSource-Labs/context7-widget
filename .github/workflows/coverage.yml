@@ -2,7 +2,8 @@ name: Coverage
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       pr_number:
@@ -16,41 +17,24 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
+  issues: write
 
 jobs:
   unit-coverage:
     name: Unit Test Coverage
     runs-on: ubuntu-latest
-    outputs:
-      coverage_report: ${{ steps.capture-report.outputs.body }}
-      pr_number: ${{ steps.resolve-ref.outputs.pr_number }}
     steps:
       - name: Resolve checkout ref
         id: resolve-ref
-        env:
-          GH_TOKEN: ${{ github.token }}
-          MANUAL_REF: ${{ inputs.ref }}
-          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
+          PR_NUMBER='${{ github.event.inputs.pr_number }}'
+          MANUAL_REF='${{ github.event.inputs.ref }}'
+
           if [ -n "$PR_NUMBER" ]; then
-            if [[ ! "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
-              echo "pr_number must be a positive integer" >&2
-              exit 1
-            fi
-
-            HEAD_REPOSITORY="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.repo.full_name')"
-            BASE_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.base.sha')"
-            if [ "$HEAD_REPOSITORY" != "$GITHUB_REPOSITORY" ]; then
-              echo "Manual coverage runs reject fork pull requests because they execute checked-out code." >&2
-              exit 1
-            fi
-
             echo "ref=refs/pull/${PR_NUMBER}/merge" >> "$GITHUB_OUTPUT"
-            echo "base_sha=${BASE_SHA}" >> "$GITHUB_OUTPUT"
-            echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
             echo "Resolved ref: refs/pull/${PR_NUMBER}/merge"
           elif [ -n "$MANUAL_REF" ]; then
-            git check-ref-format --allow-onelevel "$MANUAL_REF"
             echo "ref=${MANUAL_REF}" >> "$GITHUB_OUTPUT"
             echo "Resolved ref: ${MANUAL_REF}"
           else
@@ -69,7 +53,7 @@ jobs:
         id: resolve-base
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
         run: |
-          BASE_SHA="${{ steps.resolve-ref.outputs.base_sha }}"
+          BASE_SHA="$(git rev-parse HEAD^1)"
           git cat-file -e "${BASE_SHA}^{commit}"
           echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
 
@@ -122,23 +106,20 @@ jobs:
         env:
           RESOLVED_REF: ${{ steps.resolve-ref.outputs.ref }}
           JOB_STATUS: ${{ job.status }}
+          CODECOV_API_TOKEN: ${{ secrets.CODECOV_API_TOKEN || secrets.CODECOV_TOKEN }}
           CODECOV_MAIN_BRANCH: main
           HEAD_COVERAGE_ROOT: ${{ github.workspace }}
           BASE_COVERAGE_ROOT: ${{ steps.baseline-worktree.outputs.path }}
           BASE_COVERAGE_REF: ${{ steps.resolve-base.outputs.base_sha }}
         run: node ./scripts/build-coverage-pr-report.mts
 
-      - name: Capture coverage report
-        id: capture-report
+      - name: Comment coverage report to PR
         if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' && hashFiles('coverage-pr-report.md') != '' }}
-        run: |
-          DELIMITER="coverage-$(openssl rand -hex 16)"
-          {
-            echo "body<<${DELIMITER}"
-            cat coverage-pr-report.md
-            echo
-            echo "${DELIMITER}"
-          } >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.inputs.pr_number }}
+          REPO: ${{ github.repository }}
+        run: node ./scripts/comment-coverage-pr.mts
 
       - name: Upload coverage reports to Codecov
         if: ${{ github.event_name == 'push' }}
@@ -158,32 +139,3 @@ jobs:
         if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' && steps.baseline-worktree.outputs.path != '' }}
         run: |
           git worktree remove --force "${{ steps.baseline-worktree.outputs.path }}" || true
-
-  comment-coverage:
-    name: Comment Coverage
-    needs: unit-coverage
-    if: ${{ always() && needs.unit-coverage.outputs.pr_number != '' && needs.unit-coverage.outputs.coverage_report != '' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
-      pull-requests: write
-    steps:
-      - name: Comment coverage report to PR
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          PR_NUMBER: ${{ needs.unit-coverage.outputs.pr_number }}
-          REPORT_BODY: ${{ needs.unit-coverage.outputs.coverage_report }}
-        with:
-          script: |
-            const issueNumber = Number.parseInt(process.env.PR_NUMBER, 10)
-            const body = process.env.REPORT_BODY
-            if (!Number.isSafeInteger(issueNumber) || issueNumber < 1 || !body) {
-              core.setFailed('Coverage report inputs are invalid')
-              return
-            }
-            await github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: issueNumber,
-              body
-            })
