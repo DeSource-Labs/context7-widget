@@ -47,11 +47,8 @@ jobs:
           RELEASE_NOTES_PATH: ${{ runner.temp }}/release-notes.md
         run: pnpm release:prepare
 
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium firefox webkit
-
       - name: Run release-quality gate
-        run: pnpm run check:release
+        run: pnpm check:release:ci
 
       - name: Build and publish packages to npm
         run: pnpm changeset:publish:ci

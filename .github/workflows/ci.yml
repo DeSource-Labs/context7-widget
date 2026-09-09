@@ -33,8 +33,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium firefox webkit
-
       - name: Run release-quality gate
-        run: pnpm run check:release
+        run: pnpm check:release:ci

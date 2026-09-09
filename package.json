@@ -31,6 +31,7 @@
     "vercel-build": "pnpm build && pnpm dev:prepare && pnpm build:demo",
     "build:all": "pnpm build && pnpm dev:prepare && pnpm build:demo",
     "check:release": "pnpm format:check && pnpm lint && pnpm check:changesets && pnpm check:peers && pnpm audit:prod && pnpm build:all && pnpm typecheck && pnpm validate:packages && pnpm size:check && pnpm test:unit:coverage && pnpm test:e2e",
+    "check:release:ci": "pnpm format:check && pnpm lint && pnpm check:changesets && pnpm check:peers && pnpm audit:prod && pnpm build:all && pnpm typecheck && pnpm validate:packages && pnpm size:check && pnpm test:unit:coverage",
     "check:peers": "pnpm peers check",
     "check:changesets": "node scripts/check-changesets.mts",
     "audit:prod": "pnpm audit --prod",
