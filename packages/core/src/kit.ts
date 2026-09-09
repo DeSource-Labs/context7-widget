@@ -190,7 +190,7 @@ export function isContext7WidgetEventName(value: string): value is Context7Widge
 // exports here prevents the two public entry points from drifting as core evolves.
 export * from './core.js';
 export { callContext7ListenerSafely } from './listener.js';
-export { CONTEXT7_URL, DESOURCE_LABS_URL, deSourceLabsLogoUrl } from './config.js';
+export { CONTEXT7_URL, DESOURCE_LABS_URL, context7LogoPath, deSourceLabsLogoUrl } from './config.js';
 export {
   assertBrowser,
   cancelRenderFrame,

@@ -15,6 +15,51 @@ type TestTransport = (
 ) => Promise<void>;
 
 describe('core conversation engine', () => {
+  it('allows cancellation listeners to reset without recursively cancelling the same request', async () => {
+    let cancellations = 0;
+    const engine = createContext7ConversationEngine({
+      resolveConfig: () => ({ library: '/owner/repo' }),
+      transport: async (_config, _messages, callbacks) => {
+        callbacks.onChunk('Partial answer');
+        engine.cancel();
+      }
+    });
+    engine.subscribeEvents((event) => {
+      if (event.type !== 'c7:cancel') return;
+      cancellations += 1;
+      // Bound the reproduction so a regression cannot overflow the test process.
+      if (cancellations === 1) engine.reset();
+    });
+
+    await expect(engine.send('Cancel and reset')).resolves.toMatchObject({ status: 'cancelled' });
+    expect(cancellations).toBe(1);
+    expect(engine.getMessages()).toEqual([]);
+    expect(engine.isBusy()).toBe(false);
+  });
+
+  it('preserves a new request started by a cancellation listener', async () => {
+    let replacement: Promise<Context7WidgetSendResult> | undefined;
+    const engine = createContext7ConversationEngine({
+      resolveConfig: () => ({ library: '/owner/repo' }),
+      transport: async (_config, messages, callbacks) => {
+        callbacks.onChunk(messages[messages.length - 1]?.content === 'First' ? 'Old answer' : 'New answer');
+        if (messages[messages.length - 1]?.content === 'First') engine.cancel();
+      }
+    });
+    engine.subscribeEvents((event) => {
+      if (event.type === 'c7:cancel') replacement = engine.send('Replacement');
+    });
+
+    await expect(engine.send('First')).resolves.toMatchObject({ status: 'cancelled' });
+    await expect(replacement).resolves.toMatchObject({ status: 'complete', answer: 'New answer' });
+    expect(engine.getMessages().map((message) => message.content)).toEqual([
+      'First',
+      'Old answer',
+      'Replacement',
+      'New answer'
+    ]);
+  });
+
   it('owns request events, state snapshots, tool frames, and completed history', async () => {
     const events: string[] = [];
     const states: {

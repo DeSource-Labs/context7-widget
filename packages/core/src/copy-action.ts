@@ -54,7 +54,7 @@ export class Context7CopyActionController<Key> {
       this.onChange(key, true);
       return true;
     } finally {
-      if (this.active.get(key) === null) this.active.delete(key);
+      if (generation === this.generation && this.active.get(key) === null) this.active.delete(key);
     }
   }
 

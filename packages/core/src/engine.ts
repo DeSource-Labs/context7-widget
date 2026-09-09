@@ -59,10 +59,11 @@ export class Context7ConversationEngine {
     const request = this.activeRequest;
     if (!request) return undefined;
 
-    const result = request.commitCancel();
+    // Release ownership before callbacks can reset or start another request.
     this.activeRequest = null;
-    request.controller.abort();
     this.partialAnswer = '';
+    const result = request.commitCancel();
+    request.controller.abort();
     this.notifyState();
     return result;
   }
@@ -127,7 +128,8 @@ export class Context7ConversationEngine {
       };
       this.messages.push(assistantMessage);
       this.partialAnswer = '';
-      this.notifyState();
+      // Cancellation must flush the renderer before publishing the idle state.
+      if (status !== 'cancelled') this.notifyState();
       return assistantMessage;
     };
 
