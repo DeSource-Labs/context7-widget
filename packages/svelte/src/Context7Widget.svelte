@@ -14,6 +14,7 @@
     createContext7CompletedMarkdownRenderer,
     createContext7ConversationEngine,
     createContext7ConversationRenderBridge,
+    context7LogoPath,
     deSourceLabsLogoUrl,
     formatContext7ToolResult,
     getContext7ToolQuery,
@@ -1024,10 +1025,7 @@
           <span class="c7-brand-prefix">{resolvedConfig.labels.poweredBy}</span>
           <svg class="c7-brand-logo c7-brand-logo--context7" aria-hidden="true" viewBox="0 0 28 28" fill="none">
             <rect width="28" height="28" rx="4" fill="currentColor"></rect>
-            <path
-              d="M10.6 15.3c0 2.2-.9 4.1-2.4 5.8h3.4v1.7H6.3v-1.6c1.7-1.8 2.3-3.3 2.3-5.9h2Zm6.8 0c0 2.2.9 4.1 2.4 5.8h-3.4v1.7h5.3v-1.6c-1.7-1.8-2.3-3.3-2.3-5.9h-2ZM10.6 12.7c0-2.2-.9-4.1-2.4-5.8h3.4V5.2H6.3v1.6c1.7 1.8 2.3 3.3 2.3 5.9h2Zm6.8 0c0-2.2.9-4.1 2.4-5.8h-3.4V5.2h5.3v1.6c-1.7 1.8-2.3 3.3-2.3 5.9h-2Z"
-              fill="var(--c7-footer-background, #000)"
-            ></path>
+            <path d={context7LogoPath} fill="var(--c7-footer-background, #000)"></path>
           </svg>
         </a>
         <span class="c7-brand-separator" aria-hidden="true">·</span>
