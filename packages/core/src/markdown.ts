@@ -341,20 +341,18 @@ function resolveTableAlignment(value: string): 'center' | 'left' | 'right' | nul
 }
 
 function findInlineLinkTargets(value: string): Map<number, number> {
-  // Scan backwards so every candidate reuses the closing position of its URL suffix.
+  // Scan backwards and pair parentheses once, without rescanning malformed URL suffixes.
   const targets = new Map<number, number>();
-  let end = -1;
-  let afterParenthesis = -1;
+  const ends: number[] = [];
   for (let index = value.length - 1; index >= 0; index -= 1) {
     const character = value[index]!;
     if (character === ')') {
-      afterParenthesis = end;
-      end = index;
+      ends.push(index);
     } else if (character === '(') {
-      if (value[index - 1] === ']' && end > index + 1) targets.set(index, end);
-      end = afterParenthesis;
-    } else if (character === ' ' || ((character < '!' || character > '~') && /\s/.test(character))) {
-      end = -1;
+      const end = ends.pop();
+      if (value[index - 1] === ']' && end !== undefined && end > index + 1) targets.set(index, end);
+    } else if (ends.length && (character === ' ' || ((character < '!' || character > '~') && /\s/.test(character)))) {
+      ends.length = 0;
     }
   }
 

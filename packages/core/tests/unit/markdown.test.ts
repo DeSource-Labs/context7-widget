@@ -239,6 +239,7 @@ describe('markdown', () => {
     ['[[]](https://example.com)', '[[]](https://example.com)'],
     ['[](https://example.com)', '[](https://example.com)'],
     ['[x]()', '[x]()'],
+    ['[x](https://example.com/a(b(c))', '[x](https://example.com/a(b(c))'],
     ['[x](https://example.com/a b)', '[x](https://example.com/a b)'],
     ['[x](https://example.com/a\u00a0b)', '[x](https://example.com/a\u00a0b)'],
     ['[x](https://example.com/a\u2028b)', '[x](https://example.com/a\u2028b)'],
@@ -248,10 +249,24 @@ describe('markdown', () => {
   });
 
   it('preserves bracket labels, adjacent links, and parentheses in URL segments', () => {
-    const html = renderMarkdown('[[API](https://example.com/(a)(b)) [B](https://example.com/(a(b))');
+    const html = renderMarkdown('[[API](https://example.com/(a)(b)) [B](https://example.com/(a(b)))');
 
     expect(html).toBe(
-      '<p><a href="https://example.com/(a)(b)" target="_blank" rel="noopener noreferrer">[API</a> <a href="https://example.com/(a(b)" target="_blank" rel="noopener noreferrer">B</a></p>'
+      '<p><a href="https://example.com/(a)(b)" target="_blank" rel="noopener noreferrer">[API</a> <a href="https://example.com/(a(b))" target="_blank" rel="noopener noreferrer">B</a></p>'
+    );
+  });
+
+  it.each(['a(b(c))', 'a(b(c(d)))', 'a(b(c))(d(e))'])('balances nested parentheses in link destination %s', (path) => {
+    const href = `https://example.com/${path}`;
+    expect(renderMarkdown(`[x](${href}) trailing`)).toBe(
+      `<p><a href="${href}" target="_blank" rel="noopener noreferrer">x</a> trailing</p>`
+    );
+  });
+
+  it('handles deeply nested link destinations without recursion', () => {
+    const href = `https://example.com/${'('.repeat(10_000)}x${')'.repeat(10_000)}`;
+    expect(renderMarkdown(`[x](${href})`)).toBe(
+      `<p><a href="${href}" target="_blank" rel="noopener noreferrer">x</a></p>`
     );
   });
 
