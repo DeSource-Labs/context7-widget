@@ -16,11 +16,11 @@
     >
       <template #actions>
         <a class="button button--primary" href="#variables">
-          <Palette :size="18" aria-hidden="true" />
+          <SiteIcon name="palette" :size="18" aria-hidden="true" />
           CSS variables
         </a>
         <a class="button button--ghost" href="#parts">
-          <Layers :size="18" aria-hidden="true" />
+          <SiteIcon name="stack" :size="18" aria-hidden="true" />
           Shadow parts
         </a>
       </template>
@@ -51,7 +51,7 @@
 
       <div class="customization-playbook">
         <article v-for="step in playbookSteps" :key="step.title">
-          <component :is="step.icon" :size="22" aria-hidden="true" />
+          <SiteIcon :name="step.icon" :size="22" aria-hidden="true" />
           <h3>{{ step.title }}</h3>
           <p>{{ step.copy }}</p>
         </article>
@@ -137,8 +137,6 @@
 </template>
 
 <script setup lang="ts">
-import { Layers, Palette, ShieldCheck, Sparkles } from '@lucide/vue';
-
 const heroMarqueeItems = librariesArray.map(({ key, customizationHref, label, logo }) => ({
   key,
   href: customizationHref,
@@ -149,22 +147,22 @@ const heroMarqueeItems = librariesArray.map(({ key, customizationHref, label, lo
 const playbookSteps = [
   {
     copy: 'Choose minimal, glass, neo, terminal, or brutalist. Pick the look closest to your site and build from there.',
-    icon: Sparkles,
+    icon: 'swatches',
     title: 'Start with a preset'
   },
   {
     copy: 'Connect your fonts, colors, spacing, and border radius to the widget’s CSS variables.',
-    icon: Palette,
+    icon: 'palette',
     title: 'Bring in your design'
   },
   {
     copy: 'Style the panel, launcher, input, messages, and code blocks through their public part names.',
-    icon: Layers,
+    icon: 'stack',
     title: 'Finish the details'
   },
   {
     copy: 'Use documented variables and parts so your styles do not depend on the widget’s internal markup.',
-    icon: ShieldCheck,
+    icon: 'shield-check',
     title: 'Keep updates simple'
   }
 ];

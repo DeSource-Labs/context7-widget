@@ -41,15 +41,28 @@
   z-index: 3;
 }
 
-@mixin lift-transition {
+@mixin card-feedback {
   transition:
-    border-color 0.24s ease,
-    box-shadow 0.24s ease,
-    transform 0.24s ease;
+    border-color 180ms ease,
+    background-color 180ms ease;
+
+  &:focus-within {
+    border-color: rgba(124, 255, 178, 0.5);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: rgba(247, 242, 232, 0.32);
+    }
+  }
 }
 
-@mixin lift-hover($border-color: rgba(124, 255, 178, 0.28)) {
-  border-color: $border-color;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
-  transform: translateY(-4px);
+@mixin content-columns($count) {
+  column-count: $count;
+  column-gap: 1rem;
+
+  > * {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
 }

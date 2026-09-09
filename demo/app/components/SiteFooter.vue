@@ -3,7 +3,7 @@
     <div class="site-footer__top">
       <div class="site-footer__brand">
         <a class="brand" href="/" aria-label="Context7 Widget home">
-          <span>7</span>
+          <img src="/logo/android-chrome-192x192.png" alt="" width="32" height="32" />
           Context7 Widget
         </a>
         <p>AI docs chat that belongs on your site</p>

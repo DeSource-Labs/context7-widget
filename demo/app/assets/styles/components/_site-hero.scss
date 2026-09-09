@@ -4,7 +4,7 @@
   --hero-accent: var(--green);
   --hero-shade-primary: rgba(124, 255, 178, 0.14);
   --hero-shade-secondary: rgba(57, 203, 255, 0.08);
-  height: 100svh;
+  min-height: min(100svh, 900px);
   overflow: hidden;
   padding: 0 clamp(1rem, 3vw, 2rem);
   position: relative;
@@ -67,11 +67,10 @@
   align-items: center;
   display: grid;
   gap: clamp(2.5rem, 7vw, 6.5rem);
-  grid-template-columns: minmax(0, 1.05fr) minmax(390px, 0.8fr);
-  height: 100%;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.8fr);
   margin-inline: auto;
-  min-height: 0;
-  padding: clamp(5rem, 8dvh, 6.5rem) 0;
+  min-height: inherit;
+  padding: 8rem 0 9rem;
   position: relative;
   width: min(1180px, 100%);
   z-index: 3;

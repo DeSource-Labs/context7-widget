@@ -281,7 +281,7 @@
                 rel="noopener noreferrer"
                 aria-label="Open selected live example in a new tab"
               >
-                <ExternalLink :size="15" aria-hidden="true" />
+                <SiteIcon name="arrow-square-out" :size="15" aria-hidden="true" />
                 <span>Open in new tab</span>
               </a>
             </div>
@@ -340,7 +340,7 @@
         <article class="example-card example-card--center">
           <div class="example-card__visual">
             <button id="example-center-trigger" class="example-trigger example-trigger--terminal" type="button">
-              <Search :size="18" aria-hidden="true" />
+              <SiteIcon name="magnifying-glass" :size="18" aria-hidden="true" />
               Open centered help
             </button>
             <div class="example-center-preview">
@@ -357,7 +357,7 @@
             <div class="example-toolbar">
               <span>Your documentation</span>
               <button id="example-anchor-trigger" class="example-trigger" type="button">
-                <MessageSquare :size="18" aria-hidden="true" />
+                <SiteIcon name="chat-text" :size="18" aria-hidden="true" />
                 Ask docs
               </button>
             </div>
@@ -374,7 +374,7 @@
             <div class="corner-stage">
               <span class="corner-stage__page" />
               <button id="example-corner-trigger" class="example-trigger example-trigger--corner" type="button">
-                <MessageSquare :size="18" aria-hidden="true" />
+                <SiteIcon name="chat-text" :size="18" aria-hidden="true" />
                 Open corner widget
               </button>
             </div>
@@ -453,7 +453,6 @@
 </template>
 
 <script setup lang="ts">
-import { ExternalLink, MessageSquare, Search } from '@lucide/vue';
 import {
   buildContext7WidgetScriptTag,
   type Context7LauncherVariant,

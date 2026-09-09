@@ -9,11 +9,11 @@
     >
       <template #actions>
         <a class="button button--primary" href="/examples">
-          <SlidersHorizontal :size="18" aria-hidden="true" />
+          <SiteIcon name="sliders-horizontal" :size="18" aria-hidden="true" />
           Try the upgrade
         </a>
         <a class="button button--ghost" href="/customization">
-          <Palette :size="18" aria-hidden="true" />
+          <SiteIcon name="palette" :size="18" aria-hidden="true" />
           Customize
         </a>
         <a
@@ -22,7 +22,7 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          <GitFork :size="18" aria-hidden="true" />
+          <SiteIcon name="github-logo" :size="18" aria-hidden="true" />
           GitHub
         </a>
       </template>
@@ -64,29 +64,6 @@
           Set the type, spacing, colors, and panel shape. Open it from your own help button. Visitors can copy code, ask
           multiline questions, stop a response, or retry. When they scroll up to read, the conversation stays put.
         </p>
-      </div>
-
-      <div class="showcase-stage" aria-label="Widget design and chat features">
-        <article class="showcase-card showcase-card--widget">
-          <div class="mini-widget">
-            <div class="mini-widget__header">
-              <span>Context7 Docs</span>
-              <X :size="15" aria-hidden="true" />
-            </div>
-            <div class="mini-widget__body">
-              <span class="bubble bubble--assistant">Ask about setup, API usage, or styles.</span>
-              <span class="bubble bubble--user">Can I use our help button?</span>
-              <span class="bubble bubble--assistant"
-                >Yes. Open chat from your button and place the panel beside it.</span
-              >
-            </div>
-            <div class="mini-widget__input">
-              <span>Ask about the docs...</span>
-              <ArrowUp :size="15" aria-hidden="true" />
-            </div>
-          </div>
-        </article>
-
         <article class="showcase-card showcase-card--code">
           <span class="window-title">theme.scss</span>
           <pre><code>context7-widget {
@@ -97,6 +74,19 @@
 context7-widget::part(send-button) {
   text-transform: uppercase;
 }</code></pre>
+        </article>
+      </div>
+
+      <div class="showcase-stage" aria-label="Widget design and chat features">
+        <article class="showcase-card showcase-card--widget">
+          <HeroWidgetDialog
+            title="Context7 Docs"
+            :messages="[
+              { kind: 'assistant', text: 'Ask about setup, API usage, or styles.' },
+              { kind: 'user', text: 'Can I use our help button?' },
+              { kind: 'assistant', text: 'Yes. Open chat from your button and place the panel beside it.' }
+            ]"
+          />
         </article>
 
         <article class="showcase-card showcase-card--events">
@@ -125,12 +115,13 @@ context7-widget::part(send-button) {
       </div>
 
       <div class="path-grid">
-        <article v-for="(path, index) in paths" :key="path.title" class="path-card" :class="path.class">
-          <span class="path-card__index">0{{ index + 1 }}</span>
-          <component :is="path.icon" :size="22" aria-hidden="true" />
-          <h3>{{ path.title }}</h3>
+        <article v-for="path in paths" :key="path.title" class="path-card" :class="path.class">
+          <div class="path-card__heading">
+            <img :src="path.logo" alt="" width="24" height="24" loading="lazy" />
+            <h3>{{ path.title }}</h3>
+          </div>
           <p>{{ path.copy }}</p>
-          <a :href="path.href">{{ path.cta }}</a>
+          <a :href="path.href">{{ path.cta }}<SiteIcon name="arrow-square-out" :size="16" /></a>
         </article>
       </div>
 
@@ -165,8 +156,6 @@ context7-widget::part(send-button) {
 </template>
 
 <script setup lang="ts">
-import { ArrowUp, Braces, GitFork, Package, Palette, PanelRightOpen, SlidersHorizontal, X } from '@lucide/vue';
-
 const scriptInstall =
   `<script
   async
@@ -256,7 +245,7 @@ const paths = [
     copy: 'Replace the official script URL or add one tag to a new site. Works with static pages, docs, and marketing sites.',
     cta: 'Open hosted script',
     href: '/widget.js',
-    icon: PanelRightOpen,
+    logo: '/img/js.png',
     title: '/widget.js'
   },
   {
@@ -264,7 +253,7 @@ const paths = [
     copy: 'Mount and control the widget with TypeScript, generate script tags, or build your own interface from shared helpers.',
     cta: 'View core package',
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/core',
-    icon: Braces,
+    logo: '/img/ts.png',
     title: 'Core TypeScript'
   },
   {
@@ -272,7 +261,7 @@ const paths = [
     copy: 'Add a native Vue component, style it with your CSS, and open it from a slot or the composable.',
     cta: 'View Vue package',
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue',
-    icon: Package,
+    logo: '/img/vue.png',
     title: 'Vue package'
   },
   {
@@ -280,7 +269,7 @@ const paths = [
     copy: 'Register one module for auto-imports, styles, and shared defaults across your Nuxt site.',
     cta: 'View Nuxt module',
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/nuxt',
-    icon: Package,
+    logo: '/img/nuxt.png',
     title: 'Nuxt module'
   },
   {
@@ -288,7 +277,7 @@ const paths = [
     copy: 'Use a native React component with controlled state, typed callbacks, custom triggers, and a hook.',
     cta: 'View React package',
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/react',
-    icon: Package,
+    logo: '/img/react.png',
     title: 'React package'
   },
   {
@@ -296,7 +285,7 @@ const paths = [
     copy: 'Use Svelte 5 snippets for your trigger, bind visibility, and control chat through a reactive controller.',
     cta: 'View Svelte package',
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/svelte',
-    icon: Package,
+    logo: '/img/svelte.png',
     title: 'Svelte package'
   },
   {
@@ -304,7 +293,7 @@ const paths = [
     copy: 'Add a standalone component with signals, app defaults, custom trigger content, and an injectable service.',
     cta: 'View Angular package',
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/angular',
-    icon: Package,
+    logo: '/img/angular.png',
     title: 'Angular package'
   }
 ];

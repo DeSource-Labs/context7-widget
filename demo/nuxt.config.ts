@@ -32,9 +32,25 @@ export default defineNuxtConfig({
         },
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: 'https://context7.desourcelabs.com' },
-        { name: 'twitter:card', content: 'summary_large_image' }
+        { property: 'og:image', content: 'https://context7.desourcelabs.com/og.jpg' },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { property: 'og:image:type', content: 'image/jpeg' },
+        {
+          property: 'og:image:alt',
+          content: 'Context7 chat, your design. A free, customizable widget upgrade by DeSource Labs.'
+        },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:image', content: 'https://context7.desourcelabs.com/og.jpg' },
+        { name: 'theme-color', content: '#101513' }
       ],
-      link: [{ rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' }]
+      link: [
+        { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
+        { rel: 'icon', href: '/logo/favicon-32x32.png', type: 'image/png', sizes: '32x32' },
+        { rel: 'icon', href: '/logo/favicon-16x16.png', type: 'image/png', sizes: '16x16' },
+        { rel: 'apple-touch-icon', href: '/logo/apple-touch-icon.png', sizes: '180x180' },
+        { rel: 'manifest', href: '/site.webmanifest' }
+      ]
     }
   },
   nitro: {
@@ -49,7 +65,7 @@ export default defineNuxtConfig({
       }
     },
     optimizeDeps: {
-      include: ['@lucide/vue', 'postprocessing', 'three']
+      include: ['postprocessing', 'three']
     }
   },
   typescript: {

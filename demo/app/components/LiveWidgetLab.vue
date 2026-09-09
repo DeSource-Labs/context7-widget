@@ -117,7 +117,7 @@
           @answer-complete="events.answer += 1"
         >
           <button id="context7-lab-trigger" class="lab-trigger" type="button" :disabled="!customTriggerEnabled">
-            <MessageSquare :size="18" aria-hidden="true" />
+            <SiteIcon name="chat-text" :size="18" aria-hidden="true" />
             Ask docs
           </button>
         </Context7Widget>
@@ -139,7 +139,6 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquare } from '@lucide/vue';
 import type {
   Context7LauncherVariant,
   Context7Position,
