@@ -3,11 +3,11 @@
     <div class="site-footer__top">
       <div class="site-footer__brand">
         <a class="brand" href="/" aria-label="Context7 Widget home">
-          <span>7</span>
+          <img src="/logo/android-chrome-192x192.png" alt="" width="32" height="32" />
           Context7 Widget
         </a>
-        <p>Context7 answers with a widget surface your product team can actually design.</p>
-        <a class="site-footer__primary" href="/examples">Try it now</a>
+        <p>AI docs chat that belongs on your site</p>
+        <a class="site-footer__primary" href="/examples">Try the upgrade</a>
       </div>
 
       <div class="site-footer__group" aria-label="Project links">

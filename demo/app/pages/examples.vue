@@ -3,19 +3,19 @@
     <SiteHero
       eyebrow="Examples"
       title="Try the widget before you install it."
-      description="Test trigger modes, positions, presets, and generated snippets. Pick the version that fits your app today."
+      description="Find the look and placement that belong on your site. Preview your choices, try the chat, and copy the code for your framework or script tag."
       tone="blue"
       product-aria-label="Examples widget preview"
       :marquee-items="heroMarqueeItems"
       :nav-items="[
         { href: '/', label: 'Home' },
-        { href: '#live', label: 'Constructor' },
+        { href: '#live', label: 'Widget builder' },
         { href: '#positions', label: 'Positions' },
         { href: '/customization', label: 'Customize' }
       ]"
     >
       <template #actions>
-        <a class="button button--primary" href="#live">Try constructor</a>
+        <a class="button button--primary" href="#live">Build your widget</a>
         <a class="button button--ghost" href="#positions">See positions</a>
       </template>
 
@@ -28,12 +28,12 @@
           :messages="[
             {
               kind: 'assistant',
-              text: 'Test position, preset, trigger mode, and panel size before touching your app.'
+              text: 'Try a preset and choose where chat opens on your page.'
             },
-            { kind: 'user', text: 'Show the React setup.' },
+            { kind: 'user', text: 'Can I get the code for my framework?' },
             {
               kind: 'assistant',
-              text: 'Copy the native framework component, Nuxt module, core helper, or hosted script from the same constructor.'
+              text: 'Yes. The builder generates your setup for Vue, Nuxt, React, Svelte, Angular, TypeScript, or a script tag.'
             }
           ]"
         />
@@ -42,19 +42,26 @@
 
     <section id="live" class="examples-section examples-section--constructor">
       <div class="section-heading">
-        <p class="eyebrow">Live constructor</p>
-        <h2>Make decisions visually, then copy the integration.</h2>
+        <p class="eyebrow">Widget builder</p>
+        <h2>See it on the page before it goes on yours.</h2>
         <p>
-          The constructor renders a real widget instance. Try copy, position, preset, trigger mode, panel size, and
-          behavior first; then copy the script, TypeScript, Vue, Nuxt, React, Svelte, or Angular version.
+          This is a working widget. Adjust its text, style, placement, and behavior in the live preview. When it feels
+          right, choose your integration below and copy the code.
+        </p>
+        <p class="prerequisite">
+          Before connecting your library, enable its widget in Context7's Admin → Chat settings and allow your site's
+          domain.
+          <a href="https://context7.com/docs/howto/chat-widget" target="_blank" rel="noopener noreferrer"
+            >Setup instructions</a
+          >.
         </p>
       </div>
 
       <div class="constructor-shell">
-        <div class="constructor-controls" aria-label="Context7 widget constructor controls">
+        <div class="constructor-controls" aria-label="Context7 widget builder controls">
           <div class="constructor-controls__header">
             <div>
-              <span>Constructor controls</span>
+              <span>Widget settings</span>
               <strong>{{ activeControlPanelLabel }}</strong>
             </div>
             <div class="constructor-control-tabs" role="tablist" aria-label="Control categories">
@@ -92,14 +99,14 @@
                   <input id="constructor-title" v-model="constructorTitle" type="text" />
                 </label>
                 <label class="constructor-field" for="constructor-widget-id">
-                  Widget id
+                  Widget ID
                   <input id="constructor-widget-id" v-model="constructorWidgetId" spellcheck="false" type="text" />
                 </label>
               </div>
             </div>
 
             <div class="constructor-group constructor-group--full">
-              <span>Texts</span>
+              <span>Chat text</span>
               <div class="constructor-fields-grid">
                 <label class="constructor-field" for="constructor-placeholder">
                   Placeholder
@@ -274,7 +281,7 @@
                 rel="noopener noreferrer"
                 aria-label="Open selected live example in a new tab"
               >
-                <ExternalLink :size="15" aria-hidden="true" />
+                <SiteIcon name="arrow-square-out" :size="15" aria-hidden="true" />
                 <span>Open in new tab</span>
               </a>
             </div>
@@ -321,12 +328,11 @@
 
     <section id="positions" class="examples-section examples-section--positions">
       <div class="section-heading">
-        <p class="eyebrow">Position use cases</p>
-        <h2>Corner, centered, and anchored entry points.</h2>
+        <p class="eyebrow">Placement</p>
+        <h2>Put help where people reach for it.</h2>
         <p>
-          Fixed corner works for classic docs pages. Centered dialog works when users ask for help intentionally.
-          Anchored popovers work when the assistant belongs to your navigation, dashboard, command palette, or support
-          menu.
+          Keep a familiar chat button in the corner, open a centered dialog for more space, or attach the panel to a
+          help button in your navigation. Each option works with your site’s design.
         </p>
       </div>
 
@@ -334,7 +340,7 @@
         <article class="example-card example-card--center">
           <div class="example-card__visual">
             <button id="example-center-trigger" class="example-trigger example-trigger--terminal" type="button">
-              <Search :size="18" aria-hidden="true" />
+              <SiteIcon name="magnifying-glass" :size="18" aria-hidden="true" />
               Open centered help
             </button>
             <div class="example-center-preview">
@@ -349,15 +355,15 @@
         <article class="example-card example-card--anchor">
           <div class="example-card__visual">
             <div class="example-toolbar">
-              <span>Docs shell</span>
+              <span>Your documentation</span>
               <button id="example-anchor-trigger" class="example-trigger" type="button">
-                <MessageSquare :size="18" aria-hidden="true" />
+                <SiteIcon name="chat-text" :size="18" aria-hidden="true" />
                 Ask docs
               </button>
             </div>
             <div class="example-popover-preview">
               <span>Anchored to the trigger</span>
-              <p>Best for nav bars, command menus, dashboards, and custom design systems.</p>
+              <p>Open chat beside a help button in your navigation, dashboard, or support menu.</p>
             </div>
           </div>
           <CodeBlock id="example-anchor-code" label="Vue anchored trigger" :code="anchorVue" />
@@ -368,16 +374,16 @@
             <div class="corner-stage">
               <span class="corner-stage__page" />
               <button id="example-corner-trigger" class="example-trigger example-trigger--corner" type="button">
-                <MessageSquare :size="18" aria-hidden="true" />
+                <SiteIcon name="chat-text" :size="18" aria-hidden="true" />
                 Open corner widget
               </button>
             </div>
             <div>
               <h3>Fixed corner</h3>
-              <p>Click the button to open a real bottom-right widget, the same placement used by script installs.</p>
+              <p>Keep docs help within reach as visitors explore the page. Try the button to open it.</p>
             </div>
           </div>
-          <CodeBlock id="example-corner-code" label="Official-compatible" :code="cornerScript" />
+          <CodeBlock id="example-corner-code" label="Drop-in script replacement" :code="cornerScript" />
         </article>
       </div>
     </section>
@@ -385,7 +391,7 @@
     <section class="examples-section examples-section--matrix">
       <div class="section-heading">
         <p class="eyebrow">Customization examples</p>
-        <h2>Presets get you close. Variables make it yours.</h2>
+        <h2>Choose a look to build on.</h2>
       </div>
 
       <div class="preset-strip">
@@ -447,7 +453,6 @@
 </template>
 
 <script setup lang="ts">
-import { ExternalLink, MessageSquare, Search } from '@lucide/vue';
 import {
   buildContext7WidgetScriptTag,
   type Context7LauncherVariant,
@@ -483,9 +488,9 @@ const heroMarqueeItems = librariesArray.map(({ key, examplesHref, label, logo })
   logo
 }));
 const triggerModes = [
-  { copy: 'Renders a package button with custom content.', label: 'Custom content', value: 'slot' },
-  { copy: 'Renders the default package button.', label: 'Managed button', value: 'managed' },
-  { copy: 'Bind to a button anywhere by id.', label: 'External id', value: 'external' },
+  { copy: 'Add your own text and icons to the widget’s button.', label: 'Custom content', value: 'slot' },
+  { copy: 'Use a button rendered and controlled by the widget.', label: 'Managed button', value: 'managed' },
+  { copy: 'Connect an existing button by its ID.', label: 'Existing button', value: 'external' },
   { copy: 'Use the built-in floating launcher.', label: 'Built-in', value: 'none' }
 ] as const;
 const accentOptions = [
@@ -580,9 +585,7 @@ const constructorVueCode = computed(() => {
     vueBooleanProp('backdrop', constructorBackdrop.value),
     vueBooleanProp('close-on-outside-click', constructorCloseOnOutsideClick.value),
     vueBooleanProp('default-open', constructorDefaultOpen.value),
-    vueStringProp('widget-id', constructorWidgetId.value),
-    '@question="trackQuestion"',
-    '@answer-complete="trackAnswer"'
+    vueStringProp('widget-id', constructorWidgetId.value)
   ];
 
   if (constructorColor.value) {
@@ -595,17 +598,17 @@ const constructorVueCode = computed(() => {
     props.splice(7, 0, 'custom-trigger');
   }
 
-  const formattedProps = props.map((prop) => `  ${prop}`).join('\n');
+  const formattedProps = props.map((prop) => `    ${prop}`).join('\n');
   const componentOpen = `<Context7Widget\n${formattedProps}`;
 
   if (constructorUsesTriggerSlot.value) {
-    return `${componentOpen}
->
-  <template #trigger="{ label }">
-    <span class="docs-trigger-dot" />
-    {{ label }}
-  </template>
-</Context7Widget>`;
+    return `  ${componentOpen}
+  >
+    <template #trigger="{ label }">
+      <span class="docs-trigger-dot" />
+      {{ label }}
+    </template>
+  </Context7Widget>`;
   }
 
   const component = `${componentOpen}
@@ -638,9 +641,7 @@ const constructorReactCode = computed(() => {
     reactBooleanProp('backdrop', constructorBackdrop.value),
     reactBooleanProp('closeOnOutsideClick', constructorCloseOnOutsideClick.value),
     reactBooleanProp('defaultOpen', constructorDefaultOpen.value),
-    reactStringProp('widgetId', constructorWidgetId.value),
-    'onQuestion={trackQuestion}',
-    'onAnswerComplete={trackAnswer}'
+    reactStringProp('widgetId', constructorWidgetId.value)
   ];
 
   if (constructorColor.value) {
@@ -658,17 +659,17 @@ const constructorReactCode = computed(() => {
       8,
       0,
       `trigger={({ label }) => (
-    <>
-      <span className="docs-trigger-dot" />
-      {label}
-    </>
-  )}`
+        <>
+          <span className="docs-trigger-dot" />
+          {label}
+        </>
+      )}`
     );
   }
 
-  const component = `<Context7Widget
-${props.map((prop) => `  ${prop}`).join('\n')}
-/>`;
+  const component = `    <Context7Widget
+${props.map((prop) => `      ${prop}`).join('\n')}
+    />`;
 
   if (constructorTriggerMode.value === 'external') {
     return `<button id="docs-trigger" type="button">
@@ -768,33 +769,33 @@ export default defineNuxtConfig({
 });
 
 <!-- Any Vue component: imports are automatic. -->
-${constructorVueCode.value}`
+<template>
+${constructorVueCode.value}
+</template>`
 );
 
 const constructorSvelteCode = computed(() => {
   const props = [
-    reactStringProp('library', constructorLibrary.value),
-    reactStringProp('title', constructorTitle.value),
-    reactStringProp('initialMessage', normalizeSnippetText(constructorInitialMessage.value)),
-    reactStringProp('placeholder', constructorPlaceholder.value),
-    reactStringProp('theme', constructorTheme.value),
-    reactStringProp('position', constructorPosition.value),
-    reactStringProp('preset', constructorPreset.value),
-    reactStringProp('launcherVariant', constructorLauncherVariant.value),
-    reactStringProp('launcherLabel', constructorLauncherLabel.value),
-    reactStringProp('panelWidth', constructorPanelWidth.value),
-    reactStringProp('panelHeight', constructorPanelHeight.value),
+    svelteStringProp('library', constructorLibrary.value),
+    svelteStringProp('title', constructorTitle.value),
+    svelteStringProp('initialMessage', normalizeSnippetText(constructorInitialMessage.value)),
+    svelteStringProp('placeholder', constructorPlaceholder.value),
+    svelteStringProp('theme', constructorTheme.value),
+    svelteStringProp('position', constructorPosition.value),
+    svelteStringProp('preset', constructorPreset.value),
+    svelteStringProp('launcherVariant', constructorLauncherVariant.value),
+    svelteStringProp('launcherLabel', constructorLauncherLabel.value),
+    svelteStringProp('panelWidth', constructorPanelWidth.value),
+    svelteStringProp('panelHeight', constructorPanelHeight.value),
     reactBooleanProp('backdrop', constructorBackdrop.value),
     reactBooleanProp('closeOnOutsideClick', constructorCloseOnOutsideClick.value),
     reactBooleanProp('defaultOpen', constructorDefaultOpen.value),
-    reactStringProp('widgetId', constructorWidgetId.value),
-    'onQuestion={trackQuestion}',
-    'onAnswerComplete={trackAnswer}'
+    svelteStringProp('widgetId', constructorWidgetId.value)
   ];
 
-  if (constructorColor.value) props.splice(7, 0, reactStringProp('color', constructorColor.value));
+  if (constructorColor.value) props.splice(7, 0, svelteStringProp('color', constructorColor.value));
   if (constructorTriggerMode.value === 'external') {
-    props.splice(7, 0, reactStringProp('customTrigger', '#docs-trigger'));
+    props.splice(7, 0, svelteStringProp('customTrigger', '#docs-trigger'));
   } else if (constructorTriggerMode.value !== 'none') {
     props.splice(7, 0, 'customTrigger');
   }
@@ -832,9 +833,7 @@ const constructorAngularCode = computed(() => {
     angularBooleanInput('backdrop', constructorBackdrop.value),
     angularBooleanInput('closeOnOutsideClick', constructorCloseOnOutsideClick.value),
     angularBooleanInput('defaultOpen', constructorDefaultOpen.value),
-    angularStringInput('widgetId', constructorWidgetId.value),
-    '(question)="trackQuestion($event)"',
-    '(answerComplete)="trackAnswer($event)"'
+    angularStringInput('widgetId', constructorWidgetId.value)
   ];
 
   if (constructorColor.value) inputs.splice(7, 0, angularStringInput('color', constructorColor.value));
@@ -878,7 +877,14 @@ const selectedConstructorCode = computed(() => {
 
   if (constructorCodeTarget.value === 'react') {
     return {
-      code: constructorReactCode.value,
+      code: `import { Context7Widget } from '@desource/context7-widget-react/component';
+import '@desource/context7-widget-react/styles.css';
+
+export function DocsHelp() {
+  return (<>
+${constructorReactCode.value}
+  </>);
+}`,
       id: 'constructor-react-code',
       label: 'React component'
     };
@@ -894,7 +900,7 @@ const selectedConstructorCode = computed(() => {
 
   if (constructorCodeTarget.value === 'svelte') {
     return {
-      code: constructorSvelteCode.value,
+      code: componentScript('svelte') + '\n\n' + constructorSvelteCode.value,
       id: 'constructor-svelte-code',
       label: 'Svelte component'
     };
@@ -902,18 +908,37 @@ const selectedConstructorCode = computed(() => {
 
   if (constructorCodeTarget.value === 'angular') {
     return {
-      code: constructorAngularCode.value,
+      // ${JSON.stringify(constructorAngularCode.value)}
+      code: `// In styles.css: @import '@desource/context7-widget-angular/styles.css';
+import { Component } from '@angular/core';
+import { Context7Widget, Context7WidgetTrigger } from '@desource/context7-widget-angular';
+
+@Component({
+  selector: 'docs-help',
+  imports: [Context7Widget, Context7WidgetTrigger],
+  template: \n\`${constructorAngularCode.value}\`
+})
+export class DocsHelp {}`,
       id: 'constructor-angular-code',
       label: 'Angular component'
     };
   }
 
   return {
-    code: constructorVueCode.value,
+    code: componentScript('vue') + `\n\n<template>\n${constructorVueCode.value}\n</template>`,
     id: 'constructor-vue-code',
     label: 'Vue component'
   };
 });
+
+function componentScript(framework: 'vue' | 'svelte'): string {
+  return (
+    `<script${framework === 'vue' ? ' setup' : ''}>
+import { Context7Widget } from '@desource/context7-widget-${framework}';
+import '@desource/context7-widget-${framework}/styles.css';
+</scr` + 'ipt>'
+  );
+}
 
 function vueStringProp(name: string, value: string): string {
   return `${name}="${escapeAttribute(value)}"`;
@@ -925,6 +950,10 @@ function vueBooleanProp(name: string, value: boolean): string {
 
 function reactStringProp(name: string, value: string): string {
   return `${name}="${escapeAttribute(value)}"`;
+}
+
+function svelteStringProp(name: string, value: string): string {
+  return `${name}={${JSON.stringify(value)}}`;
 }
 
 function reactBooleanProp(name: string, value: boolean): string {
@@ -1071,25 +1100,48 @@ mountContext7Widget({
   launcherLabel: "Ask docs"
 });`;
 
-const vueComposable = `const docs = useContext7Widget({
-  autoMount: true,
-  library: "/owner/repo",
-  widgetId: "docs",
-  preset: "minimal"
-});
-
-await docs.send("Show installation examples");`;
-
-const reactHook = `import { useContext7Widget } from "@desource/context7-widget-react/hook";
+const vueComposable =
+  `<script setup lang="ts">
+import { useContext7Widget } from '@desource/context7-widget-vue';
+import '@desource/context7-widget-vue/styles.css';
 
 const docs = useContext7Widget({
   autoMount: true,
-  library: "/owner/repo",
-  widgetId: "docs",
-  preset: "minimal"
+  library: '/owner/repo',
+  position: 'center',
+  preset: 'terminal',
+  widgetId: 'docs'
 });
 
-await docs.send("Show installation examples");`;
+async function ask() {
+  await docs.send('How do I customize the widget?');
+  console.log(docs.isOpen.value, docs.isBusy.value, docs.messages.value);
+}
+</scr` +
+  `ipt>
+
+<template>
+  <button type="button" @click="ask">Ask documentation</button>
+</template>`;
+
+const reactHook = `import { useContext7Widget } from '@desource/context7-widget-react/hook';
+import '@desource/context7-widget-react/styles.css';
+
+export function DocsHelp() {
+  const docs = useContext7Widget({
+    autoMount: true,
+    library: '/owner/repo',
+    position: 'center',
+    preset: 'terminal',
+    widgetId: 'docs'
+  });
+
+  return (
+    <button type="button" disabled={!docs.widget} onClick={() => void docs.send('Show the recommended setup')}>
+      Explain setup
+    </button>
+  );
+}`;
 
 const nuxtModuleDefaults = `export default defineNuxtConfig({
   modules: ["@desource/context7-widget-nuxt"],
@@ -1102,39 +1154,49 @@ const nuxtModuleDefaults = `export default defineNuxtConfig({
   }
 });`;
 
-const svelteController = `import { createContext7Widget } from "@desource/context7-widget-svelte";
+const svelteController =
+  `<script lang="ts">
+  import { onMount } from 'svelte';
+  import { createContext7Widget } from '@desource/context7-widget-svelte';
+  import '@desource/context7-widget-svelte/styles.css';
 
-const docs = createContext7Widget({
-  library: "/owner/repo",
-  widgetId: "docs",
-  preset: "minimal"
-});
+  const docs = createContext7Widget({
+    library: '/owner/repo',
+    position: 'center',
+    preset: 'terminal'
+  });
 
-$effect(() => {
-  docs.mount();
-  return docs.unmount;
-});
+  onMount(() => {
+    docs.mount();
+    return docs.unmount;
+  });
+</scr` +
+  `ipt>
 
-async function showInstallation() {
-  await docs.send("Show installation examples");
+<button onclick={() => docs.open()}>Open docs</button><p>{docs.messages.length} messages</p>`;
+
+const angularService = `import { Component, inject } from '@angular/core';
+import { Context7WidgetService } from '@desource/context7-widget-angular';
+
+// Import the package stylesheet in your global styles.css.
+@Component({
+  selector: 'docs-help',
+  template: '<button type="button" (click)="ask()">Explain setup</button>'
+})
+export class DocsHelp {
+  private readonly docs = inject(Context7WidgetService);
+
+  async ask() {
+    this.docs.mount({ library: '/owner/repo', widgetId: 'docs', preset: 'minimal' });
+    await this.docs.send('Show installation examples', 'docs');
+  }
 }`;
 
-const angularService = `import { Context7WidgetService } from "@desource/context7-widget-angular";
-
-const docs = inject(Context7WidgetService);
-docs.mount({
-  library: "/owner/repo",
-  widgetId: "docs",
-  preset: "minimal"
-});
-
-await docs.send("Show installation examples", "docs");`;
-
 const presetCards = [
-  { copy: 'Quiet product UI with low visual noise.', name: 'minimal' },
-  { copy: 'Layered translucent surface for rich demos.', name: 'glass' },
-  { copy: 'Hard-edged playful docs widget.', name: 'neo' },
+  { copy: 'Subtle borders and restrained colors.', name: 'minimal' },
+  { copy: 'Translucent panels with a blurred backdrop.', name: 'glass' },
+  { copy: 'Sharp edges, bold color, and offset shadows.', name: 'neo' },
   { copy: 'Monospace assistant for dev-tool pages.', name: 'terminal' },
-  { copy: 'High-contrast editorial surface.', name: 'brutalist' }
+  { copy: 'Heavy borders and high contrast.', name: 'brutalist' }
 ];
 </script>

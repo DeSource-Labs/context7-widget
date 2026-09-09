@@ -1,9 +1,9 @@
 <template>
   <main class="customization-page">
     <SiteHero
-      eyebrow="Styling contract"
-      title="Make the widget look owned."
-      description="Start with a preset, map your product colors and radius to stable variables, then polish exact blocks with shadow parts."
+      eyebrow="Make it yours"
+      title="Bring your design into the conversation."
+      description="Bring your fonts, colors, and attention to detail into the conversation. Start with a preset, then style the panel, messages, and buttons to match your site."
       tone="amber"
       product-aria-label="Customization widget preview"
       :marquee-items="heroMarqueeItems"
@@ -16,11 +16,11 @@
     >
       <template #actions>
         <a class="button button--primary" href="#variables">
-          <Palette :size="18" aria-hidden="true" />
+          <SiteIcon name="palette" :size="18" aria-hidden="true" />
           CSS variables
         </a>
         <a class="button button--ghost" href="#parts">
-          <Layers :size="18" aria-hidden="true" />
+          <SiteIcon name="stack" :size="18" aria-hidden="true" />
           Shadow parts
         </a>
       </template>
@@ -32,11 +32,11 @@
           title="Context7 Widget Docs"
           tone="amber"
           :messages="[
-            { kind: 'assistant', text: 'Start from a preset, then map the widget to your product tokens.' },
-            { kind: 'user', text: 'Can it match our product system?' },
+            { kind: 'assistant', text: 'Use your own fonts, colors, and spacing throughout the widget.' },
+            { kind: 'user', text: 'Can I style the messages and input too?' },
             {
               kind: 'assistant',
-              text: 'Use stable CSS variables and shadow parts instead of fragile internal selectors.'
+              text: 'Yes. CSS variables cover the main styles; public parts let you customize individual elements.'
             }
           ]"
         />
@@ -46,12 +46,12 @@
     <section class="examples-section customization-section">
       <div class="section-heading">
         <p class="eyebrow">Start here</p>
-        <h2>Style the stable surface, not internal markup.</h2>
+        <h2>Start with a preset, then make it yours.</h2>
       </div>
 
       <div class="customization-playbook">
         <article v-for="step in playbookSteps" :key="step.title">
-          <component :is="step.icon" :size="22" aria-hidden="true" />
+          <SiteIcon :name="step.icon" :size="22" aria-hidden="true" />
           <h3>{{ step.title }}</h3>
           <p>{{ step.copy }}</p>
         </article>
@@ -61,10 +61,11 @@
     <section id="variables" class="examples-section customization-section">
       <div class="section-heading">
         <p class="eyebrow">CSS variables</p>
-        <h2>Override tokens without reaching into the widget.</h2>
+        <h2>Use the design choices you have already made.</h2>
         <p>
-          Set these on `context7-widget` for core, or `.context7-widget` for a native framework package. Scope an
-          individual instance with `[widget-id="docs"]`, and use theme or preset selectors when needed.
+          Set these variables on <code>context7-widget</code> for core, or <code>.context7-widget</code> for a native
+          framework package. Style one instance with <code>[widget-id="docs"]</code>, or use theme and preset selectors
+          to refine each look.
         </p>
       </div>
 
@@ -84,10 +85,11 @@
     <section id="parts" class="examples-section customization-section">
       <div class="section-heading">
         <p class="eyebrow">Shadow parts</p>
-        <h2>Target exact blocks when variables are not enough.</h2>
+        <h2>Give each detail your own treatment.</h2>
         <p>
-          Use `::part(...)` with the core custom element, or `[part~='...']` with native framework DOM, when a product
-          system needs direct styling for one stable surface. Prefer variables for colors and layout.
+          Style individual elements with <code>::part(...)</code> on the core custom element, or
+          <code>[part~='...']</code> in native framework markup. Use these for details beyond the CSS variables, such as
+          a custom border on code blocks or a different header layout.
         </p>
       </div>
 
@@ -102,32 +104,32 @@
     <section class="examples-section customization-section">
       <div class="section-heading">
         <p class="eyebrow">CSS recipes</p>
-        <h2>Copy a starting point, then replace the tokens.</h2>
+        <h2>A few lines of CSS can change the whole feel.</h2>
       </div>
 
       <div class="recipe-grid recipe-grid--expanded">
         <CodeBlock id="customization-brand-code" label="Brand token override" :code="brandTokenSnippet" />
         <CodeBlock id="customization-theme-code" label="Scoped dark theme" :code="darkThemeSnippet" />
         <CodeBlock id="customization-density-code" label="Dense product panel" :code="densePanelSnippet" />
-        <CodeBlock id="customization-parts-code" label="Shadow part polish" :code="partOverrideSnippet" />
+        <CodeBlock id="customization-parts-code" label="Style individual parts" :code="partOverrideSnippet" />
         <CodeBlock
           id="customization-framework-trigger-code"
           label="Framework managed trigger"
           :code="frameworkTriggerSnippet"
         />
-        <CodeBlock id="customization-center-code" label="Centered dialog surface" :code="centerDialogSnippet" />
+        <CodeBlock id="customization-center-code" label="Centered dialog" :code="centerDialogSnippet" />
       </div>
     </section>
 
     <section class="examples-section customization-section">
       <div class="customization-callout">
         <div>
-          <p class="eyebrow">Public styling contract</p>
-          <h2>Variables are the contract. Parts are the precision tool.</h2>
+          <p class="eyebrow">Keep your styles maintainable</p>
+          <h2>Build on the public CSS API.</h2>
         </div>
         <p>
-          Avoid styling internal `.c7-*` classes. They are implementation details. CSS variables plus core `::part` and
-          framework `[part]` selectors are the stable customization layer.
+          CSS variables, core <code>::part</code> selectors, and framework <code>[part]</code> selectors are the
+          supported styling options. Avoid internal <code>.c7-*</code> classes, which can change between releases.
         </p>
       </div>
     </section>
@@ -135,8 +137,6 @@
 </template>
 
 <script setup lang="ts">
-import { Layers, Palette, ShieldCheck, Sparkles } from '@lucide/vue';
-
 const heroMarqueeItems = librariesArray.map(({ key, customizationHref, label, logo }) => ({
   key,
   href: customizationHref,
@@ -146,36 +146,36 @@ const heroMarqueeItems = librariesArray.map(({ key, customizationHref, label, lo
 
 const playbookSteps = [
   {
-    copy: 'Choose `minimal`, `glass`, `neo`, `terminal`, or `brutalist` as the starting visual language.',
-    icon: Sparkles,
+    copy: 'Choose minimal, glass, neo, terminal, or brutalist. Pick the look closest to your site and build from there.',
+    icon: 'swatches',
     title: 'Start with a preset'
   },
   {
-    copy: 'Map product tokens to `--c7-*` variables on the widget host or on one `widget-id` scoped instance.',
-    icon: Palette,
-    title: 'Apply brand tokens'
+    copy: 'Connect your fonts, colors, spacing, and border radius to the widget’s CSS variables.',
+    icon: 'palette',
+    title: 'Bring in your design'
   },
   {
-    copy: 'Use `::part` selectors for direct styling of the panel, launcher, composer, messages, and tool blocks.',
-    icon: Layers,
-    title: 'Polish stable parts'
+    copy: 'Style the panel, launcher, input, messages, and code blocks through their public part names.',
+    icon: 'stack',
+    title: 'Finish the details'
   },
   {
-    copy: 'Keep internal `.c7-*` selectors out of app CSS. They can change without breaking the public contract.',
-    icon: ShieldCheck,
-    title: 'Stay on the public surface'
+    copy: 'Use documented variables and parts so your styles do not depend on the widget’s internal markup.',
+    icon: 'shield-check',
+    title: 'Keep updates simple'
   }
 ];
 
 const tokenGroups = [
   {
-    copy: 'Brand color, contrast, text stack, muted text, and focus halo.',
+    copy: 'Accent color, font family, secondary text, and keyboard focus ring.',
     title: 'Brand and type',
     tokens: ['--c7-accent', '--c7-accent-contrast', '--c7-font-family', '--c7-muted-color', '--c7-focus-ring']
   },
   {
-    copy: 'The main dialog surface, dimensions, border, radius, shadow, spacing, and stacking level.',
-    title: 'Panel shell',
+    copy: 'Panel background, size, borders, corners, shadow, spacing, and stacking order.',
+    title: 'Panel',
     tokens: [
       '--c7-panel-background',
       '--c7-panel-backdrop-filter',
@@ -202,12 +202,12 @@ const tokenGroups = [
     ]
   },
   {
-    copy: 'The modal/backdrop layer used by centered flows and any explicit backdrop-enabled widget.',
+    copy: 'The overlay behind a centered dialog or any widget with its backdrop enabled.',
     title: 'Backdrop',
     tokens: ['--c7-backdrop', '--c7-backdrop-filter']
   },
   {
-    copy: 'Top and bottom panel chrome.',
+    copy: 'Background colors for the top and bottom of the panel.',
     title: 'Header and footer',
     tokens: ['--c7-header-background', '--c7-footer-background']
   },
@@ -225,7 +225,7 @@ const tokenGroups = [
     ]
   },
   {
-    copy: 'Input and send control tokens.',
+    copy: 'Background, border, and text colors for the input and send button.',
     title: 'Controls',
     tokens: ['--c7-control-background', '--c7-control-border', '--c7-control-color']
   },

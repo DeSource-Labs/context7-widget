@@ -1,6 +1,6 @@
 <template>
   <section class="site-hero" :class="`site-hero--${tone}`">
-    <GridScan class="site-hero__background" v-bind="scanOptions" />
+    <LazyGridScan v-if="motionAllowed" class="site-hero__background" v-bind="scanOptions" />
     <div class="site-hero__shade" />
     <SiteHeader :items="resolvedNavItems" />
 
@@ -56,7 +56,7 @@ type HeroScanOptions = Partial<{
 }>;
 
 const defaultNavItems: HeroNavItem[] = [
-  { href: '/#how-it-works', label: 'How it works' },
+  { href: '/#how-it-works', label: 'Why this widget' },
   { href: '/examples', label: 'Examples' },
   { href: '/customization', label: 'Customize' }
 ];
@@ -146,6 +146,19 @@ const props = withDefaults(
     tone: 'mint'
   }
 );
+
+const motionAllowed = ref(false);
+let stopMotionListener: (() => void) | undefined;
+onMounted(() => {
+  const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const syncMotion = () => {
+    motionAllowed.value = !preference.matches;
+  };
+  syncMotion();
+  preference.addEventListener('change', syncMotion);
+  stopMotionListener = () => preference.removeEventListener('change', syncMotion);
+});
+onBeforeUnmount(() => stopMotionListener?.());
 
 const resolvedNavItems = computed(() => props.navItems ?? defaultNavItems);
 const scanOptions = computed(() => ({

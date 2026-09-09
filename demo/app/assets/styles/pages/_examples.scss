@@ -13,12 +13,12 @@
 .examples-section {
   --section-glow-x: 68%;
   --section-glow-y: 34%;
-  padding: clamp(4rem, 9vw, 7rem) clamp(1rem, 4vw, 4rem);
+  padding: var(--section-space) var(--page-gutter);
   position: relative;
 }
 
 .examples-section--constructor {
-  padding-top: clamp(2rem, 6vw, 5rem);
+  padding-top: var(--section-space);
 }
 
 .constructor-shell {
@@ -43,8 +43,11 @@
 }
 
 .constructor-controls {
+  align-self: start;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
+  height: auto;
+  max-height: clamp(560px, calc(100dvh - 7rem), 720px);
 }
 
 .constructor-controls__header {
@@ -305,6 +308,7 @@
   color: var(--constructor-color);
   display: grid;
   font-family: var(--constructor-font);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   height: 500px;
   overflow: hidden;
@@ -528,6 +532,7 @@
 
   > span {
     border-radius: 999px;
+    flex: none;
     height: 0.55rem;
     width: 0.55rem;
   }
@@ -741,10 +746,6 @@
   }
 }
 
-.recipe-grid--expanded {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .example-grid {
   display: grid;
   gap: 1rem;
@@ -754,7 +755,13 @@
 .example-card {
   display: grid;
   gap: 1rem;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
   min-width: 0;
+
+  .code-block {
+    align-self: start;
+  }
 }
 
 .example-card__visual,
@@ -763,12 +770,12 @@
 }
 
 .example-card__visual {
-  @include lift-transition;
+  @include card-feedback;
 
   align-content: space-between;
   display: grid;
   gap: 1rem;
-  min-height: 360px;
+  min-height: 260px;
   overflow: hidden;
   padding: 1rem;
   position: relative;
@@ -859,11 +866,11 @@
 }
 
 .example-popover-preview {
-  background: rgba(255, 255, 255, 0.68);
+  background: #1b2520;
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 10px;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
-  color: #111827;
+  color: var(--ink);
   display: grid;
   gap: 0.55rem;
   justify-self: end;
@@ -871,12 +878,12 @@
   padding: 1rem;
 
   span {
-    color: #059669;
+    color: var(--green);
     font-weight: 850;
   }
 
   p {
-    color: #334155;
+    color: var(--muted);
     line-height: 1.5;
   }
 }
@@ -885,7 +892,7 @@
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  min-height: 230px;
+  min-height: 155px;
   overflow: hidden;
   place-items: end;
   position: relative;
@@ -922,11 +929,11 @@
 }
 
 .preset-card {
-  @include lift-transition;
+  @include card-feedback;
 
   display: grid;
   gap: 0.65rem;
-  min-height: 170px;
+  align-content: start;
   overflow: hidden;
   padding: 1rem;
   position: relative;
@@ -982,8 +989,7 @@
 }
 
 .recipe-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  @include content-columns(2);
+
   margin-top: 1rem;
 }

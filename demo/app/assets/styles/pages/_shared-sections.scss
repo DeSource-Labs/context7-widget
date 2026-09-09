@@ -4,7 +4,7 @@
 .paths-section,
 .lab-section,
 .use-cases-section {
-  padding: clamp(4rem, 10vw, 8rem) clamp(1rem, 4vw, 4rem);
+  padding: var(--section-space) var(--page-gutter);
   position: relative;
 }
 
@@ -18,15 +18,25 @@
 
   content: '';
   mask-image: radial-gradient(circle at var(--section-glow-x, 62%) var(--section-glow-y, 40%), #000, transparent 64%);
-  opacity: 0.58;
+  opacity: 0.22;
   pointer-events: none;
 }
 
 .section-heading {
   display: grid;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
   max-width: 980px;
   position: relative;
   z-index: 1;
+}
+
+.section-heading h2 {
+  max-width: 26ch;
+}
+
+.site-icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
 }

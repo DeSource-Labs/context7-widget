@@ -14,7 +14,7 @@ html {
 
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: min(320px, 100%);
 }
 
 body::selection {
@@ -43,4 +43,9 @@ pre {
 
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 4px;
 }

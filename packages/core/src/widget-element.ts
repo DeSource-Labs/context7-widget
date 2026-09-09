@@ -157,7 +157,7 @@ export class Context7WidgetElement extends BaseHTMLElement {
     },
     onToolResult: (event) => this.updateToolResult(event.detail.toolResult)
   });
-  private toolCalls = new Map<string, HTMLElement>();
+  private readonly toolCalls = new Map<string, HTMLElement>();
   private autoScroll = true;
   private triggerAccessibilityState: Context7TriggerA11yState | null = null;
   private triggerElement: Element | null = null;

@@ -23,9 +23,9 @@ h1 {
 }
 
 h2 {
-  font-size: clamp(2.1rem, 5vw, 5.5rem);
+  font-size: clamp(1.85rem, 3.6vw, 3rem);
   letter-spacing: 0;
-  line-height: 0.95;
+  line-height: 1.08;
   text-wrap-style: balance;
 }
 
@@ -36,8 +36,11 @@ h3 {
 }
 
 .section-heading p:not(.eyebrow) {
-  color: var(--muted);
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-size: clamp(1rem, 1.4vw, 1.125rem);
   line-height: 1.6;
   max-width: 720px;
+
+  &:not(.prerequisite) {
+    color: var(--muted);
+  }
 }

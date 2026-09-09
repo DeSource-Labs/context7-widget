@@ -43,7 +43,6 @@
     "dist",
     "CHANGELOG.md",
     "README.md",
-    "LICENSE",
     "NOTICE"
   ],
   "exports": {

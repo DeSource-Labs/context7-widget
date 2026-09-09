@@ -19,6 +19,9 @@ export const DESOURCE_LABS_URL = 'https://desourcelabs.com';
 
 export const deSourceLabsLogoUrl = deSourceLabsLogoSource;
 
+export const context7LogoPath =
+  'M10.6 15.3c0 2.2-.9 4.1-2.4 5.8h3.4v1.7H6.3v-1.6c1.7-1.8 2.3-3.3 2.3-5.9h2Zm6.8 0c0 2.2.9 4.1 2.4 5.8h-3.4v1.7h5.3v-1.6c-1.7-1.8-2.3-3.3-2.3-5.9h-2ZM10.6 12.7c0-2.2-.9-4.1-2.4-5.8h3.4V5.2H6.3v1.6c1.7 1.8 2.3 3.3 2.3 5.9h2Zm6.8 0c0-2.2.9-4.1 2.4-5.8h-3.4V5.2h5.3v1.6c-1.7 1.8-2.3 3.3-2.3 5.9h-2Z';
+
 export const context7WidgetDefaults = /* @__PURE__ */ Object.freeze({
   backdrop: false,
   closeOnOutsideClick: true,

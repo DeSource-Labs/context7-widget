@@ -1,9 +1,39 @@
 # @desource/context7-widget-react
 
-Native React bindings for the customizable Context7 documentation chat widget.
-The package renders React DOM and uses React lifecycle semantics; it does not
-wrap the core custom element. Request state, transport, safe Markdown, option
-defaults, and public contracts come from `@desource/context7-widget/kit`.
+[![React](https://img.shields.io/npm/v/@desource/context7-widget-react?color=blue&logo=react)](https://www.npmjs.com/package/@desource/context7-widget-react)
+[![Coverage](https://codecov.io/gh/DeSource-Labs/context7-widget/branch/main/graph/badge.svg)](https://codecov.io/gh/DeSource-Labs/context7-widget)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=DeSource-Labs_context7-widget&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DeSource-Labs_context7-widget)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/DeSource-Labs/context7-widget/blob/main/LICENSE)
+
+Make Context7 docs chat look at home in your React app. Match your design with
+presets and CSS, open it from your own help button, and control it through React
+props, refs, or a hook.
+
+## Why Use This Widget?
+
+Context7 provides its docs widget and hosted AI answers for free. This project
+adds a customizable interface around that service.
+
+The official widget’s basic styling options can leave chat looking out of place
+on a carefully designed site. This package adds control over those details:
+custom fonts and spacing, flexible placement, copyable code, multiline input,
+and Stop and Retry actions.
+
+If you use the official widget, [replace its script URL](https://github.com/DeSource-Labs/context7-widget#existing-context7-widget-user)
+or adopt the native React component below. Keep your existing Context7 library
+and domain settings. For a new integration, put docs help where visitors are
+choosing your library or working through setup.
+
+React owns rendering and lifecycle. The shared core kit handles conversation
+state, transport, Markdown, and defaults.
+
+## Before You Start
+
+Use a library you have claimed on Context7. In its **Admin → Chat** settings,
+enable the widget, add your site's domain to the allowed domains, and save.
+Replace `/owner/repo` in the examples with that library's id. A library being
+indexed alone does not enable chat on your site.
+See [Context7's widget setup](https://context7.com/docs/howto/chat-widget).
 
 ## Install
 
@@ -67,20 +97,27 @@ transition; `onOpenChange` is the controlled-state request.
 
 ```tsx
 import { useContext7Widget } from '@desource/context7-widget-react/hook';
+import '@desource/context7-widget-react/styles.css';
 
-const docs = useContext7Widget({
-  autoMount: true,
-  library: '/owner/repo',
-  position: 'center',
-  preset: 'terminal',
-  widgetId: 'docs'
-});
+export function DocsHelp() {
+  const docs = useContext7Widget({
+    autoMount: true,
+    library: '/owner/repo',
+    position: 'center',
+    preset: 'terminal',
+    widgetId: 'docs'
+  });
 
-await docs.send('Show the recommended setup');
-docs.cancel();
-await docs.retry();
-docs.reset();
+  return (
+    <button type="button" disabled={!docs.widget} onClick={() => void docs.send('Show the recommended setup')}>
+      Explain setup
+    </button>
+  );
+}
 ```
+
+Automatic mounting happens after the owner mounts. Call `send`, `open`, and
+other controls from an event handler or after the widget is ready.
 
 The hook returns `widget`, `isOpen`, `isBusy`, and `messages`, plus `mount`,
 `unmount`, `open`, `close`, `toggle`, `send`, `cancel`, `retry`, `reset`, and
@@ -210,3 +247,11 @@ remain external so applications can deduplicate them. Rendering or
 programmatic mounting still requires a browser document. Every JavaScript
 entry and shared chunk preserves the React `"use client"` boundary for React
 Server Component and Next.js App Router consumers.
+
+## Related packages
+
+- [`@desource/context7-widget`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/core) provides the browser custom element, drop-in script, TypeScript helpers, and shared headless engine.
+- [`@desource/context7-widget-vue`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue) provides a native Vue 3 component, composable, plugin defaults, and custom trigger slots.
+- [`@desource/context7-widget-nuxt`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/nuxt) adds auto-imports, automatic styles, and app-wide defaults for Nuxt 3 and 4.
+- [`@desource/context7-widget-svelte`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/svelte) provides a native Svelte 5 component, bindable open state, trigger snippets, and a reactive controller.
+- [`@desource/context7-widget-angular`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/angular) provides a standalone Angular component, signals, application defaults, and injectable controls.

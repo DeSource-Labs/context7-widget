@@ -29,10 +29,6 @@ export function buildContext7ErrorHtml(
 }
 
 export function isAbortError(error: unknown): boolean {
-  if (typeof DOMException !== 'undefined' && error instanceof DOMException) {
-    return error.name === 'AbortError';
-  }
-
   return (
     error !== null &&
     typeof error === 'object' &&

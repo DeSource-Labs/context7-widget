@@ -10,6 +10,53 @@ describe('streamContext7Response', () => {
     vi.restoreAllMocks();
   });
 
+  it('cancels the response body when a stream error ends reading early', async () => {
+    const cancel = vi.fn();
+    const body = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('data: {"type":"error","errorText":"Failed"}\n'));
+      },
+      cancel
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(body))
+    );
+
+    await expect(streamContext7Response({ library: '/owner/repo' }, messages, { onChunk: vi.fn() })).rejects.toThrow(
+      'Failed'
+    );
+    expect(cancel).toHaveBeenCalledOnce();
+  });
+
+  it.each(['data: {"type":"error","errorText":"Service overloaded"}\n', '3:"Service overloaded"\n'])(
+    'rejects streamed errors instead of reporting an empty successful answer: %s',
+    async (frame) => {
+      const onChunk = vi.fn();
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(
+          async () => new Response(createSseStream([frame, 'data: {"type":"text-delta","delta":"Must not arrive"}\n']))
+        )
+      );
+
+      await expect(streamContext7Response({ library: '/owner/repo' }, messages, { onChunk })).rejects.toThrow(
+        'Service overloaded'
+      );
+      expect(onChunk).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each([undefined, '', 42])('uses a safe fallback for an incomplete streamed error: %s', async (errorText) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(createSseStream([`data: ${JSON.stringify({ type: 'error', errorText })}\n`])))
+    );
+    await expect(streamContext7Response({ library: '/owner/repo' }, messages, { onChunk: vi.fn() })).rejects.toThrow(
+      'Context7 chat response failed.'
+    );
+  });
+
   it('parses Context7 SSE frames', async () => {
     const chunks: string[] = [];
     const toolCalls: string[] = [];
@@ -133,6 +180,7 @@ describe('streamContext7Response', () => {
               'data: not-json\n',
               'event: ping\n',
               '0:not-json\n',
+              '3:not-json\n',
               'data: {"type":"text-delta","delta":"ok"}\n'
             ])
           )
@@ -267,6 +315,7 @@ describe('streamContext7Response', () => {
   it('releases the stream reader when reading the response fails', async () => {
     const releaseLock = vi.fn();
     const reader = {
+      cancel: vi.fn().mockRejectedValue(new Error('Cleanup failed')),
       read: vi.fn(async () => {
         throw new Error('Stream failed');
       }),

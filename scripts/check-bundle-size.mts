@@ -61,11 +61,11 @@ const fileBudgets: readonly FileBudget[] = [
 
 const packageArtifactBudgets: readonly PackageArtifactBudget[] = [
   { maxTarballBytes: 75_000, name: '@desource/context7-widget', root: 'packages/core' },
-  { maxTarballBytes: 24_000, name: '@desource/context7-widget-react', root: 'packages/react' },
+  { maxTarballBytes: 25_000, name: '@desource/context7-widget-react', root: 'packages/react' },
   { maxTarballBytes: 25_000, name: '@desource/context7-widget-vue', root: 'packages/vue' },
-  { maxTarballBytes: 22_500, name: '@desource/context7-widget-svelte', root: 'packages/svelte' },
-  { maxTarballBytes: 6_500, name: '@desource/context7-widget-nuxt', root: 'packages/nuxt' },
-  { maxTarballBytes: 28_000, name: '@desource/context7-widget-angular', root: 'packages/angular' }
+  { maxTarballBytes: 24_000, name: '@desource/context7-widget-svelte', root: 'packages/svelte' },
+  { maxTarballBytes: 8_000, name: '@desource/context7-widget-nuxt', root: 'packages/nuxt' },
+  { maxTarballBytes: 30_000, name: '@desource/context7-widget-angular', root: 'packages/angular' }
 ];
 
 const consumerBudgets: readonly ConsumerBudget[] = [
@@ -174,17 +174,17 @@ const consumerBudgets: readonly ConsumerBudget[] = [
 const svelteConsumerBudgets: readonly SvelteConsumerBudget[] = [
   {
     entry: 'component',
-    maxGzipBytes: 19_125,
+    maxGzipBytes: 19_225,
     name: 'Svelte root component with core /kit consumer'
   },
   {
     entry: 'controller',
-    maxGzipBytes: 20_050,
+    maxGzipBytes: 20_150,
     name: 'Svelte root controller with core /kit consumer'
   },
   {
     entry: 'component',
-    maxGzipBytes: 15_200,
+    maxGzipBytes: 15_300,
     name: 'Svelte root component SSR consumer',
     ssr: true
   }

@@ -1,31 +1,41 @@
 # @desource/context7-widget
 
-Core TypeScript package for a customizable Context7 documentation chat widget.
+[![Core](https://img.shields.io/npm/v/@desource/context7-widget?color=blue&logo=typescript)](https://www.npmjs.com/package/@desource/context7-widget)
+[![Coverage](https://codecov.io/gh/DeSource-Labs/context7-widget/branch/main/graph/badge.svg)](https://codecov.io/gh/DeSource-Labs/context7-widget)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=DeSource-Labs_context7-widget&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DeSource-Labs_context7-widget)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/DeSource-Labs/context7-widget/blob/main/LICENSE)
 
-Use this package when you want the Context7 widget runtime without committing to
-a framework binding. Its root exports only custom-element/script/helper use
-cases and useful public types. Custom-solution primitives live at `./core`,
-framework-author primitives live at `./kit`, and the hosted browser build is
-`./widget.js`.
-
-All ESM entries are side-effect free and tree-shakeable. Importing them does not
-register an element or boot the drop-in script. The only self-starting entry is
-`./widget.js`.
+Style Context7 docs chat to fit your website, with a script tag or TypeScript.
+This MIT-licensed package adds the control a carefully designed site needs:
+fonts, colors, spacing, custom buttons, and flexible panel placement.
 
 ## Why It Exists
 
-Context7 gives teams an AI assistant grounded in their documentation. The
-official widget is easy to install, but its public UI surface is intentionally
-small. This package keeps the Context7 backend and adds the client-side controls
-needed for real product sites:
+Context7 provides its docs widget and hosted AI answers for free. The official
+widget’s basic visual options leave little room to match your design. We built this
+version so the assistant can look and feel like part of your product.
 
-- theme presets and brand-token overrides
-- centered, anchored, and fixed-corner placement
-- custom triggers
-- typed events for analytics and debugging
-- a stable CSS variable and shadow-part contract
-- reusable headless primitives for native Vue, React, Svelte, and Angular
-  bindings or fully custom renderers
+Keep Context7’s search and AI answers. Add your own styling, multiline questions,
+copyable answers and code, Stop and Retry controls, and scrolling that respects
+what the visitor is reading. Existing widget users can migrate by changing the
+script URL; their library and allowed-domain settings carry over.
+
+New to Context7? Give visitors a place to ask about your library, find an example,
+and take the first step toward using it. This project builds on Context7’s free
+docs chat initiative with an interface you can make your own, also free.
+
+Use the root entry for the custom element and mounting helpers, `/core` for
+custom chat interfaces, or `/kit` to build native framework integrations. ESM
+imports are tree-shakeable and do not mount anything; only `/widget.js` starts
+itself.
+
+## Before You Start
+
+Use a library you have claimed on Context7. In its **Admin → Chat** settings,
+enable the widget, add your site's domain to the allowed domains, and save.
+Replace `/owner/repo` in the examples with that library's id. A library being
+indexed alone does not enable chat on your site.
+See [Context7's widget setup](https://context7.com/docs/howto/chat-widget).
 
 ## Install
 
@@ -361,3 +371,11 @@ For a restrictive Content Security Policy, allow:
 Browsers using the inline stylesheet fallback also need a compatible
 `style-src` policy. Test the final policy in every browser your application
 supports.
+
+## Related packages
+
+- [`@desource/context7-widget-vue`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue) provides a native Vue 3 component, composable, plugin defaults, and custom trigger slots.
+- [`@desource/context7-widget-nuxt`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/nuxt) adds auto-imports, automatic styles, and app-wide defaults for Nuxt 3 and 4.
+- [`@desource/context7-widget-react`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/react) provides a native React component, controlled open state, a programmatic hook, and custom triggers.
+- [`@desource/context7-widget-svelte`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/svelte) provides a native Svelte 5 component, bindable open state, trigger snippets, and a reactive controller.
+- [`@desource/context7-widget-angular`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/angular) provides a standalone Angular component, signals, application defaults, and injectable controls.

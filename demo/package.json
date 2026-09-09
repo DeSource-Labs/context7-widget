@@ -18,7 +18,6 @@
     "@desource/context7-widget": "workspace:*",
     "@desource/context7-widget-nuxt": "workspace:*",
     "@desource/context7-widget-vue": "workspace:*",
-    "@lucide/vue": "^1.42.0",
     "nuxt": "^4.5.2",
     "postprocessing": "^6.39.4",
     "three": "^0.185.1",

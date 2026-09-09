@@ -7,6 +7,25 @@ describe('copy action controller', () => {
     vi.restoreAllMocks();
   });
 
+  it('keeps a new pending write protected when an older write settles after reset', async () => {
+    const completions: ((copied: boolean) => void)[] = [];
+    const copy = vi.fn(() => new Promise<boolean>((resolve) => completions.push(resolve)));
+    const actions = createContext7CopyActionController<string>({ copy, onChange: vi.fn() });
+    const stale = actions.copy('answer', 'Old answer');
+    actions.reset();
+    const current = actions.copy('answer', 'New answer');
+    completions[0]?.(true);
+    await expect(stale).resolves.toBe(false);
+
+    const duplicate = actions.copy('answer', 'New answer');
+    const calls = copy.mock.calls.length;
+    completions.slice(1).forEach((finish) => finish(true));
+    await current;
+    await expect(duplicate).resolves.toBe(false);
+    expect(calls).toBe(2);
+    actions.reset();
+  });
+
   it('deduplicates pending and copied clicks, then resets after the feedback delay', async () => {
     vi.useFakeTimers();
     let finishCopy: ((copied: boolean) => void) | undefined;

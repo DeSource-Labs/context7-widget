@@ -1,22 +1,42 @@
 # @desource/context7-widget-vue
 
-Vue 3 bindings for the customizable Context7 documentation chat widget.
+[![Vue](https://img.shields.io/npm/v/@desource/context7-widget-vue?color=blue&logo=vue.js)](https://www.npmjs.com/package/@desource/context7-widget-vue)
+[![Coverage](https://codecov.io/gh/DeSource-Labs/context7-widget/branch/main/graph/badge.svg)](https://codecov.io/gh/DeSource-Labs/context7-widget)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=DeSource-Labs_context7-widget&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DeSource-Labs_context7-widget)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/DeSource-Labs/context7-widget/blob/main/LICENSE)
 
-Use this package when the widget belongs inside a Vue component tree and you
-want typed props, typed events, a composable API, a plugin helper, managed
-triggers, and a framework-native implementation.
+Context7 docs chat, styled for your Vue app. Use your fonts, colors, and help
+button, with a native component and a composable for opening chat from your UI.
+
+## Why Use This Widget?
+
+Context7 provides its docs widget and hosted AI answers for free. This project
+adds a customizable interface around that service.
+
+A docs assistant should fit the site around it. This package expands the official
+Context7 widget’s basic visual options with presets, CSS variables, custom
+triggers, and flexible layouts. Visitors get multiline questions, copyable code,
+Stop and Retry controls, and chat that lets them scroll back and read.
+
+Already using the official widget? [Switch the script URL](https://github.com/DeSource-Labs/context7-widget#existing-context7-widget-user)
+or use the Vue component below with your existing Context7 library. New to
+Context7? Add documentation answers where visitors evaluate your library and
+start their first integration.
 
 ## What You Get
 
-- `Context7Widget.vue` as a standard Vue single-file component
-- `useContext7Widget` composable for programmatic control
-- idiomatic Vue emits backed by shared event-detail contracts
-- `customTrigger` as `true`, selector string, or omitted
-- managed trigger slot for product-specific buttons
-- complete widget styles in `styles.css`
-- shared conversation engine, renderer bridge, transport, markdown, types,
-  copy-action coordination, defaults, and brand assets from
-  `@desource/context7-widget/kit`
+- A native `Context7Widget` component with typed props and events.
+- A `useContext7Widget` composable and plugin for controls and app defaults.
+- A trigger slot for your own button content, plus external trigger support.
+- Shared widget styles in `styles.css` and the same core behavior as every package.
+
+## Before You Start
+
+Use a library you have claimed on Context7. In its **Admin → Chat** settings,
+enable the widget, add your site's domain to the allowed domains, and save.
+Replace `/owner/repo` in the examples with that library's id. A library being
+indexed alone does not enable chat on your site.
+See [Context7's widget setup](https://context7.com/docs/howto/chat-widget).
 
 ## Install
 
@@ -57,8 +77,10 @@ function trackQuestion(detail: Context7WidgetQuestionEventDetail) {
 
 ## Composable
 
-```ts
+```vue
+<script setup lang="ts">
 import { useContext7Widget } from '@desource/context7-widget-vue';
+import '@desource/context7-widget-vue/styles.css';
 
 const docs = useContext7Widget({
   autoMount: true,
@@ -68,13 +90,19 @@ const docs = useContext7Widget({
   widgetId: 'docs'
 });
 
-await docs.send('How do I customize the widget?');
-console.log(docs.isOpen.value, docs.isBusy.value, docs.messages.value);
+async function ask() {
+  await docs.send('How do I customize the widget?');
+  console.log(docs.isOpen.value, docs.isBusy.value, docs.messages.value);
+}
+</script>
 
-docs.cancel();
-await docs.retry();
-docs.reset();
+<template>
+  <button type="button" @click="ask">Ask documentation</button>
+</template>
 ```
+
+Automatic mounting happens after the owner mounts. Call `send`, `open`, and
+other controls from an event handler or after the widget is ready.
 
 The composable exposes reactive `widget`, `isOpen`, `isBusy`, and `messages`
 refs plus `mount`, `unmount`, `open`, `close`, `toggle`, `send`, `cancel`,
@@ -304,3 +332,11 @@ JavaScript subpaths. Vue and `@desource/context7-widget/kit` remain external
 module dependencies, allowing the consuming app to deduplicate Vue and
 tree-shake unused kit modules. The ESM entry and declarations are SSR-import
 safe and validated with modern Node ESM and TypeScript bundler resolution.
+
+## Related packages
+
+- [`@desource/context7-widget`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/core) provides the browser custom element, drop-in script, TypeScript helpers, and shared headless engine.
+- [`@desource/context7-widget-nuxt`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/nuxt) adds auto-imports, automatic styles, and app-wide defaults for Nuxt 3 and 4.
+- [`@desource/context7-widget-react`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/react) provides a native React component, controlled open state, a programmatic hook, and custom triggers.
+- [`@desource/context7-widget-svelte`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/svelte) provides a native Svelte 5 component, bindable open state, trigger snippets, and a reactive controller.
+- [`@desource/context7-widget-angular`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/angular) provides a standalone Angular component, signals, application defaults, and injectable controls.

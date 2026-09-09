@@ -1,8 +1,9 @@
 # Architecture
 
-This project is a client layer for Context7 documentation chat, not a
-replacement for Context7's hosted backend. The browser widget defaults to the
-same hosted chat endpoint used by the official widget:
+This project makes Context7’s documentation assistant fit branded websites.
+It adds styling and interaction controls around Context7’s hosted answers, with
+one shared core for the script and native framework packages. The browser
+widget uses the same chat endpoint as the official widget:
 
 ```text
 https://context7.com/api/v2/widget/chat
@@ -24,16 +25,16 @@ the Nuxt module and demo site, events, and compatibility monitoring.
 - `packages/core/dist/kit.js`: the public framework-author contract used to
   implement native bindings.
 - `context7-widget` custom element: the framework-agnostic core runtime surface.
-- `packages/vue`: Vue 3 component, composable, plugin helper, and SCSS output.
+- `packages/vue`: Vue 3 component, composable, plugin helper, and compiled CSS.
 - `packages/react`: native React component and controlled API at `/component`,
-  programmatic mounting at `/hook`, a compatibility root, and SCSS output.
+  programmatic mounting at `/hook`, a compatibility root, and compiled CSS.
 - `packages/svelte`: native Svelte 5 component, bindable state, snippets,
-  reactive controller, and SCSS output.
+  reactive controller, and compiled CSS.
 - `packages/angular`: standalone OnPush component, signal state, injectable
-  service, application defaults, trigger directive, and SCSS output.
+  service, application defaults, trigger directive, and compiled CSS.
 - `packages/nuxt`: Nuxt 3/4 module that auto-imports the Vue component and
   composable, registers CSS, and provides serializable application defaults.
-- `demo`: Nuxt static site for `context7.desourcelabs.com`.
+- `demo`: Nuxt documentation site for `context7.desourcelabs.com`.
 - `scripts/scan-upstream.mts`: daily upstream byte and hash monitor.
 - GitHub Actions: monorepo CI, Vercel site build check, and scheduled scanner.
 
@@ -201,8 +202,7 @@ across the shared Playwright browser matrix against real Shadow DOM.
 
 ## Shared Verification Contract
 
-The package source follows the same principle as the `phone-mask` reference:
-share behavior, not a lowest-common-denominator renderer.
+The packages share behavior contracts while keeping framework rendering native.
 
 - `common/tests/unit` defines parameterized contracts for conversation state,
   cancellation, retry, multiline input, focus transfer, copying, localization,
@@ -287,7 +287,9 @@ Internal class names are not public API.
 
 ## Event Contract
 
-Events bubble and are composed, so host pages can listen at `document` level:
+The core custom element dispatches bubbling, composed DOM events, so host pages
+can listen at `document` level. Native framework packages expose the equivalent
+payloads through their documented callbacks, emits, or outputs:
 
 - `c7:ready`
 - `c7:open`
@@ -326,11 +328,11 @@ the library's transport boundary.
 
 ## Site Hosting
 
-`demo` is a Nuxt static app. Its build runs every public package build, uses the
-workspace Nuxt module, copies `packages/core/dist/widget.js` to
-`demo/public/widget.js`, then generates `.output/public`. `vercel.json` points
-Vercel at that output directory. Demo decoration assets are outside package
-bundle budgets.
+`demo` is a Nuxt app with prerendered documentation routes. The root
+`build:all` command builds the packages, copies `packages/core/dist/widget.js`
+to `demo/public/widget.js`, and runs `nuxt build`. `vercel.json` selects
+`demo/.output`; Nitro chooses its deployment preset for the build environment.
+Demo decoration assets are outside package bundle budgets.
 
 ## Maintenance Strategy
 

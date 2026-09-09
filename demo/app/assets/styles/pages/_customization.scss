@@ -12,14 +12,14 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 
   article {
-    @include lift-transition;
+    @include card-feedback;
 
-    background: linear-gradient(180deg, rgba(124, 255, 178, 0.09), transparent 72%), rgba(247, 242, 232, 0.055);
+    background: rgba(247, 242, 232, 0.035);
     border: 1px solid var(--line);
     border-radius: 8px;
     display: grid;
     gap: 0.8rem;
-    min-height: 220px;
+    align-content: start;
     overflow: hidden;
     padding: 1.1rem;
     position: relative;
@@ -36,9 +36,7 @@
 }
 
 .token-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  @include content-columns(4);
 }
 
 .token-card,
@@ -48,25 +46,15 @@
 }
 
 .token-card {
-  @include lift-transition;
+  @include card-feedback;
 
+  align-content: start;
   display: grid;
   gap: 0.75rem;
   min-width: 0;
   overflow: hidden;
   padding: 1rem;
   position: relative;
-
-  &::before {
-    background: var(--green);
-    border-radius: 999px;
-    content: '';
-    height: 0.38rem;
-    position: absolute;
-    right: 1rem;
-    top: 1rem;
-    width: 2rem;
-  }
 
   p {
     color: var(--muted);
@@ -96,15 +84,15 @@
 .parts-grid {
   display: grid;
   gap: 0.8rem;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 
   article {
-    @include lift-transition;
+    @include card-feedback;
 
-    background: linear-gradient(135deg, rgba(122, 184, 255, 0.08), transparent 68%), rgba(247, 242, 232, 0.055);
+    background: rgba(247, 242, 232, 0.025);
     display: grid;
     gap: 0.5rem;
-    min-height: 120px;
+    align-content: start;
     overflow: hidden;
     padding: 0.9rem;
     position: relative;
@@ -114,7 +102,8 @@
     color: var(--green);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.82rem;
-    font-weight: 850;
+    font-weight: 750;
+    overflow-wrap: anywhere;
   }
 
   p {
@@ -125,7 +114,7 @@
 }
 
 .customization-callout {
-  align-items: end;
+  align-items: center;
   display: grid;
   gap: 1.5rem;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);

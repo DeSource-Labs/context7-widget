@@ -1,8 +1,31 @@
 # @desource/context7-widget-nuxt
 
-Nuxt 3 and Nuxt 4 module for the native Vue Context7 documentation chat widget.
+[![Nuxt](https://img.shields.io/npm/v/@desource/context7-widget-nuxt?color=blue&logo=nuxt)](https://www.npmjs.com/package/@desource/context7-widget-nuxt)
+[![Coverage](https://codecov.io/gh/DeSource-Labs/context7-widget/branch/main/graph/badge.svg)](https://codecov.io/gh/DeSource-Labs/context7-widget)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=DeSource-Labs_context7-widget&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DeSource-Labs_context7-widget)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/DeSource-Labs/context7-widget/blob/main/LICENSE)
 
-The module registers `Context7Widget`, auto-imports `useContext7Widget`, loads the shared stylesheet, and can provide app-wide widget defaults. It reuses `@desource/context7-widget-vue`; it does not contain another renderer, conversation engine, transport, or Markdown implementation.
+Add Context7 docs chat to Nuxt 3 or 4 and style it to match your site. This MIT-licensed module sets up the native Vue widget, its stylesheet, auto-imports, and app-wide defaults.
+
+## Why Use This Widget?
+
+Context7 provides its docs widget and hosted AI answers for free. Its basic
+styling can leave chat looking out of place. This upgrade adds fonts, colors,
+custom triggers, and layouts to match your site, plus copyable code, multiline
+input, Stop, and Retry.
+
+[Upgrade your existing script](https://github.com/DeSource-Labs/context7-widget#existing-context7-widget-user)
+or add the module below with the same library and domain settings. New to
+Context7? Help visitors explore your library and start their first integration.
+The module reuses Vue and the shared core.
+
+## Before You Start
+
+Use a library you have claimed on Context7. In its **Admin → Chat** settings,
+enable the widget, add your site's domain to the allowed domains, and save.
+Replace `/owner/repo` in the examples with that library's id. A library being
+indexed alone does not enable chat on your site.
+See [Context7's widget setup](https://context7.com/docs/howto/chat-widget).
 
 ## Install
 
@@ -40,7 +63,7 @@ Props override module defaults for that instance:
 ```vue
 <template>
   <Context7Widget
-    library="/vercel/nuxt"
+    library="/owner/another-repo"
     position="anchor"
     preset="glass"
     theme="auto"
@@ -231,9 +254,8 @@ The browser posts the configured library id and current conversation directly to
 
 ## Related packages
 
-- [`@desource/context7-widget-vue`](../vue) provides the component, composable, plugin helper, events, and public types.
-- [`@desource/context7-widget`](../core) provides the browser custom element and shared headless kit.
-
-## License
-
-[MIT](./LICENSE) © 2026 DeSource Labs
+- [`@desource/context7-widget`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/core) provides the browser custom element, drop-in script, TypeScript helpers, and shared headless engine.
+- [`@desource/context7-widget-vue`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue) provides a native Vue 3 component, composable, plugin defaults, and custom trigger slots.
+- [`@desource/context7-widget-react`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/react) provides a native React component, controlled open state, a programmatic hook, and custom triggers.
+- [`@desource/context7-widget-svelte`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/svelte) provides a native Svelte 5 component, bindable open state, trigger snippets, and a reactive controller.
+- [`@desource/context7-widget-angular`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/angular) provides a standalone Angular component, signals, application defaults, and injectable controls.

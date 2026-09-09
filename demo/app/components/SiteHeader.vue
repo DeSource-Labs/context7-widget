@@ -2,7 +2,7 @@
   <header class="site-nav-wrap">
     <nav class="site-nav" aria-label="Primary navigation">
       <a class="site-nav__brand brand" href="/" aria-label="Context7 Widget home">
-        <span class="site-nav__mark">7</span>
+        <img class="site-nav__mark" src="/logo/android-chrome-192x192.png" alt="" width="32" height="32" />
         <span>Context7 Widget</span>
       </a>
 
@@ -50,7 +50,7 @@ withDefaults(
   {
     githubHref: 'https://github.com/DeSource-Labs/context7-widget',
     items: () => [
-      { href: '/#how-it-works', label: 'How it works' },
+      { href: '/#how-it-works', label: 'Why this widget' },
       { href: '/examples', label: 'Examples' },
       { href: '/customization', label: 'Customize' }
     ]

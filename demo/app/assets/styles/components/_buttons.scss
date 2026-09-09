@@ -20,14 +20,13 @@
   min-height: 2.9rem;
   padding: 0 1rem;
   transition:
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+    background-color 160ms ease,
+    border-color 160ms ease;
 }
 
 .button--primary {
   background: var(--green);
   color: #101513;
-  box-shadow: 0 12px 34px rgba(124, 255, 178, 0.18);
 }
 
 .button--ghost {
@@ -36,6 +35,13 @@
   color: var(--ink);
 }
 
-.button:hover {
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .button--primary:hover {
+    background: #a4ffcb;
+  }
+
+  .button--ghost:hover {
+    background: rgba(247, 242, 232, 0.12);
+    border-color: rgba(247, 242, 232, 0.32);
+  }
 }

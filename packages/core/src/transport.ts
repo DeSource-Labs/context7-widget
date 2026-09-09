@@ -50,6 +50,9 @@ export async function streamContext7Response(
     if (buffer.trim()) {
       consumeStreamLine(buffer, callbacks);
     }
+  } catch (error) {
+    await reader.cancel().catch(() => undefined);
+    throw error;
   } finally {
     reader.releaseLock();
   }
@@ -106,37 +109,44 @@ function consumeStreamLine(line: string, callbacks: Context7StreamCallbacks): vo
   const frameType = trimmed.slice(0, separator);
   const payload = trimmed.slice(separator + 1);
 
-  if (frameType === '0') {
-    try {
-      const parsed: unknown = JSON.parse(payload);
-      if (typeof parsed === 'string') callbacks.onChunk(parsed);
-      else if (isRecord(parsed) && typeof parsed.content === 'string') callbacks.onChunk(parsed.content);
-      else if (isRecord(parsed) && typeof parsed.delta === 'string') callbacks.onChunk(parsed.delta);
-    } catch {
-      // Ignore malformed compatibility frames.
-    }
-  }
+  if (frameType !== '0' && frameType !== '3') return;
+  const parsed = parseStreamPayload(payload);
+  if (frameType === '3') {
+    if (typeof parsed === 'string') throw new Context7TransportError(parsed);
+  } else if (typeof parsed === 'string') callbacks.onChunk(parsed);
+  else if (isRecord(parsed) && typeof parsed.content === 'string') callbacks.onChunk(parsed.content);
+  else if (isRecord(parsed) && typeof parsed.delta === 'string') callbacks.onChunk(parsed.delta);
 }
 
 function consumeJsonFrame(payload: string, callbacks: Context7StreamCallbacks): void {
+  const parsed = parseStreamPayload(payload);
+  if (!isRecord(parsed)) return;
+  if (parsed.type === 'error') {
+    throw new Context7TransportError(
+      typeof parsed.errorText === 'string' && parsed.errorText ? parsed.errorText : 'Context7 chat response failed.'
+    );
+  }
+  if (parsed.type === 'text-delta' && typeof parsed.delta === 'string') {
+    callbacks.onChunk(parsed.delta);
+    return;
+  }
+
+  if (parsed.type === 'tool-input-available') {
+    callbacks.onToolCall?.(toToolCall(parsed));
+    return;
+  }
+
+  if (parsed.type === 'tool-output-available') {
+    callbacks.onToolResult?.(toToolResult(parsed));
+  }
+}
+
+function parseStreamPayload(payload: string): unknown {
   try {
-    const parsed: unknown = JSON.parse(payload);
-    if (!isRecord(parsed)) return;
-    if (parsed.type === 'text-delta' && typeof parsed.delta === 'string') {
-      callbacks.onChunk(parsed.delta);
-      return;
-    }
-
-    if (parsed.type === 'tool-input-available') {
-      callbacks.onToolCall?.(toToolCall(parsed));
-      return;
-    }
-
-    if (parsed.type === 'tool-output-available') {
-      callbacks.onToolResult?.(toToolResult(parsed));
-    }
+    return JSON.parse(payload);
   } catch {
-    // Streaming transports can send keep-alive lines; unknown lines are ignored.
+    // Keep-alive and malformed frames are ignored; stream errors are not.
+    return undefined;
   }
 }
 

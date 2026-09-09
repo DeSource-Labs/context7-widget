@@ -44,16 +44,13 @@ export class Context7ConversationRenderBridge<AnswerRender> {
         if (event.request && render) {
           this.activeAnswer = { render, requestId: event.request.id };
         }
-        this.options.emit(event);
         break;
       }
       case 'c7:first-token':
-        this.options.emit(event);
         break;
       case 'c7:answer': {
         const render = this.getActiveAnswer(event);
         if (render) this.options.onAnswer(event, render);
-        this.options.emit(event);
         break;
       }
       case 'c7:answer-complete':
@@ -64,24 +61,21 @@ export class Context7ConversationRenderBridge<AnswerRender> {
           this.options.clearAnswer(render);
           this.activeAnswer = null;
         }
-        this.options.emit(event);
         break;
       }
       case 'c7:tool-call': {
         this.options.onToolCall(event, this.getActiveAnswer(event));
-        this.options.emit(event);
         break;
       }
       case 'c7:tool-result':
         this.options.onToolResult(event);
-        this.options.emit(event);
         break;
       case 'c7:error':
         this.discardActiveAnswer();
         this.options.onError(event);
-        this.options.emit(event);
         break;
     }
+    this.options.emit(event);
   }
 
   private getActiveAnswer(event: Context7ConversationEvent): AnswerRender | null {

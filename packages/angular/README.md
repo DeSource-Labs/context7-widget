@@ -1,12 +1,41 @@
 # @desource/context7-widget-angular
 
-Native Angular bindings for the Context7 documentation chat widget.
+[![Angular](https://img.shields.io/npm/v/@desource/context7-widget-angular?color=blue&logo=angular&logoColor=white)](https://www.npmjs.com/package/@desource/context7-widget-angular)
+[![Coverage](https://codecov.io/gh/DeSource-Labs/context7-widget/branch/main/graph/badge.svg)](https://codecov.io/gh/DeSource-Labs/context7-widget)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=DeSource-Labs_context7-widget&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DeSource-Labs_context7-widget)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/DeSource-Labs/context7-widget/blob/main/LICENSE)
 
-Use this package for a standalone, `OnPush` component with signal inputs, typed
-outputs, app-wide defaults, injectable controls, managed triggers, and
-programmatic mounting. Conversation state, transport, Markdown rendering,
-layout rules, copy behavior, and public types come from
-`@desource/context7-widget/kit`.
+Bring Context7 documentation answers into your Angular app with a widget that
+matches its design. Customize fonts, colors, layout, and trigger content through
+a native standalone component.
+
+## Why Use This Widget?
+
+Context7 provides its docs widget and hosted AI answers for free. This project
+adds a free, customizable interface around that service.
+
+You should be able to add docs chat without settling for a generic panel on a
+carefully designed site. This package expands the official Context7 widget’s
+visual controls and adds multiline input, answer and code copying, Stop, Retry,
+and scrolling that respects the reader’s position.
+
+Existing Context7 users can [replace the script URL](https://github.com/DeSource-Labs/context7-widget#existing-context7-widget-user)
+or adopt this component with the same library and domain settings. New users can
+put documentation answers into product pages and onboarding, helping visitors
+understand the library and try their first integration.
+
+The component uses `OnPush`, signal inputs, and typed outputs. Configure app
+defaults with `provideContext7Widget` and use the injectable service for
+programmatic controls. The shared core kit handles conversation state,
+transport, Markdown, and layout.
+
+## Before You Start
+
+Use a library you have claimed on Context7. In its **Admin → Chat** settings,
+enable the widget, add your site's domain to the allowed domains, and save.
+Replace `/owner/repo` in the examples with that library's id. A library being
+indexed alone does not enable chat on your site.
+See [Context7's widget setup](https://context7.com/docs/howto/chat-widget).
 
 ## Install
 
@@ -258,3 +287,11 @@ proxy chat content. The package adds no analytics, cookies, or persistent
 browser storage. Emitted event details expose questions and answers to the host
 application, so logging or persistence added by the application becomes part of
 its data flow. Do not send secrets or sensitive personal data.
+
+## Related packages
+
+- [`@desource/context7-widget`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/core) provides the browser custom element, drop-in script, TypeScript helpers, and shared headless engine.
+- [`@desource/context7-widget-vue`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue) provides a native Vue 3 component, composable, plugin defaults, and custom trigger slots.
+- [`@desource/context7-widget-nuxt`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/nuxt) adds auto-imports, automatic styles, and app-wide defaults for Nuxt 3 and 4.
+- [`@desource/context7-widget-react`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/react) provides a native React component, controlled open state, a programmatic hook, and custom triggers.
+- [`@desource/context7-widget-svelte`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/svelte) provides a native Svelte 5 component, bindable open state, trigger snippets, and a reactive controller.

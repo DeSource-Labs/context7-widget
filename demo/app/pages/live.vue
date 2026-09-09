@@ -7,7 +7,7 @@
   >
     <div class="live-example-stage">
       <div class="constructor-doc">
-        <p class="eyebrow">Widget surface</p>
+        <p class="eyebrow">Live widget preview</p>
         <h1>{{ options.title }}</h1>
         <p>{{ options.placeholder }}</p>
       </div>
@@ -18,7 +18,7 @@
         class="constructor-external-trigger"
         type="button"
       >
-        <MessageSquare :size="18" aria-hidden="true" />
+        <SiteIcon name="chat-text" :size="18" aria-hidden="true" />
         {{ options.launcherLabel }}
       </button>
 
@@ -53,7 +53,7 @@
           <template v-if="usesTriggerSlot" #trigger="{ label }">
             <span class="constructor-trigger-dot" />
             <span>{{ label }}</span>
-            <Wand2 :size="16" aria-hidden="true" />
+            <SiteIcon name="cursor-click" :size="16" aria-hidden="true" />
           </template>
         </Context7Widget>
       </div>
@@ -62,7 +62,6 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquare, Wand2 } from '@lucide/vue';
 import type { Context7WidgetCustomTrigger } from '@desource/context7-widget-vue';
 import { parseLiveExampleQuery } from '~/utils/live-example';
 
