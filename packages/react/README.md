@@ -247,3 +247,11 @@ remain external so applications can deduplicate them. Rendering or
 programmatic mounting still requires a browser document. Every JavaScript
 entry and shared chunk preserves the React `"use client"` boundary for React
 Server Component and Next.js App Router consumers.
+
+## Related packages
+
+- [`@desource/context7-widget`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/core) provides the browser custom element, drop-in script, TypeScript helpers, and shared headless engine.
+- [`@desource/context7-widget-vue`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue) provides a native Vue 3 component, composable, plugin defaults, and custom trigger slots.
+- [`@desource/context7-widget-nuxt`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/nuxt) adds auto-imports, automatic styles, and app-wide defaults for Nuxt 3 and 4.
+- [`@desource/context7-widget-svelte`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/svelte) provides a native Svelte 5 component, bindable open state, trigger snippets, and a reactive controller.
+- [`@desource/context7-widget-angular`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/angular) provides a standalone Angular component, signals, application defaults, and injectable controls.

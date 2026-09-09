@@ -371,3 +371,11 @@ For a restrictive Content Security Policy, allow:
 Browsers using the inline stylesheet fallback also need a compatible
 `style-src` policy. Test the final policy in every browser your application
 supports.
+
+## Related packages
+
+- [`@desource/context7-widget-vue`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue) provides a native Vue 3 component, composable, plugin defaults, and custom trigger slots.
+- [`@desource/context7-widget-nuxt`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/nuxt) adds auto-imports, automatic styles, and app-wide defaults for Nuxt 3 and 4.
+- [`@desource/context7-widget-react`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/react) provides a native React component, controlled open state, a programmatic hook, and custom triggers.
+- [`@desource/context7-widget-svelte`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/svelte) provides a native Svelte 5 component, bindable open state, trigger snippets, and a reactive controller.
+- [`@desource/context7-widget-angular`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/angular) provides a standalone Angular component, signals, application defaults, and injectable controls.

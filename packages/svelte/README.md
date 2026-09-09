@@ -150,3 +150,11 @@ The browser sends the library id and conversation messages directly to `https://
 ## Packaging
 
 The package uses Svelte 5 runes and the official `svelte` export condition. Imports are SSR-safe; DOM work starts only on component mount or explicit controller `mount()`. Svelte and `@desource/context7-widget/kit` remain external dependencies for consumer deduplication. Styles are separate, and tree-shaking metadata marks only CSS as side-effectful.
+
+## Related packages
+
+- [`@desource/context7-widget`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/core) provides the browser custom element, drop-in script, TypeScript helpers, and shared headless engine.
+- [`@desource/context7-widget-vue`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue) provides a native Vue 3 component, composable, plugin defaults, and custom trigger slots.
+- [`@desource/context7-widget-nuxt`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/nuxt) adds auto-imports, automatic styles, and app-wide defaults for Nuxt 3 and 4.
+- [`@desource/context7-widget-react`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/react) provides a native React component, controlled open state, a programmatic hook, and custom triggers.
+- [`@desource/context7-widget-angular`](https://github.com/DeSource-Labs/context7-widget/tree/main/packages/angular) provides a standalone Angular component, signals, application defaults, and injectable controls.
