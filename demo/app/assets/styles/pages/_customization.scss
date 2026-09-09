@@ -57,17 +57,6 @@
   padding: 1rem;
   position: relative;
 
-  &::before {
-    background: var(--green);
-    border-radius: 999px;
-    content: '';
-    height: 0.38rem;
-    position: absolute;
-    right: 1rem;
-    top: 1rem;
-    width: 2rem;
-  }
-
   p {
     color: var(--muted);
     line-height: 1.5;

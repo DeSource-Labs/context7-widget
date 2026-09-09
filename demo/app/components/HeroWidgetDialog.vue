@@ -62,11 +62,11 @@ withDefaults(
   }>(),
   {
     messages: () => [
-      { kind: 'assistant', text: 'Add Context7 answers without sending users away from your product.' },
-      { kind: 'user', text: 'Can it match our interface?' },
+      { kind: 'assistant', text: 'Let visitors ask about your product, with answers from your docs.' },
+      { kind: 'user', text: 'Can it use our fonts and help button?' },
       {
         kind: 'assistant',
-        text: 'Use presets, CSS variables, custom triggers, and events while Context7 handles the docs.'
+        text: 'Yes. Match your type, colors, and spacing, then open chat from your own button.'
       }
     ],
     placeholder: 'Ask about the docs...',

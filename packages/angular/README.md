@@ -1,12 +1,33 @@
 # @desource/context7-widget-angular
 
-Native Angular bindings for the Context7 documentation chat widget.
+[![Angular](https://img.shields.io/npm/v/@desource/context7-widget-angular?color=blue&logo=angular&logoColor=white)](https://www.npmjs.com/package/@desource/context7-widget-angular)
+[![Coverage](https://codecov.io/gh/DeSource-Labs/context7-widget/branch/main/graph/badge.svg)](https://codecov.io/gh/DeSource-Labs/context7-widget)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=DeSource-Labs_context7-widget&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DeSource-Labs_context7-widget)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/DeSource-Labs/context7-widget/blob/main/LICENSE)
 
-Use this package for a standalone, `OnPush` component with signal inputs, typed
-outputs, app-wide defaults, injectable controls, managed triggers, and
-programmatic mounting. Conversation state, transport, Markdown rendering,
-layout rules, copy behavior, and public types come from
-`@desource/context7-widget/kit`.
+Bring Context7 documentation answers into your Angular app with a widget that
+matches its design. Customize fonts, colors, layout, and trigger content through
+a native standalone component.
+
+## Why Use This Widget?
+
+Context7 provides its docs widget and hosted AI answers for free. This project
+adds a free, customizable interface around that service.
+
+You should be able to add docs chat without settling for a generic panel on a
+carefully designed site. This package expands the official Context7 widget’s
+visual controls and adds multiline input, answer and code copying, Stop, Retry,
+and scrolling that respects the reader’s position.
+
+Existing Context7 users can [replace the script URL](https://github.com/DeSource-Labs/context7-widget#existing-context7-widget-user)
+or adopt this component with the same library and domain settings. New users can
+put documentation answers into product pages and onboarding, helping visitors
+understand the library and try their first integration.
+
+The component uses `OnPush`, signal inputs, and typed outputs. Configure app
+defaults with `provideContext7Widget` and use the injectable service for
+programmatic controls. The shared core kit handles conversation state,
+transport, Markdown, and layout.
 
 ## Before You Start
 

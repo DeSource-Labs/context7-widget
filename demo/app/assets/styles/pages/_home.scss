@@ -392,28 +392,4 @@
     line-height: 1.6;
     margin-top: 0.35rem;
   }
-
-  &::after {
-    background: var(--green);
-    border-radius: 999px;
-    bottom: 1rem;
-    content: '';
-    height: 0.45rem;
-    opacity: 0.7;
-    position: absolute;
-    right: 1rem;
-    width: 2.4rem;
-  }
-}
-
-.use-case:nth-child(2)::after {
-  background: var(--orange);
-}
-
-.use-case:nth-child(3)::after {
-  background: var(--blue);
-}
-
-.use-case:nth-child(4)::after {
-  background: var(--rose);
 }

@@ -2,10 +2,8 @@
   <section id="lab" class="lab-section">
     <div class="section-heading">
       <p class="eyebrow">Live configuration</p>
-      <h2>Tune the widget contract before you paste it.</h2>
-      <p>
-        Change the runtime props, inspect the script tag, then open the same widget instance from the custom trigger.
-      </p>
+      <h2>Try your site’s look before you install.</h2>
+      <p>Adjust the style and placement, try opening chat from your own button, then copy the setup code.</p>
     </div>
 
     <div class="lab">
@@ -55,7 +53,7 @@
             <option v-for="item in launcherVariants" :key="item" :value="item">{{ item }}</option>
           </select>
           <small v-if="customTriggerEnabled" class="field-note">
-            Disabled while custom trigger is active. Disable custom trigger to preview the built-in launcher.
+            Turn off the custom trigger to preview the built-in launcher.
           </small>
         </label>
 
@@ -95,7 +93,7 @@
 
         <label class="toggle">
           <input v-model="closeOnOutsideClick" type="checkbox" />
-          <span>Close outside</span>
+          <span>Close on outside click</span>
         </label>
 
         <Context7Widget

@@ -50,7 +50,7 @@ withDefaults(
   {
     githubHref: 'https://github.com/DeSource-Labs/context7-widget',
     items: () => [
-      { href: '/#how-it-works', label: 'How it works' },
+      { href: '/#how-it-works', label: 'Why this widget' },
       { href: '/examples', label: 'Examples' },
       { href: '/customization', label: 'Customize' }
     ]

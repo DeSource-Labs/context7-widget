@@ -40,7 +40,7 @@ h3 {
   line-height: 1.6;
   max-width: 720px;
 
-  &:not(.constructor-prerequisite) {
+  &:not(.prerequisite) {
     color: var(--muted);
   }
 }

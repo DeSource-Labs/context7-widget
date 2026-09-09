@@ -1,8 +1,23 @@
 # @desource/context7-widget-nuxt
 
-Nuxt 3 and Nuxt 4 module for the native Vue Context7 documentation chat widget.
+[![Nuxt](https://img.shields.io/npm/v/@desource/context7-widget-nuxt?color=blue&logo=nuxt)](https://www.npmjs.com/package/@desource/context7-widget-nuxt)
+[![Coverage](https://codecov.io/gh/DeSource-Labs/context7-widget/branch/main/graph/badge.svg)](https://codecov.io/gh/DeSource-Labs/context7-widget)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=DeSource-Labs_context7-widget&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DeSource-Labs_context7-widget)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/DeSource-Labs/context7-widget/blob/main/LICENSE)
 
-The module registers `Context7Widget`, auto-imports `useContext7Widget`, loads the shared stylesheet, and can provide app-wide widget defaults. It reuses `@desource/context7-widget-vue`; it does not contain another renderer, conversation engine, transport, or Markdown implementation.
+Add Context7 docs chat to Nuxt 3 or 4 and style it to match your site. This MIT-licensed module sets up the native Vue widget, its stylesheet, auto-imports, and app-wide defaults.
+
+## Why Use This Widget?
+
+Context7 provides its docs widget and hosted AI answers for free. Its basic
+styling can leave chat looking out of place. This upgrade adds fonts, colors,
+custom triggers, and layouts to match your site, plus copyable code, multiline
+input, Stop, and Retry.
+
+[Upgrade your existing script](https://github.com/DeSource-Labs/context7-widget#existing-context7-widget-user)
+or add the module below with the same library and domain settings. New to
+Context7? Help visitors explore your library and start their first integration.
+The module reuses Vue and the shared core.
 
 ## Before You Start
 

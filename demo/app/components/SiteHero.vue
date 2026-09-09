@@ -56,7 +56,7 @@ type HeroScanOptions = Partial<{
 }>;
 
 const defaultNavItems: HeroNavItem[] = [
-  { href: '/#how-it-works', label: 'How it works' },
+  { href: '/#how-it-works', label: 'Why this widget' },
   { href: '/examples', label: 'Examples' },
   { href: '/customization', label: 'Customize' }
 ];

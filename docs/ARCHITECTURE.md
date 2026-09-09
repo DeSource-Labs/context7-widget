@@ -1,8 +1,9 @@
 # Architecture
 
-This project is a client layer for Context7 documentation chat, not a
-replacement for Context7's hosted backend. The browser widget defaults to the
-same hosted chat endpoint used by the official widget:
+This project makes Context7’s documentation assistant fit branded websites.
+It adds styling and interaction controls around Context7’s hosted answers, with
+one shared core for the script and native framework packages. The browser
+widget uses the same chat endpoint as the official widget:
 
 ```text
 https://context7.com/api/v2/widget/chat

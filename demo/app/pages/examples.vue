@@ -3,19 +3,19 @@
     <SiteHero
       eyebrow="Examples"
       title="Try the widget before you install it."
-      description="Test trigger modes, positions, presets, and generated snippets. Pick the version that fits your app today."
+      description="Find the look and placement that belong on your site. Preview your choices, try the chat, and copy the code for your framework or script tag."
       tone="blue"
       product-aria-label="Examples widget preview"
       :marquee-items="heroMarqueeItems"
       :nav-items="[
         { href: '/', label: 'Home' },
-        { href: '#live', label: 'Constructor' },
+        { href: '#live', label: 'Widget builder' },
         { href: '#positions', label: 'Positions' },
         { href: '/customization', label: 'Customize' }
       ]"
     >
       <template #actions>
-        <a class="button button--primary" href="#live">Try constructor</a>
+        <a class="button button--primary" href="#live">Build your widget</a>
         <a class="button button--ghost" href="#positions">See positions</a>
       </template>
 
@@ -28,12 +28,12 @@
           :messages="[
             {
               kind: 'assistant',
-              text: 'Test position, preset, trigger mode, and panel size before touching your app.'
+              text: 'Try a preset and choose where chat opens on your page.'
             },
-            { kind: 'user', text: 'Show the React setup.' },
+            { kind: 'user', text: 'Can I get the code for my framework?' },
             {
               kind: 'assistant',
-              text: 'Copy the native framework component, Nuxt module, core helper, or hosted script from the same constructor.'
+              text: 'Yes. The builder generates your setup for Vue, Nuxt, React, Svelte, Angular, TypeScript, or a script tag.'
             }
           ]"
         />
@@ -42,13 +42,13 @@
 
     <section id="live" class="examples-section examples-section--constructor">
       <div class="section-heading">
-        <p class="eyebrow">Live constructor</p>
-        <h2>Make decisions visually, then copy the integration.</h2>
+        <p class="eyebrow">Widget builder</p>
+        <h2>See it on the page before it goes on yours.</h2>
         <p>
-          The constructor renders a real widget instance. Try text, position, preset, trigger mode, panel size, and
-          behavior first; then copy the script, TypeScript, Vue, Nuxt, React, Svelte, or Angular version.
+          This is a working widget. Adjust its text, style, placement, and behavior in the live preview. When it feels
+          right, choose your integration below and copy the code.
         </p>
-        <p class="constructor-prerequisite">
+        <p class="prerequisite">
           Before connecting your library, enable its widget in Context7's Admin → Chat settings and allow your site's
           domain.
           <a href="https://context7.com/docs/howto/chat-widget" target="_blank" rel="noopener noreferrer"
@@ -58,10 +58,10 @@
       </div>
 
       <div class="constructor-shell">
-        <div class="constructor-controls" aria-label="Context7 widget constructor controls">
+        <div class="constructor-controls" aria-label="Context7 widget builder controls">
           <div class="constructor-controls__header">
             <div>
-              <span>Constructor controls</span>
+              <span>Widget settings</span>
               <strong>{{ activeControlPanelLabel }}</strong>
             </div>
             <div class="constructor-control-tabs" role="tablist" aria-label="Control categories">
@@ -99,14 +99,14 @@
                   <input id="constructor-title" v-model="constructorTitle" type="text" />
                 </label>
                 <label class="constructor-field" for="constructor-widget-id">
-                  Widget id
+                  Widget ID
                   <input id="constructor-widget-id" v-model="constructorWidgetId" spellcheck="false" type="text" />
                 </label>
               </div>
             </div>
 
             <div class="constructor-group constructor-group--full">
-              <span>Texts</span>
+              <span>Chat text</span>
               <div class="constructor-fields-grid">
                 <label class="constructor-field" for="constructor-placeholder">
                   Placeholder
@@ -328,12 +328,11 @@
 
     <section id="positions" class="examples-section examples-section--positions">
       <div class="section-heading">
-        <p class="eyebrow">Position use cases</p>
-        <h2>Corner, centered, and anchored entry points.</h2>
+        <p class="eyebrow">Placement</p>
+        <h2>Put help where people reach for it.</h2>
         <p>
-          Fixed corner works for classic docs pages. Centered dialog works when users ask for help intentionally.
-          Anchored popovers work when the assistant belongs to your navigation, dashboard, command palette, or support
-          menu.
+          Keep a familiar chat button in the corner, open a centered dialog for more space, or attach the panel to a
+          help button in your navigation. Each option works with your site’s design.
         </p>
       </div>
 
@@ -356,7 +355,7 @@
         <article class="example-card example-card--anchor">
           <div class="example-card__visual">
             <div class="example-toolbar">
-              <span>Docs shell</span>
+              <span>Your documentation</span>
               <button id="example-anchor-trigger" class="example-trigger" type="button">
                 <MessageSquare :size="18" aria-hidden="true" />
                 Ask docs
@@ -364,7 +363,7 @@
             </div>
             <div class="example-popover-preview">
               <span>Anchored to the trigger</span>
-              <p>Best for nav bars, command menus, dashboards, and custom design systems.</p>
+              <p>Open chat beside a help button in your navigation, dashboard, or support menu.</p>
             </div>
           </div>
           <CodeBlock id="example-anchor-code" label="Vue anchored trigger" :code="anchorVue" />
@@ -381,10 +380,10 @@
             </div>
             <div>
               <h3>Fixed corner</h3>
-              <p>Click the button to open a real bottom-right widget, the same placement used by script installs.</p>
+              <p>Keep docs help within reach as visitors explore the page. Try the button to open it.</p>
             </div>
           </div>
-          <CodeBlock id="example-corner-code" label="Official-compatible" :code="cornerScript" />
+          <CodeBlock id="example-corner-code" label="Drop-in script replacement" :code="cornerScript" />
         </article>
       </div>
     </section>
@@ -392,7 +391,7 @@
     <section class="examples-section examples-section--matrix">
       <div class="section-heading">
         <p class="eyebrow">Customization examples</p>
-        <h2>Presets get you close. Variables make it yours.</h2>
+        <h2>Choose a look to build on.</h2>
       </div>
 
       <div class="preset-strip">
@@ -490,9 +489,9 @@ const heroMarqueeItems = librariesArray.map(({ key, examplesHref, label, logo })
   logo
 }));
 const triggerModes = [
-  { copy: 'Renders a package button with custom content.', label: 'Custom content', value: 'slot' },
-  { copy: 'Renders the default package button.', label: 'Managed button', value: 'managed' },
-  { copy: 'Bind to a button anywhere by id.', label: 'External id', value: 'external' },
+  { copy: 'Add your own text and icons to the widget’s button.', label: 'Custom content', value: 'slot' },
+  { copy: 'Use a button rendered and controlled by the widget.', label: 'Managed button', value: 'managed' },
+  { copy: 'Connect an existing button by its ID.', label: 'Existing button', value: 'external' },
   { copy: 'Use the built-in floating launcher.', label: 'Built-in', value: 'none' }
 ] as const;
 const accentOptions = [
@@ -1195,10 +1194,10 @@ export class DocsHelp {
 }`;
 
 const presetCards = [
-  { copy: 'Quiet product UI with low visual noise.', name: 'minimal' },
-  { copy: 'Layered translucent surface for rich demos.', name: 'glass' },
-  { copy: 'Hard-edged playful docs widget.', name: 'neo' },
+  { copy: 'Subtle borders and restrained colors.', name: 'minimal' },
+  { copy: 'Translucent panels with a blurred backdrop.', name: 'glass' },
+  { copy: 'Sharp edges, bold color, and offset shadows.', name: 'neo' },
   { copy: 'Monospace assistant for dev-tool pages.', name: 'terminal' },
-  { copy: 'High-contrast editorial surface.', name: 'brutalist' }
+  { copy: 'Heavy borders and high contrast.', name: 'brutalist' }
 ];
 </script>

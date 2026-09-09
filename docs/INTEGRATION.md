@@ -1,8 +1,13 @@
 # Integration Guide
 
-Add Context7 documentation chat to your site with a script tag or a native
-framework package. All integrations share the same transport, options, and CSS
-tokens.
+Make Context7’s documentation assistant fit your product’s design. This guide
+covers the one-URL migration from the official widget, branded script installs,
+and native framework integrations.
+
+Context7 provides the docs widget, search, and AI answers for free. This
+free, open-source upgrade gives you control over fonts, colors, placement, and
+the chat experience. For new users, it puts answers to setup and integration
+questions where visitors are already exploring your product.
 
 ## Before You Start
 
@@ -55,14 +60,15 @@ Official Context7:
 <script async src="https://context7.com/widget.js" data-library="/owner/repo"></script>
 ```
 
-Customizable replacement:
+Replace it with this widget:
 
 ```html
 <script async src="https://context7.desourcelabs.com/widget.js" data-library="/owner/repo"></script>
 ```
 
-Keep your Context7 library and allowed-domain configuration unchanged. Chat
-requests still go to `https://context7.com`.
+Your Context7 library and allowed-domain settings carry over. Once the script
+is replaced, choose a preset or apply your own CSS. Chat requests continue to
+go directly to `https://context7.com`.
 
 ## Branded Script Install
 

@@ -7,7 +7,7 @@
   >
     <div class="live-example-stage">
       <div class="constructor-doc">
-        <p class="eyebrow">Widget surface</p>
+        <p class="eyebrow">Live widget preview</p>
         <h1>{{ options.title }}</h1>
         <p>{{ options.placeholder }}</p>
       </div>

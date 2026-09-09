@@ -1,16 +1,16 @@
 <template>
   <main>
     <SiteHero
-      eyebrow="Context7 answers, your interface"
-      title="Context7 Widget"
-      description="Add docs chat to your product, docs, or dashboard. Use the Context7 backend, but control the trigger, position, theme, and product feel."
+      eyebrow="Free, open-source widget upgrade"
+      title="Context7 chat, your design."
+      description="Your site has a design of its own. Give Context7 docs chat the same attention, with your fonts, colors, and help button, plus a better experience for readers."
       tone="mint"
       :marquee-items="heroMarqueeItems"
     >
       <template #actions>
         <a class="button button--primary" href="/examples">
           <SlidersHorizontal :size="18" aria-hidden="true" />
-          Try it now
+          Try the upgrade
         </a>
         <a class="button button--ghost" href="/customization">
           <Palette :size="18" aria-hidden="true" />
@@ -34,11 +34,16 @@
 
     <section id="how-it-works" class="audience-section">
       <div class="section-heading">
-        <p class="eyebrow">Who it is for</p>
-        <h2>Same answers. Better surface.</h2>
+        <p class="eyebrow">Why we built it</p>
+        <h2>Your docs widget should look like it belongs.</h2>
         <p>
-          Some teams already use the official script and need styling. Others just want users to find answers without
-          opening support. Both start here.
+          Context7 provides its docs widget and hosted AI answers for free. The official widget has basic styling
+          options, which can leave the chat feeling out of place on a carefully designed page. We built this upgrade so
+          you can give the assistant the same care as the rest of your product.
+        </p>
+        <p>
+          Context7 made docs chat free for library owners. We built on that initiative with a free, open-source
+          interface you can make your own. Context7 continues to host the documentation search and AI answers.
         </p>
       </div>
 
@@ -53,15 +58,15 @@
 
     <section class="showcase-section">
       <div class="showcase-copy">
-        <p class="eyebrow">Documentation as a product surface</p>
-        <h2>The assistant should match the product it explains.</h2>
+        <p class="eyebrow">Designed for your app</p>
+        <h2>Style every part of the conversation.</h2>
         <p>
-          Context7 provides the grounded documentation answers. This widget provides the production layer around them:
-          placement, presets, custom triggers, analytics events, and a styling contract that design systems can trust.
+          Set the type, spacing, colors, and panel shape. Open it from your own help button. Visitors can copy code, ask
+          multiline questions, stop a response, or retry. When they scroll up to read, the conversation stays put.
         </p>
       </div>
 
-      <div class="showcase-stage" aria-label="Context7 widget surfaces">
+      <div class="showcase-stage" aria-label="Widget design and chat features">
         <article class="showcase-card showcase-card--widget">
           <div class="mini-widget">
             <div class="mini-widget__header">
@@ -70,8 +75,10 @@
             </div>
             <div class="mini-widget__body">
               <span class="bubble bubble--assistant">Ask about setup, API usage, or styles.</span>
-              <span class="bubble bubble--user">Use my own trigger?</span>
-              <span class="bubble bubble--assistant">Set data-custom-trigger; the launcher steps aside.</span>
+              <span class="bubble bubble--user">Can I use our help button?</span>
+              <span class="bubble bubble--assistant"
+                >Yes. Open chat from your button and place the panel beside it.</span
+              >
             </div>
             <div class="mini-widget__input">
               <span>Ask about the docs...</span>
@@ -100,11 +107,20 @@ context7-widget::part(send-button) {
 
     <section id="paths" class="paths-section">
       <div class="section-heading">
-        <p class="eyebrow">Choose an entry point</p>
-        <h2>One widget contract, seven ways to ship it.</h2>
+        <p class="eyebrow">Make the switch</p>
+        <h2>Choose the integration for your stack.</h2>
         <p>
-          Start with a script tag. Move to TypeScript helpers or a native framework package when the widget becomes part
-          of your application code.
+          Already using the official widget? Replace its script URL with ours and keep your library settings. For a new
+          integration, choose the script or a native package for your framework.
+        </p>
+        <p class="prerequisite">
+          New to Context7? Claim your library, enable its widget in Admin → Chat, and allow your site's domain. Replace
+          <code>/owner/repo</code> below with your library id.
+        </p>
+        <p class="prerequisite">
+          <a href="https://context7.com/docs/howto/chat-widget" target="_blank" rel="noopener noreferrer">
+            Context7 setup
+          </a>
         </p>
       </div>
 
@@ -132,7 +148,7 @@ context7-widget::part(send-button) {
     <section id="use-cases" class="use-cases-section">
       <div class="section-heading">
         <p class="eyebrow">Where it fits</p>
-        <h2>Put docs help where the question happens.</h2>
+        <h2>Help people go from browsing to building.</h2>
       </div>
 
       <div class="use-case-grid">
@@ -169,13 +185,18 @@ mountContext7Widget({
   color: "#10b981"
 });`;
 
-const vueInstall = `npm install @desource/context7-widget-vue
+const vueInstall =
+  `npm install @desource/context7-widget-vue
 
-<Context7Widget
-  library="/owner/repo"
-  color="#10b981"
-  @question="trackQuestion"
-/>`;
+<script setup>
+import { Context7Widget } from "@desource/context7-widget-vue";
+import "@desource/context7-widget-vue/styles.css";
+</scr` +
+  `ipt>
+
+<template>
+  <Context7Widget library="/owner/repo" color="#10b981" />
+</template>`;
 
 const nuxtInstall = `npm install @desource/context7-widget-nuxt
 
@@ -191,16 +212,18 @@ const reactInstall = `npm install @desource/context7-widget-react
 import { Context7Widget } from "@desource/context7-widget-react/component";
 import "@desource/context7-widget-react/styles.css";
 
-<Context7Widget
-  library="/owner/repo"
-  color="#10b981"
-  onQuestion={trackQuestion}
-/>`;
+export function DocsHelp() {
+  return <Context7Widget library="/owner/repo" color="#10b981" />;
+}`;
 
-const svelteInstall = `npm install @desource/context7-widget-svelte
+const svelteInstall =
+  `npm install @desource/context7-widget-svelte
 
+<script>
 import { Context7Widget } from "@desource/context7-widget-svelte";
 import "@desource/context7-widget-svelte/styles.css";
+</scr` +
+  `ipt>
 
 <Context7Widget
   library="/owner/repo"
@@ -210,23 +233,27 @@ import "@desource/context7-widget-svelte/styles.css";
 
 const angularInstall = `npm install @desource/context7-widget-angular
 
+// In styles.css: @import '@desource/context7-widget-angular/styles.css';
+import { Component } from "@angular/core";
 import { Context7Widget } from "@desource/context7-widget-angular";
 
 @Component({
+  selector: 'docs-help',
   imports: [Context7Widget],
   template: \`<context7-widget
     library="/owner/repo"
     preset="glass"
     [customTrigger]="true"
   />\`
-})`;
+})
+export class DocsHelp {}`;
 
 const heroMarqueeItems = librariesArray.map(({ key, href, label, logo }) => ({ key, href, label, logo }));
 
 const paths = [
   {
     class: 'path-card--large',
-    copy: 'For static docs, Docusaurus, Astro, marketing pages, and quick product installs. Paste one tag and keep moving.',
+    copy: 'Replace the official script URL or add one tag to a new site. Works with static pages, docs, and marketing sites.',
     cta: 'Open hosted script',
     href: '/widget.js',
     icon: PanelRightOpen,
@@ -234,7 +261,7 @@ const paths = [
   },
   {
     class: '',
-    copy: 'For apps that need typed options, runtime control, script generation, and shared types for framework bindings.',
+    copy: 'Mount and control the widget with TypeScript, generate script tags, or build your own interface from shared helpers.',
     cta: 'View core package',
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/core',
     icon: Braces,
@@ -242,7 +269,7 @@ const paths = [
   },
   {
     class: '',
-    copy: 'For Vue apps that want a component, composable, typed events, managed trigger button, and scoped styles.',
+    copy: 'Add a native Vue component, style it with your CSS, and open it from a slot or the composable.',
     cta: 'View Vue package',
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue',
     icon: Package,
@@ -250,7 +277,7 @@ const paths = [
   },
   {
     class: '',
-    copy: 'For Nuxt apps that want component and composable auto-imports, app defaults, global CSS, and SSR-safe setup.',
+    copy: 'Register one module for auto-imports, styles, and shared defaults across your Nuxt site.',
     cta: 'View Nuxt module',
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/nuxt',
     icon: Package,
@@ -258,7 +285,7 @@ const paths = [
   },
   {
     class: '',
-    copy: 'For React apps that want a native component, controlled state, typed callbacks, a hook, and managed triggers.',
+    copy: 'Use a native React component with controlled state, typed callbacks, custom triggers, and a hook.',
     cta: 'View React package',
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/react',
     icon: Package,
@@ -266,7 +293,7 @@ const paths = [
   },
   {
     class: '',
-    copy: 'For Svelte 5 apps that want native rendering, bindable state, snippets, reactive controls, and scoped styles.',
+    copy: 'Use Svelte 5 snippets for your trigger, bind visibility, and control chat through a reactive controller.',
     cta: 'View Svelte package',
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/svelte',
     icon: Package,
@@ -274,7 +301,7 @@ const paths = [
   },
   {
     class: '',
-    copy: 'For Angular apps that want a standalone component, signals, DI defaults, injectable controls, and OnPush rendering.',
+    copy: 'Add a standalone component with signals, app defaults, custom trigger content, and an injectable service.',
     cta: 'View Angular package',
     href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/angular',
     icon: Package,
@@ -284,19 +311,19 @@ const paths = [
 
 const audiences = [
   {
-    copy: 'Change the script URL. Keep Context7. Add presets, custom triggers, centered dialogs, variables, parts, and events.',
+    copy: 'Replace the official script URL with ours. Your library and allowed domains carry over. Then style the widget to match your site.',
     kicker: 'Already using Context7',
-    title: 'Keep the backend. Replace the surface.'
+    title: 'Upgrade your existing widget.'
   },
   {
-    copy: 'Context7 reads your docs. This widget gives visitors a branded place to ask questions on your site.',
+    copy: 'Let visitors ask about capabilities, find a code example, and work through setup while they explore your site.',
     kicker: 'New to Context7',
-    title: 'Add docs help without building support chat.'
+    title: 'Help visitors try your product.'
   },
   {
-    copy: 'Start with the script. Developers can move to TypeScript or a native framework package later without changing the visitor experience.',
+    copy: 'Match the fonts, spacing, buttons, and colors you have already chosen. Put chat in the corner, beside a trigger, or in a centered dialog.',
     kicker: 'Product owner',
-    title: 'Ship a helpful assistant before a long roadmap.'
+    title: 'Keep your design in every detail.'
   }
 ];
 
@@ -304,24 +331,24 @@ const eventPulses = ['ready', 'open', 'cancel', 'question', 'first-token', 'tool
 
 const useCases = [
   {
-    copy: 'Put a small trigger in the product shell and answer setup questions before users leave the screen.',
+    copy: 'Answer questions about features and integration on your product pages, while visitors decide whether your library fits.',
     number: '01',
-    title: 'Developer dashboards'
+    title: 'Product discovery'
   },
   {
-    copy: 'Use a centered dialog for deliberate help moments: onboarding, empty states, and pricing or API pages.',
+    copy: 'Give new users a place to ask about setup and copy an example as they work through their first integration.',
     number: '02',
-    title: 'Guided product moments'
+    title: 'The first integration'
   },
   {
-    copy: 'Anchor the widget to a nav item, command palette action, header button, or existing support menu.',
+    copy: 'Add chat beside your docs navigation so readers can ask a follow-up question without losing their place.',
     number: '03',
-    title: 'Custom help entry points'
+    title: 'Documentation sites'
   },
   {
-    copy: 'Use script, TypeScript, Vue, Nuxt, React, Svelte, or Angular with the same options, events, styles, and conversation behavior.',
+    copy: 'Open help from an empty state, dashboard, or existing support menu, with the same styling as the rest of your app.',
     number: '04',
-    title: 'Framework-ready apps'
+    title: 'In-product help'
   }
 ];
 </script>

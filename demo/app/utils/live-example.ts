@@ -32,8 +32,7 @@ export const LIVE_EXAMPLE_DEFAULTS = {
   closeOnOutsideClick: true,
   color: '',
   defaultOpen: false,
-  initialMessage:
-    "Hello! I'm here to help with **{library}** docs.\n\nAsk about setup, props, events, styling, or integration patterns.",
+  initialMessage: 'Ask about **{library}**.\n\nGet help with setup, styling, or adding the widget to your framework.',
   launcherLabel: 'Ask docs',
   launcherVariant: 'pill',
   library: '/desource-labs/context7-widget',

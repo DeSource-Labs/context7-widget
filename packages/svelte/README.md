@@ -1,6 +1,29 @@
 # @desource/context7-widget-svelte
 
-Native Svelte 5 bindings for the Context7 documentation chat widget. The runes component renders light DOM and owns Svelte lifecycle, callback props, snippets, and bindable state. The core kit supplies the conversation engine, transport, safe Markdown, accessibility, and layout primitives without shipping the core custom element.
+[![Svelte](https://img.shields.io/npm/v/@desource/context7-widget-svelte?color=blue&logo=svelte)](https://www.npmjs.com/package/@desource/context7-widget-svelte)
+[![Coverage](https://codecov.io/gh/DeSource-Labs/context7-widget/branch/main/graph/badge.svg)](https://codecov.io/gh/DeSource-Labs/context7-widget)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=DeSource-Labs_context7-widget&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DeSource-Labs_context7-widget)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/DeSource-Labs/context7-widget/blob/main/LICENSE)
+
+Context7 documentation answers in a widget you can style for your Svelte app.
+Use your own colors, type, and trigger content, with Svelte 5 snippets, bindable
+state, and reactive controls.
+
+## Why Use This Widget?
+
+Context7 provides its docs widget and hosted AI answers for free. This project
+adds customizable interface around that service.
+
+The official Context7 widget offers basic visual settings. This version lets you
+fit the assistant to a carefully designed site and adds the chat details visitors
+use every day: multiline questions, copyable code, Stop, Retry, and scrolling
+that leaves them in control.
+
+[Upgrade an existing Context7 script](https://github.com/DeSource-Labs/context7-widget#existing-context7-widget-user)
+or use the native component below with the same library and domain settings.
+For a new site, give visitors a way to explore your library’s capabilities and
+ask how to get started. Svelte handles rendering; the core kit shares the chat
+engine, transport, Markdown, and layout helpers.
 
 ## Before You Start
 
@@ -94,7 +117,7 @@ Every shared option is supported: `library`, `theme`, `preset`, `position`, `col
 
 Use `labels` for localized visible and assistive text. Relative Markdown links resolve against the Context7 library page unless `linkBaseUrl` supplies another documentation origin.
 
-The component renders native Svelte light DOM. Customize stable classes or `part` attributes below `.context7-widget`, and set design tokens on that root:
+The component renders native Svelte light DOM. Style public `part` attributes below `.context7-widget`, and set CSS variables on that root:
 
 ```css
 .context7-widget {
