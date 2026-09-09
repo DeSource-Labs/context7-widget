@@ -45,8 +45,15 @@
         <p class="eyebrow">Live constructor</p>
         <h2>Make decisions visually, then copy the integration.</h2>
         <p>
-          The constructor renders a real widget instance. Try copy, position, preset, trigger mode, panel size, and
+          The constructor renders a real widget instance. Try text, position, preset, trigger mode, panel size, and
           behavior first; then copy the script, TypeScript, Vue, Nuxt, React, Svelte, or Angular version.
+        </p>
+        <p class="constructor-prerequisite">
+          Before connecting your library, enable its widget in Context7's Admin → Chat settings and allow your site's
+          domain.
+          <a href="https://context7.com/docs/howto/chat-widget" target="_blank" rel="noopener noreferrer"
+            >Setup instructions</a
+          >.
         </p>
       </div>
 
@@ -580,9 +587,7 @@ const constructorVueCode = computed(() => {
     vueBooleanProp('backdrop', constructorBackdrop.value),
     vueBooleanProp('close-on-outside-click', constructorCloseOnOutsideClick.value),
     vueBooleanProp('default-open', constructorDefaultOpen.value),
-    vueStringProp('widget-id', constructorWidgetId.value),
-    '@question="trackQuestion"',
-    '@answer-complete="trackAnswer"'
+    vueStringProp('widget-id', constructorWidgetId.value)
   ];
 
   if (constructorColor.value) {
@@ -595,17 +600,17 @@ const constructorVueCode = computed(() => {
     props.splice(7, 0, 'custom-trigger');
   }
 
-  const formattedProps = props.map((prop) => `  ${prop}`).join('\n');
+  const formattedProps = props.map((prop) => `    ${prop}`).join('\n');
   const componentOpen = `<Context7Widget\n${formattedProps}`;
 
   if (constructorUsesTriggerSlot.value) {
-    return `${componentOpen}
->
-  <template #trigger="{ label }">
-    <span class="docs-trigger-dot" />
-    {{ label }}
-  </template>
-</Context7Widget>`;
+    return `  ${componentOpen}
+  >
+    <template #trigger="{ label }">
+      <span class="docs-trigger-dot" />
+      {{ label }}
+    </template>
+  </Context7Widget>`;
   }
 
   const component = `${componentOpen}
@@ -638,9 +643,7 @@ const constructorReactCode = computed(() => {
     reactBooleanProp('backdrop', constructorBackdrop.value),
     reactBooleanProp('closeOnOutsideClick', constructorCloseOnOutsideClick.value),
     reactBooleanProp('defaultOpen', constructorDefaultOpen.value),
-    reactStringProp('widgetId', constructorWidgetId.value),
-    'onQuestion={trackQuestion}',
-    'onAnswerComplete={trackAnswer}'
+    reactStringProp('widgetId', constructorWidgetId.value)
   ];
 
   if (constructorColor.value) {
@@ -658,17 +661,17 @@ const constructorReactCode = computed(() => {
       8,
       0,
       `trigger={({ label }) => (
-    <>
-      <span className="docs-trigger-dot" />
-      {label}
-    </>
-  )}`
+        <>
+          <span className="docs-trigger-dot" />
+          {label}
+        </>
+      )}`
     );
   }
 
-  const component = `<Context7Widget
-${props.map((prop) => `  ${prop}`).join('\n')}
-/>`;
+  const component = `    <Context7Widget
+${props.map((prop) => `      ${prop}`).join('\n')}
+    />`;
 
   if (constructorTriggerMode.value === 'external') {
     return `<button id="docs-trigger" type="button">
@@ -768,33 +771,33 @@ export default defineNuxtConfig({
 });
 
 <!-- Any Vue component: imports are automatic. -->
-${constructorVueCode.value}`
+<template>
+${constructorVueCode.value}
+</template>`
 );
 
 const constructorSvelteCode = computed(() => {
   const props = [
-    reactStringProp('library', constructorLibrary.value),
-    reactStringProp('title', constructorTitle.value),
-    reactStringProp('initialMessage', normalizeSnippetText(constructorInitialMessage.value)),
-    reactStringProp('placeholder', constructorPlaceholder.value),
-    reactStringProp('theme', constructorTheme.value),
-    reactStringProp('position', constructorPosition.value),
-    reactStringProp('preset', constructorPreset.value),
-    reactStringProp('launcherVariant', constructorLauncherVariant.value),
-    reactStringProp('launcherLabel', constructorLauncherLabel.value),
-    reactStringProp('panelWidth', constructorPanelWidth.value),
-    reactStringProp('panelHeight', constructorPanelHeight.value),
+    svelteStringProp('library', constructorLibrary.value),
+    svelteStringProp('title', constructorTitle.value),
+    svelteStringProp('initialMessage', normalizeSnippetText(constructorInitialMessage.value)),
+    svelteStringProp('placeholder', constructorPlaceholder.value),
+    svelteStringProp('theme', constructorTheme.value),
+    svelteStringProp('position', constructorPosition.value),
+    svelteStringProp('preset', constructorPreset.value),
+    svelteStringProp('launcherVariant', constructorLauncherVariant.value),
+    svelteStringProp('launcherLabel', constructorLauncherLabel.value),
+    svelteStringProp('panelWidth', constructorPanelWidth.value),
+    svelteStringProp('panelHeight', constructorPanelHeight.value),
     reactBooleanProp('backdrop', constructorBackdrop.value),
     reactBooleanProp('closeOnOutsideClick', constructorCloseOnOutsideClick.value),
     reactBooleanProp('defaultOpen', constructorDefaultOpen.value),
-    reactStringProp('widgetId', constructorWidgetId.value),
-    'onQuestion={trackQuestion}',
-    'onAnswerComplete={trackAnswer}'
+    svelteStringProp('widgetId', constructorWidgetId.value)
   ];
 
-  if (constructorColor.value) props.splice(7, 0, reactStringProp('color', constructorColor.value));
+  if (constructorColor.value) props.splice(7, 0, svelteStringProp('color', constructorColor.value));
   if (constructorTriggerMode.value === 'external') {
-    props.splice(7, 0, reactStringProp('customTrigger', '#docs-trigger'));
+    props.splice(7, 0, svelteStringProp('customTrigger', '#docs-trigger'));
   } else if (constructorTriggerMode.value !== 'none') {
     props.splice(7, 0, 'customTrigger');
   }
@@ -832,9 +835,7 @@ const constructorAngularCode = computed(() => {
     angularBooleanInput('backdrop', constructorBackdrop.value),
     angularBooleanInput('closeOnOutsideClick', constructorCloseOnOutsideClick.value),
     angularBooleanInput('defaultOpen', constructorDefaultOpen.value),
-    angularStringInput('widgetId', constructorWidgetId.value),
-    '(question)="trackQuestion($event)"',
-    '(answerComplete)="trackAnswer($event)"'
+    angularStringInput('widgetId', constructorWidgetId.value)
   ];
 
   if (constructorColor.value) inputs.splice(7, 0, angularStringInput('color', constructorColor.value));
@@ -878,7 +879,14 @@ const selectedConstructorCode = computed(() => {
 
   if (constructorCodeTarget.value === 'react') {
     return {
-      code: constructorReactCode.value,
+      code: `import { Context7Widget } from '@desource/context7-widget-react/component';
+import '@desource/context7-widget-react/styles.css';
+
+export function DocsHelp() {
+  return (<>
+${constructorReactCode.value}
+  </>);
+}`,
       id: 'constructor-react-code',
       label: 'React component'
     };
@@ -894,7 +902,7 @@ const selectedConstructorCode = computed(() => {
 
   if (constructorCodeTarget.value === 'svelte') {
     return {
-      code: constructorSvelteCode.value,
+      code: componentScript('svelte') + '\n\n' + constructorSvelteCode.value,
       id: 'constructor-svelte-code',
       label: 'Svelte component'
     };
@@ -902,18 +910,37 @@ const selectedConstructorCode = computed(() => {
 
   if (constructorCodeTarget.value === 'angular') {
     return {
-      code: constructorAngularCode.value,
+      // ${JSON.stringify(constructorAngularCode.value)}
+      code: `// In styles.css: @import '@desource/context7-widget-angular/styles.css';
+import { Component } from '@angular/core';
+import { Context7Widget, Context7WidgetTrigger } from '@desource/context7-widget-angular';
+
+@Component({
+  selector: 'docs-help',
+  imports: [Context7Widget, Context7WidgetTrigger],
+  template: \n\`${constructorAngularCode.value}\`
+})
+export class DocsHelp {}`,
       id: 'constructor-angular-code',
       label: 'Angular component'
     };
   }
 
   return {
-    code: constructorVueCode.value,
+    code: componentScript('vue') + `\n\n<template>\n${constructorVueCode.value}\n</template>`,
     id: 'constructor-vue-code',
     label: 'Vue component'
   };
 });
+
+function componentScript(framework: 'vue' | 'svelte'): string {
+  return (
+    `<script${framework === 'vue' ? ' setup' : ''}>
+import { Context7Widget } from '@desource/context7-widget-${framework}';
+import '@desource/context7-widget-${framework}/styles.css';
+</scr` + 'ipt>'
+  );
+}
 
 function vueStringProp(name: string, value: string): string {
   return `${name}="${escapeAttribute(value)}"`;
@@ -925,6 +952,10 @@ function vueBooleanProp(name: string, value: boolean): string {
 
 function reactStringProp(name: string, value: string): string {
   return `${name}="${escapeAttribute(value)}"`;
+}
+
+function svelteStringProp(name: string, value: string): string {
+  return `${name}={${JSON.stringify(value)}}`;
 }
 
 function reactBooleanProp(name: string, value: boolean): string {
@@ -1071,25 +1102,48 @@ mountContext7Widget({
   launcherLabel: "Ask docs"
 });`;
 
-const vueComposable = `const docs = useContext7Widget({
-  autoMount: true,
-  library: "/owner/repo",
-  widgetId: "docs",
-  preset: "minimal"
-});
-
-await docs.send("Show installation examples");`;
-
-const reactHook = `import { useContext7Widget } from "@desource/context7-widget-react/hook";
+const vueComposable =
+  `<script setup lang="ts">
+import { useContext7Widget } from '@desource/context7-widget-vue';
+import '@desource/context7-widget-vue/styles.css';
 
 const docs = useContext7Widget({
   autoMount: true,
-  library: "/owner/repo",
-  widgetId: "docs",
-  preset: "minimal"
+  library: '/owner/repo',
+  position: 'center',
+  preset: 'terminal',
+  widgetId: 'docs'
 });
 
-await docs.send("Show installation examples");`;
+async function ask() {
+  await docs.send('How do I customize the widget?');
+  console.log(docs.isOpen.value, docs.isBusy.value, docs.messages.value);
+}
+</scr` +
+  `ipt>
+
+<template>
+  <button type="button" @click="ask">Ask documentation</button>
+</template>`;
+
+const reactHook = `import { useContext7Widget } from '@desource/context7-widget-react/hook';
+import '@desource/context7-widget-react/styles.css';
+
+export function DocsHelp() {
+  const docs = useContext7Widget({
+    autoMount: true,
+    library: '/owner/repo',
+    position: 'center',
+    preset: 'terminal',
+    widgetId: 'docs'
+  });
+
+  return (
+    <button type="button" disabled={!docs.widget} onClick={() => void docs.send('Show the recommended setup')}>
+      Explain setup
+    </button>
+  );
+}`;
 
 const nuxtModuleDefaults = `export default defineNuxtConfig({
   modules: ["@desource/context7-widget-nuxt"],
@@ -1102,33 +1156,43 @@ const nuxtModuleDefaults = `export default defineNuxtConfig({
   }
 });`;
 
-const svelteController = `import { createContext7Widget } from "@desource/context7-widget-svelte";
+const svelteController =
+  `<script lang="ts">
+  import { onMount } from 'svelte';
+  import { createContext7Widget } from '@desource/context7-widget-svelte';
+  import '@desource/context7-widget-svelte/styles.css';
 
-const docs = createContext7Widget({
-  library: "/owner/repo",
-  widgetId: "docs",
-  preset: "minimal"
-});
+  const docs = createContext7Widget({
+    library: '/owner/repo',
+    position: 'center',
+    preset: 'terminal'
+  });
 
-$effect(() => {
-  docs.mount();
-  return docs.unmount;
-});
+  onMount(() => {
+    docs.mount();
+    return docs.unmount;
+  });
+</scr` +
+  `ipt>
 
-async function showInstallation() {
-  await docs.send("Show installation examples");
+<button onclick={() => docs.open()}>Open docs</button><p>{docs.messages.length} messages</p>`;
+
+const angularService = `import { Component, inject } from '@angular/core';
+import { Context7WidgetService } from '@desource/context7-widget-angular';
+
+// Import the package stylesheet in your global styles.css.
+@Component({
+  selector: 'docs-help',
+  template: '<button type="button" (click)="ask()">Explain setup</button>'
+})
+export class DocsHelp {
+  private readonly docs = inject(Context7WidgetService);
+
+  async ask() {
+    this.docs.mount({ library: '/owner/repo', widgetId: 'docs', preset: 'minimal' });
+    await this.docs.send('Show installation examples', 'docs');
+  }
 }`;
-
-const angularService = `import { Context7WidgetService } from "@desource/context7-widget-angular";
-
-const docs = inject(Context7WidgetService);
-docs.mount({
-  library: "/owner/repo",
-  widgetId: "docs",
-  preset: "minimal"
-});
-
-await docs.send("Show installation examples", "docs");`;
 
 const presetCards = [
   { copy: 'Quiet product UI with low visual noise.', name: 'minimal' },
