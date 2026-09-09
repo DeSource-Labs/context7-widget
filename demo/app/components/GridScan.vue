@@ -631,8 +631,15 @@ const setupAnimation = () => {
 
   let rafId: number | null = null;
   let last = performance.now();
+  let inViewport = true;
+  const visibilityObserver = new IntersectionObserver(([entry]) => {
+    inViewport = entry?.isIntersecting ?? false;
+  });
+  visibilityObserver.observe(container);
 
   const tick = (): void => {
+    rafId = requestAnimationFrame(tick);
+    if (!inViewport || document.hidden) return;
     const now = performance.now();
     const dt = Math.max(0, Math.min(0.1, (now - last) / 1000));
     last = now;
@@ -666,14 +673,13 @@ const setupAnimation = () => {
     } else {
       renderer.render(scene, camera);
     }
-
-    rafId = requestAnimationFrame(tick);
   };
 
   onResize();
   rafId = requestAnimationFrame(tick);
 
   cleanupAnimation = () => {
+    visibilityObserver.disconnect();
     if (rafId) {
       cancelAnimationFrame(rafId);
     }

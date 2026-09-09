@@ -15,6 +15,7 @@
             target="_blank"
             rel="noopener noreferrer"
             :href="item.href"
+            :tabindex="groupIndex > 1 ? -1 : undefined"
           >
             <img :alt="`${item.label} logo`" :src="item.logo" loading="eager" draggable="false" />
             <span>{{ item.label }}</span>
