@@ -5,6 +5,14 @@ The package renders React DOM and uses React lifecycle semantics; it does not
 wrap the core custom element. Request state, transport, safe Markdown, option
 defaults, and public contracts come from `@desource/context7-widget/kit`.
 
+## Before You Start
+
+Use a library you have claimed on Context7. In its **Admin → Chat** settings,
+enable the widget, add your site's domain to the allowed domains, and save.
+Replace `/owner/repo` in the examples with that library's id. A library being
+indexed alone does not enable chat on your site.
+See [Context7's widget setup](https://context7.com/docs/howto/chat-widget).
+
 ## Install
 
 ```bash
@@ -67,20 +75,27 @@ transition; `onOpenChange` is the controlled-state request.
 
 ```tsx
 import { useContext7Widget } from '@desource/context7-widget-react/hook';
+import '@desource/context7-widget-react/styles.css';
 
-const docs = useContext7Widget({
-  autoMount: true,
-  library: '/owner/repo',
-  position: 'center',
-  preset: 'terminal',
-  widgetId: 'docs'
-});
+export function DocsHelp() {
+  const docs = useContext7Widget({
+    autoMount: true,
+    library: '/owner/repo',
+    position: 'center',
+    preset: 'terminal',
+    widgetId: 'docs'
+  });
 
-await docs.send('Show the recommended setup');
-docs.cancel();
-await docs.retry();
-docs.reset();
+  return (
+    <button type="button" disabled={!docs.widget} onClick={() => void docs.send('Show the recommended setup')}>
+      Explain setup
+    </button>
+  );
+}
 ```
+
+Automatic mounting happens after the owner mounts. Call `send`, `open`, and
+other controls from an event handler or after the widget is ready.
 
 The hook returns `widget`, `isOpen`, `isBusy`, and `messages`, plus `mount`,
 `unmount`, `open`, `close`, `toggle`, `send`, `cancel`, `retry`, `reset`, and

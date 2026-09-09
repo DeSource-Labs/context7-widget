@@ -8,6 +8,14 @@ programmatic mounting. Conversation state, transport, Markdown rendering,
 layout rules, copy behavior, and public types come from
 `@desource/context7-widget/kit`.
 
+## Before You Start
+
+Use a library you have claimed on Context7. In its **Admin → Chat** settings,
+enable the widget, add your site's domain to the allowed domains, and save.
+Replace `/owner/repo` in the examples with that library's id. A library being
+indexed alone does not enable chat on your site.
+See [Context7's widget setup](https://context7.com/docs/howto/chat-widget).
+
 ## Install
 
 ```bash

@@ -2,6 +2,14 @@
 
 Native Svelte 5 bindings for the Context7 documentation chat widget. The runes component renders light DOM and owns Svelte lifecycle, callback props, snippets, and bindable state. The core kit supplies the conversation engine, transport, safe Markdown, accessibility, and layout primitives without shipping the core custom element.
 
+## Before You Start
+
+Use a library you have claimed on Context7. In its **Admin → Chat** settings,
+enable the widget, add your site's domain to the allowed domains, and save.
+Replace `/owner/repo` in the examples with that library's id. A library being
+indexed alone does not enable chat on your site.
+See [Context7's widget setup](https://context7.com/docs/howto/chat-widget).
+
 ## Install
 
 ```bash
@@ -59,7 +67,9 @@ Component bindings expose `open`, `close`, `toggle`, `send`, `cancel`, `retry`, 
 
 ```svelte
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { createContext7Widget } from '@desource/context7-widget-svelte';
+  import '@desource/context7-widget-svelte/styles.css';
 
   const docs = createContext7Widget({
     library: '/owner/repo',
@@ -67,7 +77,7 @@ Component bindings expose `open`, `close`, `toggle`, `send`, `cancel`, `retry`, 
     preset: 'terminal'
   });
 
-  $effect(() => {
+  onMount(() => {
     docs.mount();
     return docs.unmount;
   });
