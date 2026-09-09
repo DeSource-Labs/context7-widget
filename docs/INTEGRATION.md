@@ -1,12 +1,16 @@
 # Integration Guide
 
-This guide is for teams that want an AI documentation assistant on a site, but
-do not want a generic widget that clashes with the product.
+Add Context7 documentation chat to your site with a script tag or a native
+framework package. All integrations share the same transport, options, and CSS
+tokens.
 
-Context7 provides the hosted documentation backend and grounded answers. This
-repo provides the customizable client layer: script replacement, custom
-element, TypeScript helpers, native Vue, React, Svelte, and Angular bindings, a
-Nuxt module, styling contract, event stream, and positioning modes.
+## Before You Start
+
+Use a library you have claimed on Context7. In its **Admin → Chat** settings,
+enable the widget, add your site's domain to the allowed domains, and save.
+Replace `/owner/repo` in the examples with that library's id. A library being
+indexed alone does not enable chat on your site.
+See [Context7's widget setup](https://context7.com/docs/howto/chat-widget).
 
 ## Which Integration Should I Use?
 
@@ -181,21 +185,28 @@ function trackQuestion(detail: Context7WidgetQuestionEventDetail) {
 
 Composable:
 
-```ts
+```vue
+<script setup lang="ts">
 import { useContext7Widget } from '@desource/context7-widget-vue';
+import '@desource/context7-widget-vue/styles.css';
 
 const docs = useContext7Widget({
   autoMount: true,
   library: '/owner/repo',
+  position: 'center',
+  preset: 'terminal',
   widgetId: 'docs'
 });
 
-docs.open();
-await docs.send('Show setup examples');
-console.log(docs.isBusy.value, docs.messages.value);
-docs.cancel();
-await docs.retry();
-docs.reset();
+async function ask() {
+  await docs.send('How do I customize the widget?');
+  console.log(docs.isOpen.value, docs.isBusy.value, docs.messages.value);
+}
+</script>
+
+<template>
+  <button type="button" @click="ask">Ask documentation</button>
+</template>
 ```
 
 For parent-owned visibility, use Vue's controlled API:
@@ -268,15 +279,23 @@ Hook-owned programmatic widget:
 
 ```tsx
 import { useContext7Widget } from '@desource/context7-widget-react/hook';
+import '@desource/context7-widget-react/styles.css';
 
-const docs = useContext7Widget({
-  autoMount: true,
-  library: '/owner/repo',
-  widgetId: 'docs'
-});
+export function DocsHelp() {
+  const docs = useContext7Widget({
+    autoMount: true,
+    library: '/owner/repo',
+    position: 'center',
+    preset: 'terminal',
+    widgetId: 'docs'
+  });
 
-await docs.send('Show setup examples');
-await docs.retry();
+  return (
+    <button type="button" disabled={!docs.widget} onClick={() => void docs.send('Show the recommended setup')}>
+      Explain setup
+    </button>
+  );
+}
 ```
 
 Without `autoMount`, the hook resolves the newest React registration for its
@@ -456,6 +475,9 @@ requests are retryable, centered dialogs isolate the background, and mobile
 safe-area/overscroll behavior is built in.
 
 ## Analytics
+
+These DOM listeners apply to the core custom element. For native framework
+widgets, use the corresponding callbacks, emits, or outputs shown above.
 
 ```js
 document.addEventListener('c7:question', (event) => {
