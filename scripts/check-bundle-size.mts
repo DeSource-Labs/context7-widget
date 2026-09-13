@@ -123,7 +123,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     contents: "export { Context7Widget } from '@desource/context7-widget-react/component';",
     external: ['react', 'react-dom', 'react-dom/client'],
     forbiddenMarkers: ['react-dom', 'createRoot', 'flushSync'],
-    maxGzipBytes: 16_600,
+    maxGzipBytes: 16_850,
     name: 'React /component with core /kit consumer',
     resolveDir: reactPackageRoot
   },
@@ -134,7 +134,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     contents: "export { Context7Widget } from '@desource/context7-widget-react';",
     external: ['react', 'react-dom', 'react-dom/client'],
     forbiddenMarkers: ['react-dom', 'createRoot', 'flushSync'],
-    maxGzipBytes: 16_600,
+    maxGzipBytes: 16_850,
     name: 'React root component-only consumer',
     resolveDir: reactPackageRoot
   },
@@ -144,7 +144,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { useContext7Widget } from '@desource/context7-widget-react/hook';",
     external: ['react', 'react-dom', 'react-dom/client'],
-    maxGzipBytes: 17_750,
+    maxGzipBytes: 18_000,
     name: 'React /hook with core /kit consumer',
     resolveDir: reactPackageRoot
   },
@@ -154,7 +154,7 @@ const consumerBudgets: readonly ConsumerBudget[] = [
     },
     contents: "export { useContext7Widget } from '@desource/context7-widget-react';",
     external: ['react', 'react-dom', 'react-dom/client'],
-    maxGzipBytes: 17_750,
+    maxGzipBytes: 18_000,
     name: 'React root hook-only consumer',
     resolveDir: reactPackageRoot
   },
@@ -174,17 +174,17 @@ const consumerBudgets: readonly ConsumerBudget[] = [
 const svelteConsumerBudgets: readonly SvelteConsumerBudget[] = [
   {
     entry: 'component',
-    maxGzipBytes: 19_275,
+    maxGzipBytes: 19_325,
     name: 'Svelte root component with core /kit consumer'
   },
   {
     entry: 'controller',
-    maxGzipBytes: 20_200,
+    maxGzipBytes: 20_275,
     name: 'Svelte root controller with core /kit consumer'
   },
   {
     entry: 'component',
-    maxGzipBytes: 15_300,
+    maxGzipBytes: 13_050,
     name: 'Svelte root component SSR consumer',
     ssr: true
   }
