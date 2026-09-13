@@ -47,6 +47,44 @@ describe('@desource/context7-widget-vue', () => {
     );
   });
 
+  it('preserves fallthrough keyboard listeners and bubbling from consumer slots', async () => {
+    const onRootKey = vi.fn();
+    const onParentKey = vi.fn();
+    const root = mount(() =>
+      h('div', { onKeydown: onParentKey, onKeyup: onParentKey, onKeypress: onParentKey }, [
+        h(
+          Context7Widget,
+          {
+            defaultOpen: true,
+            library: '/owner/repo',
+            onKeydown: onRootKey,
+            onKeyup: onRootKey,
+            onKeypress: onRootKey
+          },
+          { default: () => h('button', { 'data-testid': 'consumer-child' }, 'Host action') }
+        )
+      ])
+    );
+    await nextTick();
+
+    for (const selector of ['.c7-input', '[data-testid="consumer-child"]']) {
+      const target = root.querySelector(selector)!;
+      for (const type of ['keydown', 'keyup', 'keypress']) {
+        target.dispatchEvent(new KeyboardEvent(type, { bubbles: true, charCode: 47, key: '/' }));
+      }
+    }
+
+    expect(onRootKey.mock.calls.map(([event]) => event.type)).toEqual([
+      'keydown',
+      'keyup',
+      'keypress',
+      'keydown',
+      'keyup',
+      'keypress'
+    ]);
+    expect(onParentKey.mock.calls.map(([event]) => event.type)).toEqual(['keydown', 'keyup', 'keypress']);
+  });
+
   it('always renders compact linked Context7 and DeSource Labs branding', async () => {
     const root = mount(() => h(Context7Widget, { library: '/desource-labs/context7-widget' }));
     await nextTick();

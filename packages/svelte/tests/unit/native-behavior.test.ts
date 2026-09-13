@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render } from '@testing-library/svelte';
 import { flushSync, tick } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import Context7Widget from '@src/Context7Widget.svelte';
+import WidgetHarness from '../fixtures/WidgetHarness.svelte';
 import { createContext7Widget } from '@src/controller.svelte';
 
 describe('native Svelte widget behavior', () => {
@@ -12,6 +13,29 @@ describe('native Svelte widget behavior', () => {
     document.body.replaceChildren();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  it('preserves root keyboard callbacks and bubbling from consumer children', async () => {
+    const onRootKey = vi.fn();
+    const onHostKey = vi.fn();
+    const result = render(WidgetHarness, {
+      rootProps: { onkeydown: onRootKey, onkeyup: onRootKey, onkeypress: onRootKey }
+    });
+    flushSync();
+    const types = ['keydown', 'keyup', 'keypress'];
+    for (const type of types) document.addEventListener(type, onHostKey);
+    try {
+      for (const selector of ['.c7-input', '[data-testid="child-content"]']) {
+        const target = required(result.container.querySelector(selector), selector);
+        for (const type of types) {
+          target.dispatchEvent(new KeyboardEvent(type, { bubbles: true, charCode: 47, key: '/' }));
+        }
+      }
+      expect(onRootKey.mock.calls.map(([event]) => event.type)).toEqual([...types, ...types]);
+      expect(onHostKey.mock.calls.map(([event]) => event.type)).toEqual(types);
+    } finally {
+      for (const type of types) document.removeEventListener(type, onHostKey);
+    }
   });
 
   it('submits the native form, respects composition keys, traps focus, and supports modal dismissal', async () => {

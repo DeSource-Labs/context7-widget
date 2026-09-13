@@ -21,7 +21,7 @@ describe('Nuxt module basic fixture', () => {
     expect(html).toContain('widget-id="nuxt-docs"');
   });
 
-  it('hydrates without browser errors and opens and closes the widget', async () => {
+  it('hydrates without browser errors and isolates chat keyboard events', async () => {
     const page = await createPage();
     const browserErrors: string[] = [];
 
@@ -45,6 +45,29 @@ describe('Nuxt module basic fixture', () => {
       await panel.waitFor({ state: 'visible' });
       expect(await trigger.getAttribute('aria-expanded')).toBe('true');
 
+      await page.evaluate(() => {
+        const context = window as Window & { __context7HostKeys?: string[] };
+        context.__context7HostKeys = [];
+        for (const type of ['keydown', 'keyup', 'keypress']) {
+          document.addEventListener(type, (event) => {
+            const key = (event as KeyboardEvent).key;
+            if (key === '/' || (type === 'keydown' && key === 'Escape')) {
+              context.__context7HostKeys?.push(`${type}:${key}`);
+            }
+          });
+        }
+      });
+      const input = page.getByRole('textbox', { name: 'Ask a documentation question' });
+      await input.press('/');
+      expect(await input.inputValue()).toBe('/');
+      await input.press('Escape');
+      await panel.waitFor({ state: 'hidden' });
+      expect(
+        await page.evaluate(() => (window as Window & { __context7HostKeys?: string[] }).__context7HostKeys)
+      ).toEqual([]);
+
+      await trigger.click();
+      await panel.waitFor({ state: 'visible' });
       await page.getByRole('button', { name: 'Close chat' }).click();
       await panel.waitFor({ state: 'hidden' });
       expect(await trigger.getAttribute('aria-expanded')).toBe('false');
