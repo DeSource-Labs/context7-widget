@@ -1,6 +1,6 @@
 {
   "name": "@desource/context7-widget",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Customizable Context7 documentation chat widget with TypeScript helpers and a drop-in script build.",
   "keywords": [
     "context7",

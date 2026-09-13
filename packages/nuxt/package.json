@@ -1,6 +1,6 @@
 {
   "name": "@desource/context7-widget-nuxt",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Nuxt 3 and Nuxt 4 module for the native Vue Context7 documentation chat widget.",
   "keywords": [
     "context7",

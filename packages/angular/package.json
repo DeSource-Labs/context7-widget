@@ -1,6 +1,6 @@
 {
   "name": "@desource/context7-widget-angular",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Native Angular component and injectable controls for a customizable Context7 documentation chat widget.",
   "keywords": [
     "context7",
