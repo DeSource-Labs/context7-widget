@@ -221,16 +221,19 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await trigger.focus();
       await trigger.press('Enter');
       const input = widget.getByRole('textbox', { name: 'Ask a documentation question' });
-      await page.evaluate(() => {
+      await widget.evaluate((element) => {
         const context = window as Window & { __context7HostKeys?: string[] };
         context.__context7HostKeys = [];
         for (const type of ['keydown', 'keyup', 'keypress']) {
-          document.addEventListener(type, (event) => {
+          const onHostKey = (event: Event) => {
             const key = (event as KeyboardEvent).key;
             if (key === '/' || (type === 'keydown' && key === 'Escape')) {
               context.__context7HostKeys?.push(`${type}:${key}`);
             }
-          });
+          };
+          // A native parent below the framework root catches late delegated guards.
+          element.parentElement?.addEventListener(type, onHostKey);
+          document.addEventListener(type, onHostKey);
         }
       });
 
@@ -249,6 +252,11 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
         () => (window as Window & { __context7HostKeys?: string[] }).__context7HostKeys
       );
       expect(hostKeys).toEqual([]);
+
+      await trigger.press('/');
+      expect(
+        await page.evaluate(() => (window as Window & { __context7HostKeys?: string[] }).__context7HostKeys)
+      ).toEqual(['keydown:/', 'keydown:/', 'keypress:/', 'keypress:/', 'keyup:/', 'keyup:/']);
     });
 
     test('keeps centered-dialog focus inside the panel', async ({ page }) => {
