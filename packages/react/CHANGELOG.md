@@ -1,5 +1,20 @@
 # @desource/context7-widget-react
 
+## 0.2.0
+
+### Minor Changes
+
+- Core/Angular/Nuxt/React/Svelte/Vue Upgrades:
+  - Prevents chat keystrokes from triggering host-page shortcuts across the hosted `widget.js`, custom element, and React, Vue, Svelte, Angular, and Nuxt integrations:
+    - Stops `keydown`, `keyup`, and `keypress` events from the chat panel from bubbling to host-page listeners above the widget's keyboard handler.
+    - Preserves typing, Shift+Enter for newlines, Enter to send, Escape to close, and focus restoration. Framework root keyboard callbacks still run.
+    - Keeps normal keyboard propagation for launchers, external triggers, and consumer content outside the panel. Capture-phase listeners remain unaffected.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @desource/context7-widget@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes

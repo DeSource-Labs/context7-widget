@@ -1,6 +1,6 @@
 {
   "name": "@desource/context7-widget-vue",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Native Vue 3 component and composable for a customizable Context7 documentation chat widget.",
   "keywords": [
     "context7",
