@@ -114,7 +114,9 @@ type CopyActionKey = HTMLButtonElement | string;
     '[style.--c7-accent]': 'resolvedConfig().color || null',
     '[style.--c7-panel-height]': 'resolvedConfig().panelHeight || null',
     '[style.--c7-panel-width]': 'resolvedConfig().panelWidth || null',
-    '(keydown)': 'onKeyDown($event)'
+    '(keydown)': 'onKeyDown($event)',
+    '(keyup)': 'stopPanelKeyPropagation($event)',
+    '(keypress)': 'stopPanelKeyPropagation($event)'
   },
   template: `
     <div class="c7-backdrop" data-c7-backdrop part="backdrop" aria-hidden="true" (click)="onBackdropClick()"></div>
@@ -739,7 +741,12 @@ export class Context7Widget implements AfterViewInit, OnChanges, OnDestroy, Cont
     if (this.resolvedCloseOnOutsideClick()) this.close();
   }
 
+  protected stopPanelKeyPropagation(event: KeyboardEvent): void {
+    if (this.panel()?.nativeElement.contains(event.target as Node)) event.stopPropagation();
+  }
+
   protected onKeyDown(event: KeyboardEvent): void {
+    this.stopPanelKeyPropagation(event);
     if (event.key === 'Escape' && this.isOpen()) {
       event.preventDefault();
       this.close();

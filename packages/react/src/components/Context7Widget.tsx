@@ -787,7 +787,12 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       input.style.height = `${Math.min(input.scrollHeight, 84)}px`;
     }
 
+    function stopPanelKeyPropagation(event: ReactKeyboardEvent<HTMLDivElement>): void {
+      if (panelRef.current?.contains(event.target as Node)) event.stopPropagation();
+    }
+
     function onKeyDown(event: ReactKeyboardEvent<HTMLDivElement>): void {
+      stopPanelKeyPropagation(event);
       if (event.key === 'Escape' && actualOpen) {
         event.preventDefault();
         close();
@@ -805,6 +810,16 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
         trapFocus(event.nativeEvent, panelRef.current);
       }
       props.rootProps?.onKeyDown?.(event);
+    }
+
+    function onKeyUp(event: ReactKeyboardEvent<HTMLDivElement>): void {
+      stopPanelKeyPropagation(event);
+      props.rootProps?.onKeyUp?.(event);
+    }
+
+    function onKeyPress(event: ReactKeyboardEvent<HTMLDivElement>): void {
+      stopPanelKeyPropagation(event);
+      props.rootProps?.onKeyPress?.(event);
     }
 
     function onSubmit(event: ReactSubmitEvent<HTMLFormElement>): void {
@@ -878,7 +893,16 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
     };
 
     return (
-      <div {...rootProps} {...hostAttributes} ref={rootRef} className={className} style={style} onKeyDown={onKeyDown}>
+      <div
+        {...rootProps}
+        {...hostAttributes}
+        ref={rootRef}
+        className={className}
+        style={style}
+        onKeyDown={onKeyDown}
+        onKeyUp={onKeyUp}
+        onKeyPress={onKeyPress}
+      >
         <div
           className="c7-backdrop"
           data-c7-backdrop

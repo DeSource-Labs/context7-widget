@@ -542,7 +542,12 @@
     close();
   }
 
+  function stopPanelKeyPropagation(event: KeyboardEvent): void {
+    if (panel?.contains(event.target as Node)) event.stopPropagation();
+  }
+
   function onKeyDown(event: KeyboardEvent & { currentTarget: EventTarget & HTMLDivElement }): void {
+    stopPanelKeyPropagation(event);
     if (event.key === 'Escape' && isOpenState) {
       event.preventDefault();
       close();
@@ -553,6 +558,16 @@
       trapFocus(event, panel);
     }
     rootProps?.onkeydown?.(event);
+  }
+
+  function onKeyUp(event: KeyboardEvent & { currentTarget: EventTarget & HTMLDivElement }): void {
+    stopPanelKeyPropagation(event);
+    rootProps?.onkeyup?.(event);
+  }
+
+  function onKeyPress(event: KeyboardEvent & { currentTarget: EventTarget & HTMLDivElement }): void {
+    stopPanelKeyPropagation(event);
+    rootProps?.onkeypress?.(event);
   }
 
   function bindExternalTrigger(): void {
@@ -814,6 +829,8 @@
   class={['context7-widget', rootProps?.class]}
   style={widgetStyle}
   onkeydown={onKeyDown}
+  onkeyup={onKeyUp}
+  onkeypress={onKeyPress}
 >
   <div class="c7-backdrop" data-c7-backdrop part="backdrop" aria-hidden="true" onclick={onBackdropClick}></div>
 
