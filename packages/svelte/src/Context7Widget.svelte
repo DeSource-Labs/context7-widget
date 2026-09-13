@@ -40,6 +40,7 @@
     type Context7WidgetSendResult
   } from '@desource/context7-widget/kit';
   import { onMount, tick } from 'svelte';
+  import { on } from 'svelte/events';
   import { registerSvelteContext7Widget, unregisterSvelteContext7Widget } from './internal/registry.js';
   import type {
     Context7WidgetCallbacks,
@@ -95,7 +96,7 @@
   const panelId = `context7-widget-panel-${instanceId}`;
   const STICKY_SCROLL_THRESHOLD = 48;
   const QUEUED_SCROLL_FRAME = -1;
-  let root = $state<HTMLElement>();
+  let root = $state<HTMLDivElement>();
   let panel = $state<HTMLElement>();
   let input = $state<HTMLTextAreaElement>();
   let sendButton = $state<HTMLButtonElement>();
@@ -790,6 +791,11 @@
   });
 
   onMount(() => {
+    if (!root) return;
+    // Bind before native ancestors, preserving Svelte child-handler order. The matching
+    // attributes below stay undefined to avoid duplicating rootProps callbacks.
+    const removeKeyDown = on(root, 'keydown', onKeyDown);
+    const removeKeyUp = on(root, 'keyup', onKeyUp);
     mounted = true;
     previousResetKey = `${resolvedConfig.library}\u0000${resolvedConfig.initialMessage}`;
     previousTrigger = resolvedCustomTrigger;
@@ -805,6 +811,8 @@
     if (openState !== undefined) commitOpen(openState);
     else if (resolvedConfig.defaultOpen) open();
     return () => {
+      removeKeyDown();
+      removeKeyUp();
       cancel();
       mounted = false;
       isOpenState = false;
@@ -828,8 +836,8 @@
   bind:this={root}
   class={['context7-widget', rootProps?.class]}
   style={widgetStyle}
-  onkeydown={onKeyDown}
-  onkeyup={onKeyUp}
+  onkeydown={undefined}
+  onkeyup={undefined}
   onkeypress={onKeyPress}
 >
   <div class="c7-backdrop" data-c7-backdrop part="backdrop" aria-hidden="true" onclick={onBackdropClick}></div>
