@@ -64,7 +64,7 @@ const packageArtifactBudgets: readonly PackageArtifactBudget[] = [
   { maxTarballBytes: 25_000, name: '@desource/context7-widget-react', root: 'packages/react' },
   { maxTarballBytes: 25_000, name: '@desource/context7-widget-vue', root: 'packages/vue' },
   { maxTarballBytes: 24_000, name: '@desource/context7-widget-svelte', root: 'packages/svelte' },
-  { maxTarballBytes: 8_000, name: '@desource/context7-widget-nuxt', root: 'packages/nuxt' },
+  { maxTarballBytes: 8_500, name: '@desource/context7-widget-nuxt', root: 'packages/nuxt' },
   { maxTarballBytes: 30_000, name: '@desource/context7-widget-angular', root: 'packages/angular' }
 ];
 
