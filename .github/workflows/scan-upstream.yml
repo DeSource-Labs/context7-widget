@@ -43,12 +43,13 @@ jobs:
           git commit -m "chore: update upstream context7 widget snapshot"
           git push
 
-      - name: Open compatibility issue
+      - name: Create or update compatibility issue
         if: steps.scan.outputs.changed == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const label = 'upstream-change';
+            const assignee = 'stefashkaa';
             try {
               await github.rest.issues.getLabel({
                 owner: context.repo.owner,
@@ -99,7 +100,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: existing.data[0].number,
-                body
+                body: `@${assignee}, please review this upstream change.\n\n${body}`
               });
             } else {
               await github.rest.issues.create({
@@ -107,7 +108,8 @@ jobs:
                 repo: context.repo.repo,
                 title,
                 body,
-                labels: [label]
+                labels: [label],
+                assignees: [assignee]
               });
             }
         env:
