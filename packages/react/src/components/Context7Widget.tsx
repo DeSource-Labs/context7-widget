@@ -808,6 +808,9 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       if (handle && panelRef.current?.contains(event.target as Node)) {
         const currentTarget = event.currentTarget;
         panelKeyHandlers.current.set(event.nativeEvent, () => {
+          // React DOM 18.3/19 use unpooled events with own enumerable fields and prototype
+          // cancellation methods. This clone relies on that internal layout; rerun
+          // tests/unit/keyboard-boundary.test.tsx when upgrading React.
           const bubble: ReactKeyboardEvent<HTMLDivElement> = Object.assign(
             Object.create(Object.getPrototypeOf(event)),
             event,
