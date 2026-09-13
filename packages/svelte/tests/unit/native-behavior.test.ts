@@ -173,6 +173,30 @@ describe('native Svelte widget behavior', () => {
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
+  it('closes on Escape without restoring focus to a removed host control', () => {
+    const opener = document.createElement('button');
+    document.body.append(opener);
+    const onClose = vi.fn();
+    const result = render(Context7Widget, { library: '/owner/repo', onClose });
+    flushSync();
+    opener.focus();
+    result.component.open();
+    flushSync();
+    const input = required(result.container.querySelector<HTMLTextAreaElement>('.c7-input'), 'input');
+    input.focus();
+    opener.remove();
+    const restoreFocus = vi.spyOn(opener, 'focus');
+
+    const escape = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Escape' });
+    input.dispatchEvent(escape);
+    flushSync();
+
+    expect(escape.defaultPrevented).toBe(true);
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(result.container.querySelector('.context7-widget')?.hasAttribute('open')).toBe(false);
+    expect(restoreFocus).not.toHaveBeenCalled();
+  });
+
   it('observes valid late selectors, ignores invalid selectors, and restores a removed trigger', async () => {
     const observe = vi.fn();
     const disconnect = vi.fn();
