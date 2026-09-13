@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render } from '@testing-library/svelte';
 import { flushSync, tick } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import Context7Widget from '@src/Context7Widget.svelte';
+import WidgetHarness from '../fixtures/WidgetHarness.svelte';
 import { createContext7Widget } from '@src/controller.svelte';
 
 describe('native Svelte widget behavior', () => {
@@ -12,6 +13,76 @@ describe('native Svelte widget behavior', () => {
     document.body.replaceChildren();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  it('blocks native parent shortcuts while preserving root callbacks and consumer children', async () => {
+    const onRootKey = vi.fn();
+    const onHostKey = vi.fn();
+    const onChildKey = vi.fn();
+    const result = render(WidgetHarness, {
+      onChildKey,
+      rootProps: { onkeydown: onRootKey, onkeyup: onRootKey, onkeypress: onRootKey }
+    });
+    flushSync();
+    const types = ['keydown', 'keyup', 'keypress'];
+    const parent = result.getByTestId('native-parent');
+    for (const type of types) parent.addEventListener(type, onHostKey);
+    try {
+      for (const selector of ['.c7-input', '[data-testid="child-content"]']) {
+        const target = required(result.container.querySelector(selector), selector);
+        for (const type of types) {
+          target.dispatchEvent(new KeyboardEvent(type, { bubbles: true, charCode: 47, key: '/' }));
+        }
+      }
+      expect(onRootKey.mock.calls.map(([event]) => event.type)).toEqual([...types, ...types]);
+      expect(onHostKey.mock.calls.map(([event]) => event.type)).toEqual(types);
+      expect(onChildKey.mock.calls.map(([event]) => event.type)).toEqual(types);
+    } finally {
+      for (const type of types) parent.removeEventListener(type, onHostKey);
+    }
+  });
+
+  it('honors delegated child cancellation before root keyboard callbacks', () => {
+    const onRootKey = vi.fn();
+    const onChildKey = vi.fn((event: KeyboardEvent) => event.stopPropagation());
+    const result = render(WidgetHarness, {
+      onChildKey,
+      rootProps: { onkeydown: onRootKey, onkeyup: onRootKey, onkeypress: onRootKey }
+    });
+    flushSync();
+    for (const type of ['keydown', 'keyup', 'keypress']) {
+      result.getByTestId('child-content').dispatchEvent(new KeyboardEvent(type, { bubbles: true, key: '/' }));
+    }
+    expect(onChildKey).toHaveBeenCalledTimes(3);
+    expect(onRootKey).not.toHaveBeenCalled();
+  });
+
+  it('uses updated root callbacks once and removes added keyboard listeners on unmount', async () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const result = render(Context7Widget, { library: '/owner/repo', rootProps: { onkeydown: first } });
+    flushSync();
+    const widget = required(result.container.querySelector('.context7-widget'), 'widget');
+    const input = required(widget.querySelector('.c7-input'), 'input');
+    input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: '/' }));
+    expect(first).toHaveBeenCalledOnce();
+    await result.rerender({ rootProps: { onkeydown: second, onkeyup: second, onkeypress: second } });
+    for (const type of ['keydown', 'keyup', 'keypress']) {
+      input.dispatchEvent(new KeyboardEvent(type, { bubbles: true, key: '/' }));
+    }
+    expect(first).toHaveBeenCalledOnce();
+    expect(second).toHaveBeenCalledTimes(3);
+
+    result.unmount();
+    const host = document.createElement('div');
+    host.append(widget);
+    const onHostKey = vi.fn();
+    for (const type of ['keydown', 'keyup']) {
+      host.addEventListener(type, onHostKey);
+      input.dispatchEvent(new KeyboardEvent(type, { bubbles: true, key: '/' }));
+    }
+    expect(onHostKey).toHaveBeenCalledTimes(2);
+    expect(second).toHaveBeenCalledTimes(3);
   });
 
   it('submits the native form, respects composition keys, traps focus, and supports modal dismissal', async () => {
@@ -100,6 +171,30 @@ describe('native Svelte widget behavior', () => {
     expect(widget.hasAttribute('open')).toBe(false);
     expect(document.activeElement).toBe(trigger);
     expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('closes on Escape without restoring focus to a removed host control', () => {
+    const opener = document.createElement('button');
+    document.body.append(opener);
+    const onClose = vi.fn();
+    const result = render(Context7Widget, { library: '/owner/repo', onClose });
+    flushSync();
+    opener.focus();
+    result.component.open();
+    flushSync();
+    const input = required(result.container.querySelector<HTMLTextAreaElement>('.c7-input'), 'input');
+    input.focus();
+    opener.remove();
+    const restoreFocus = vi.spyOn(opener, 'focus');
+
+    const escape = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Escape' });
+    input.dispatchEvent(escape);
+    flushSync();
+
+    expect(escape.defaultPrevented).toBe(true);
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(result.container.querySelector('.context7-widget')?.hasAttribute('open')).toBe(false);
+    expect(restoreFocus).not.toHaveBeenCalled();
   });
 
   it('observes valid late selectors, ignores invalid selectors, and restores a removed trigger', async () => {

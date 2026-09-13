@@ -251,6 +251,7 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
 
     const rootRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<HTMLDialogElement>(null);
+    const panelKeyHandlers = useRef(new WeakMap<Event, () => void>());
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const sendButtonRef = useRef<HTMLButtonElement>(null);
     const launcherRef = useRef<HTMLButtonElement>(null);
@@ -780,6 +781,53 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
       updateAnchor
     ]);
 
+    useLayoutEffect(() => {
+      const root = rootRef.current;
+      if (!root) return;
+      const types = ['keydown', 'keyup', 'keypress'];
+      const guard = (event: Event) => {
+        if (!panelRef.current?.contains(event.target as Node)) return;
+        event.stopPropagation();
+        const handle = panelKeyHandlers.current.get(event);
+        panelKeyHandlers.current.delete(event);
+        handle?.();
+      };
+      for (const type of types) root.addEventListener(type, guard);
+      return () => {
+        for (const type of types) root.removeEventListener(type, guard);
+      };
+    }, []);
+
+    // Native ancestors run before React's delegated bubble handlers. Forward React's
+    // normalized event at our DOM boundary, after native target handlers have run.
+    function capturePanelKey(
+      event: ReactKeyboardEvent<HTMLDivElement>,
+      handle: ((event: ReactKeyboardEvent<HTMLDivElement>) => void) | undefined,
+      capture?: (event: ReactKeyboardEvent<HTMLDivElement>) => void
+    ): void {
+      if (handle && panelRef.current?.contains(event.target as Node)) {
+        const currentTarget = event.currentTarget;
+        panelKeyHandlers.current.set(event.nativeEvent, () => {
+          // React DOM 18.3/19 use unpooled events with own enumerable fields and prototype
+          // cancellation methods. This clone relies on that internal layout; rerun
+          // tests/unit/keyboard-boundary.test.tsx when upgrading React.
+          const bubble: ReactKeyboardEvent<HTMLDivElement> = Object.assign(
+            Object.create(Object.getPrototypeOf(event)),
+            event,
+            { currentTarget, eventPhase: event.nativeEvent.eventPhase }
+          );
+          if (event.nativeEvent.defaultPrevented) bubble.preventDefault();
+          bubble.stopPropagation();
+          try {
+            handle(bubble);
+          } finally {
+            bubble.currentTarget = event.currentTarget;
+          }
+        });
+      }
+      capture?.(event);
+    }
+
     function resizeInput(): void {
       const input = inputRef.current;
       if (!input) return;
@@ -878,7 +926,17 @@ export const Context7Widget = forwardRef<Context7WidgetHandle, Context7WidgetPro
     };
 
     return (
-      <div {...rootProps} {...hostAttributes} ref={rootRef} className={className} style={style} onKeyDown={onKeyDown}>
+      <div
+        {...rootProps}
+        {...hostAttributes}
+        ref={rootRef}
+        className={className}
+        style={style}
+        onKeyDown={onKeyDown}
+        onKeyDownCapture={(event) => capturePanelKey(event, onKeyDown, rootProps?.onKeyDownCapture)}
+        onKeyUpCapture={(event) => capturePanelKey(event, rootProps?.onKeyUp, rootProps?.onKeyUpCapture)}
+        onKeyPressCapture={(event) => capturePanelKey(event, rootProps?.onKeyPress, rootProps?.onKeyPressCapture)}
+      >
         <div
           className="c7-backdrop"
           data-c7-backdrop

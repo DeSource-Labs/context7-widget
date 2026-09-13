@@ -333,6 +333,82 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       ]);
     });
 
+    it.each(['bottom-right', 'center'] as const)(
+      'isolates %s panel keystrokes without cancelling typing or host-page events',
+      async (position) => {
+        const harness = await mount({ position });
+        await interact(harness, () => harness.controller.open());
+        await harness.flush();
+        const input = required<HTMLTextAreaElement>(harness.view, '.c7-input');
+        const link = required<HTMLAnchorElement>(harness.view, '[part="footer"] a');
+        const launcher = required<HTMLButtonElement>(harness.view, '.c7-launcher');
+        const consumerContent = document.createElement('button');
+        const root = input.closest('.context7-widget') ?? harness.view;
+        root.append(consumerContent);
+        const outside = document.createElement('input');
+        document.body.append(outside);
+        const received: string[] = [];
+        const onHostKey = (event: Event) => received.push(event.type);
+        const types = ['keydown', 'keyup', 'keypress'];
+        for (const type of types) document.addEventListener(type, onHostKey);
+
+        try {
+          for (const type of types) {
+            for (const target of [input, link]) {
+              const local = vi.fn();
+              target.addEventListener(type, local, { once: true });
+              const event = new KeyboardEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                charCode: 47,
+                composed: true,
+                key: '/'
+              });
+              await interact(harness, () => target.dispatchEvent(event));
+              expect(local).toHaveBeenCalledOnce();
+              expect(event.defaultPrevented).toBe(false);
+            }
+          }
+          expect(received).toEqual([]);
+
+          for (const target of [launcher, consumerContent, outside]) {
+            for (const type of types) {
+              await interact(harness, () =>
+                target.dispatchEvent(new KeyboardEvent(type, { bubbles: true, charCode: 47, composed: true, key: '/' }))
+              );
+            }
+          }
+          expect(received).toEqual([...types, ...types, ...types]);
+        } finally {
+          for (const type of types) document.removeEventListener(type, onHostKey);
+        }
+      }
+    );
+
+    it('handles Escape inside the panel without also dismissing the host UI', async () => {
+      const harness = await mount();
+      await interact(harness, () => harness.controller.open());
+      await harness.flush();
+      const input = required<HTMLTextAreaElement>(harness.view, '.c7-input');
+      const onHostEscape = vi.fn();
+      document.addEventListener('keydown', onHostEscape);
+      try {
+        const event = new KeyboardEvent('keydown', {
+          bubbles: true,
+          cancelable: true,
+          composed: true,
+          key: 'Escape'
+        });
+        await interact(harness, () => input.dispatchEvent(event));
+        await harness.flush();
+        expect(harness.controller.isOpen()).toBe(false);
+        expect(event.defaultPrevented).toBe(true);
+        expect(onHostEscape).not.toHaveBeenCalled();
+      } finally {
+        document.removeEventListener('keydown', onHostEscape);
+      }
+    });
+
     it('supports multiline input and moves focus to Stop while streaming', async () => {
       let rejectRequest: ((reason: DOMException) => void) | undefined;
       const fetchMock = vi.fn(

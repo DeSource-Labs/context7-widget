@@ -124,6 +124,42 @@ describe('@desource/context7-widget-react', () => {
     expect(onKeyDown).toHaveBeenCalledOnce();
   });
 
+  it('preserves root keyboard callbacks and bubbling from consumer children', async () => {
+    const onRootKey = vi.fn();
+    const onParentKey = vi.fn();
+    const container = mount(
+      <div onKeyDown={onParentKey} onKeyUp={onParentKey} onKeyPress={onParentKey}>
+        <Context7Widget
+          defaultOpen
+          library="/owner/repo"
+          rootProps={{ onKeyDown: onRootKey, onKeyUp: onRootKey, onKeyPress: onRootKey }}
+        >
+          <button data-testid="consumer-child">Host action</button>
+        </Context7Widget>
+      </div>
+    );
+    await flush();
+
+    for (const selector of ['.c7-input', '[data-testid="consumer-child"]']) {
+      const target = required(container.querySelector(selector), selector);
+      for (const type of ['keydown', 'keyup', 'keypress']) {
+        await act(async () => {
+          target.dispatchEvent(new KeyboardEvent(type, { bubbles: true, charCode: 47, key: '/' }));
+        });
+      }
+    }
+
+    expect(onRootKey.mock.calls.map(([event]) => event.type)).toEqual([
+      'keydown',
+      'keyup',
+      'keypress',
+      'keydown',
+      'keyup',
+      'keypress'
+    ]);
+    expect(onParentKey.mock.calls.map(([event]) => event.type)).toEqual(['keydown', 'keyup', 'keypress']);
+  });
+
   it('memoizes completed Markdown until a rendering input changes', async () => {
     let setCopyCode: ((value: string) => void) | null = null;
     let setLibrary: ((value: string) => void) | null = null;
