@@ -9,8 +9,10 @@ const entries = (await readdir(changesetsDirectory))
   .filter((entry) => entry.endsWith('.md') && entry.toLowerCase() !== 'readme.md')
   .sort();
 
-for (const entry of entries) {
-  const contents = await readFile(path.join(changesetsDirectory, entry), 'utf8');
+const changesets = await Promise.all(
+  entries.map(async (entry) => ({ entry, contents: await readFile(path.join(changesetsDirectory, entry), 'utf8') }))
+);
+for (const { entry, contents } of changesets) {
   validateChangeset(entry, contents);
 }
 

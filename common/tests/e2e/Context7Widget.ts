@@ -204,7 +204,7 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await expect(panel(widget)).toBeVisible();
 
       await expect
-        .poll(async () =>
+        .poll(() =>
           widget.evaluate((element) => {
             const backdrop =
               element.shadowRoot?.querySelector('[part~="backdrop"]') ?? element.querySelector('[part~="backdrop"]');
@@ -214,6 +214,49 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
           })
         )
         .toBe(true);
+    });
+
+    test('isolates chat keyboard events while preserving typing, submission, and dismissal', async ({ page }) => {
+      const trigger = container.locator('.context7-widget-trigger');
+      await trigger.focus();
+      await trigger.press('Enter');
+      const input = widget.getByRole('textbox', { name: 'Ask a documentation question' });
+      await widget.evaluate((element) => {
+        const context = window as Window & { __context7HostKeys?: string[] };
+        context.__context7HostKeys = [];
+        for (const type of ['keydown', 'keyup', 'keypress']) {
+          const onHostKey = (event: Event) => {
+            const key = (event as KeyboardEvent).key;
+            if (key === '/' || (type === 'keydown' && key === 'Escape')) {
+              context.__context7HostKeys?.push(`${type}:${key}`);
+            }
+          };
+          // A native parent below the framework root catches late delegated guards.
+          element.parentElement?.addEventListener(type, onHostKey);
+          document.addEventListener(type, onHostKey);
+        }
+      });
+
+      await input.press('/');
+      await expect(input).toHaveValue('/');
+      await input.press('Shift+Enter');
+      await expect(input).toHaveValue('/\n');
+      await input.press('Enter');
+      await expect(panel(widget)).toContainText('Mocked Context7 answer.');
+      await expect(container.locator(selectors.eventLog)).toContainText('question:1');
+
+      await input.press('Escape');
+      await expect(panel(widget)).not.toBeVisible();
+      await expect(trigger).toBeFocused();
+      const hostKeys = await page.evaluate(
+        () => (window as Window & { __context7HostKeys?: string[] }).__context7HostKeys
+      );
+      expect(hostKeys).toEqual([]);
+
+      await trigger.press('/');
+      expect(
+        await page.evaluate(() => (window as Window & { __context7HostKeys?: string[] }).__context7HostKeys)
+      ).toEqual(['keydown:/', 'keydown:/', 'keypress:/', 'keypress:/', 'keyup:/', 'keyup:/']);
     });
 
     test('keeps centered-dialog focus inside the panel', async ({ page }) => {
@@ -266,7 +309,7 @@ async function mockContext7Chat(page: Page): Promise<void> {
   });
 }
 
-async function copiedValues(page: Page): Promise<string[]> {
+function copiedValues(page: Page): Promise<string[]> {
   return page.evaluate(() => [...((window as Window & { __context7Copies?: string[] }).__context7Copies ?? [])]);
 }
 

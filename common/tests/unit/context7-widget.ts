@@ -97,9 +97,11 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
     };
 
     afterEach(async () => {
-      for (const harness of [...mounted].reverse()) {
+      // Unmount in reverse order without overlapping framework test transactions.
+      await [...mounted].reverse().reduce(async (previous, harness) => {
+        await previous;
         await unmount(harness);
-      }
+      }, Promise.resolve());
       vi.unstubAllGlobals();
       vi.restoreAllMocks();
       vi.useRealTimers();
@@ -115,12 +117,16 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       expect(panel.getAttribute('role')).toBeNull();
       expect(panel.getAttribute('aria-label')).toBeTruthy();
 
-      for (const action of [() => controller.open(), () => controller.close(), () => controller.toggle()]) {
-        await interact(harness, action);
-        await flush();
-        expect(panel.open).toBe(controller.isOpen());
-        expect(required(view, '.c7-input')).toBe(input);
-      }
+      await [() => controller.open(), () => controller.close(), () => controller.toggle()].reduce(
+        async (previous, action) => {
+          await previous;
+          await interact(harness, action);
+          await flush();
+          expect(panel.open).toBe(controller.isOpen());
+          expect(required(view, '.c7-input')).toBe(input);
+        },
+        Promise.resolve()
+      );
     });
 
     it('renders assistant Markdown without treating user or assistant input as trusted HTML', async () => {
@@ -192,8 +198,8 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
       vi.stubGlobal(
         'fetch',
-        vi.fn(
-          async (_input: RequestInfo | URL, init?: RequestInit) =>
+        vi.fn((_input: RequestInfo | URL, init?: RequestInit) =>
+          Promise.resolve(
             new Response(
               new ReadableStream<Uint8Array>({
                 start(controller) {
@@ -207,6 +213,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
                 }
               })
             )
+          )
         )
       );
       const harness = await mount();
@@ -255,8 +262,8 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
       vi.stubGlobal(
         'fetch',
-        vi.fn(
-          async () =>
+        vi.fn(() =>
+          Promise.resolve(
             new Response(
               new ReadableStream<Uint8Array>({
                 start(controller) {
@@ -265,6 +272,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
                 }
               })
             )
+          )
         )
       );
       const harness = await mount();
@@ -333,6 +341,84 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       ]);
     });
 
+    it.each(['bottom-right', 'center'] as const)(
+      'isolates %s panel keystrokes without cancelling typing or host-page events',
+      async (position) => {
+        const harness = await mount({ position });
+        await interact(harness, () => harness.controller.open());
+        await harness.flush();
+        const input = required<HTMLTextAreaElement>(harness.view, '.c7-input');
+        const link = required<HTMLAnchorElement>(harness.view, '[part="footer"] a');
+        const launcher = required<HTMLButtonElement>(harness.view, '.c7-launcher');
+        const consumerContent = document.createElement('button');
+        const root = input.closest('.context7-widget') ?? harness.view;
+        root.append(consumerContent);
+        const outside = document.createElement('input');
+        document.body.append(outside);
+        const received: string[] = [];
+        const onHostKey = (event: Event) => received.push(event.type);
+        const types = ['keydown', 'keyup', 'keypress'];
+        for (const type of types) document.addEventListener(type, onHostKey);
+
+        try {
+          await types
+            .flatMap((type) => [input, link].map((target) => ({ type, target })))
+            .reduce(async (previous, { type, target }) => {
+              await previous;
+              const local = vi.fn();
+              target.addEventListener(type, local, { once: true });
+              const event = new KeyboardEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                charCode: 47,
+                composed: true,
+                key: '/'
+              });
+              await interact(harness, () => target.dispatchEvent(event));
+              expect(local).toHaveBeenCalledOnce();
+              expect(event.defaultPrevented).toBe(false);
+            }, Promise.resolve());
+          expect(received).toEqual([]);
+
+          await [launcher, consumerContent, outside]
+            .flatMap((target) => types.map((type) => ({ target, type })))
+            .reduce(async (previous, { target, type }) => {
+              await previous;
+              await interact(harness, () =>
+                target.dispatchEvent(new KeyboardEvent(type, { bubbles: true, charCode: 47, composed: true, key: '/' }))
+              );
+            }, Promise.resolve());
+          expect(received).toEqual([...types, ...types, ...types]);
+        } finally {
+          for (const type of types) document.removeEventListener(type, onHostKey);
+        }
+      }
+    );
+
+    it('handles Escape inside the panel without also dismissing the host UI', async () => {
+      const harness = await mount();
+      await interact(harness, () => harness.controller.open());
+      await harness.flush();
+      const input = required<HTMLTextAreaElement>(harness.view, '.c7-input');
+      const onHostEscape = vi.fn();
+      document.addEventListener('keydown', onHostEscape);
+      try {
+        const event = new KeyboardEvent('keydown', {
+          bubbles: true,
+          cancelable: true,
+          composed: true,
+          key: 'Escape'
+        });
+        await interact(harness, () => input.dispatchEvent(event));
+        await harness.flush();
+        expect(harness.controller.isOpen()).toBe(false);
+        expect(event.defaultPrevented).toBe(true);
+        expect(onHostEscape).not.toHaveBeenCalled();
+      } finally {
+        document.removeEventListener('keydown', onHostEscape);
+      }
+    });
+
     it('supports multiline input and moves focus to Stop while streaming', async () => {
       let rejectRequest: ((reason: DOMException) => void) | undefined;
       const fetchMock = vi.fn(
@@ -391,7 +477,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
     it('copies only explicit answer/code actions and suppresses repeats until feedback resets', async () => {
       vi.useFakeTimers();
       const answer = 'Use this:\n\n```ts\nconst ready = true;\n```';
-      const writeText = vi.fn(async () => undefined);
+      const writeText = vi.fn().mockResolvedValue(undefined);
       vi.stubGlobal('navigator', { clipboard: { writeText } });
       stubSseResponse([jsonFrame({ delta: answer, type: 'text-delta' }), doneFrame()]);
       const harness = await mount();
@@ -644,8 +730,8 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       const encoder = new TextEncoder();
       const fetchMock = vi
         .fn()
-        .mockImplementationOnce(
-          async () =>
+        .mockImplementationOnce(() =>
+          Promise.resolve(
             new Response(
               new ReadableStream<Uint8Array>({
                 start(controller) {
@@ -653,9 +739,10 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
                 }
               })
             )
+          )
         )
-        .mockImplementationOnce(
-          async () => new Response(createSseStream([jsonFrame({ delta: 'Fresh answer', type: 'text-delta' })]))
+        .mockImplementationOnce(() =>
+          Promise.resolve(new Response(createSseStream([jsonFrame({ delta: 'Fresh answer', type: 'text-delta' })])))
         );
       vi.stubGlobal('fetch', fetchMock);
       const harness = await mount();
@@ -704,7 +791,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       };
       vi.stubGlobal(
         'fetch',
-        vi.fn(async () => ({ body: { getReader: () => reader }, ok: true }) as unknown as Response)
+        vi.fn(() => Promise.resolve({ body: { getReader: () => reader }, ok: true } as unknown as Response))
       );
       const frames: FrameRequestCallback[] = [];
       vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
@@ -783,7 +870,7 @@ async function interact<Result>(
 function stubSseResponse(frames: string[]): void {
   vi.stubGlobal(
     'fetch',
-    vi.fn(async () => new Response(createSseStream(frames)))
+    vi.fn(() => Promise.resolve(new Response(createSseStream(frames))))
   );
 }
 

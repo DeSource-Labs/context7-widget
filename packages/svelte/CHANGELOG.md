@@ -1,5 +1,35 @@
 # @desource/context7-widget-svelte
 
+## 0.2.1
+
+### Patch Changes
+
+- Core | Angular | Nuxt | React | Svelte | Vue Upgrades:
+  - Updates package build, linting, testing, and release dependencies, including pnpm, while preserving framework compatibility and release-age constraints.
+  - Fixes React and Vue declaration builds under TypeScript 6 by explicitly including shared core sources in the TypeScript root directory.
+  - Aligns the Nuxt test utilities with the workspace Vitest version through a direct development dependency. Keeps Nuxt on TypeScript 5.9.3 to satisfy its module builder.
+  - Updates brace-expansion to 5.0.12 and serialize-javascript to 7.1.2 to resolve production dependency audit findings.
+  - Updates GitHub Actions for pnpm setup and Codecov, retaining commit-SHA pins. All workflows now read the pnpm version from the root package manifest.
+  - Updates contributor setup instructions and documents the TypeScript and Nuxt test dependency constraints.
+
+- Updated dependencies []:
+  - @desource/context7-widget@0.2.1
+
+## 0.2.0
+
+### Minor Changes
+
+- Core/Angular/Nuxt/React/Svelte/Vue Upgrades:
+  - Prevents chat keystrokes from triggering host-page shortcuts across the hosted `widget.js`, custom element, and React, Vue, Svelte, Angular, and Nuxt integrations:
+    - Stops `keydown`, `keyup`, and `keypress` events from the chat panel from bubbling to host-page listeners above the widget's keyboard handler.
+    - Preserves typing, Shift+Enter for newlines, Enter to send, Escape to close, and focus restoration. Framework root keyboard callbacks still run.
+    - Keeps normal keyboard propagation for launchers, external triggers, and consumer content outside the panel. Capture-phase listeners remain unaffected.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @desource/context7-widget@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes

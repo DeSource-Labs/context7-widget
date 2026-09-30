@@ -480,6 +480,13 @@ disabling the composer. Completed answers and code blocks are copyable, failed
 requests are retryable, centered dialogs isolate the background, and mobile
 safe-area/overscroll behavior is built in.
 
+Keyboard events (`keydown`, `keyup`, and `keypress`) from the chat panel stop
+propagating at the widget's keyboard handler, so typing and Escape do not also
+activate host-page shortcuts registered above that handler. Framework root
+keyboard callbacks still run. Events from launchers, external triggers, and
+consumer content outside the panel keep their normal propagation. Capture-phase
+listeners are unaffected, and typing defaults are not cancelled by isolation.
+
 ## Analytics
 
 These DOM listeners apply to the core custom element. For native framework

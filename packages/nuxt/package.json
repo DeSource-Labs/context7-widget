@@ -1,6 +1,6 @@
 {
   "name": "@desource/context7-widget-nuxt",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Nuxt 3 and Nuxt 4 module for the native Vue Context7 documentation chat widget.",
   "keywords": [
     "context7",
@@ -79,6 +79,7 @@
     "@nuxt/test-utils": "^4.3.2",
     "nuxt": "^4.5.2",
     "typescript": "~5.9.3",
-    "vue": "^3.5.42"
+    "vitest": "^5.0.2",
+    "vue": "^3.5.43"
   }
 }

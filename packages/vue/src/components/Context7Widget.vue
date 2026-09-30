@@ -20,6 +20,8 @@
     :theme="resolvedConfig.theme"
     :widget-id="resolvedConfig.widgetId"
     @keydown="onKeyDown"
+    @keyup="stopPanelKeyPropagation"
+    @keypress="stopPanelKeyPropagation"
   >
     <div class="c7-backdrop" data-c7-backdrop part="backdrop" aria-hidden="true" @click="onBackdropClick" />
 
@@ -761,7 +763,12 @@ const onDocumentPointerDown = (event: Event) => {
   close();
 };
 
+const stopPanelKeyPropagation = (event: KeyboardEvent) => {
+  if (panel.value?.contains(event.target as Node)) event.stopPropagation();
+};
+
 const onKeyDown = (event: KeyboardEvent) => {
+  stopPanelKeyPropagation(event);
   if (event.key === 'Escape' && isOpen.value) {
     event.preventDefault();
     close();

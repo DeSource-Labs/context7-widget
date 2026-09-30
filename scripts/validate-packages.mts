@@ -11,10 +11,15 @@ interface PackageJson {
 const workspaceRoot = process.cwd();
 const executable = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const packages = await readCoordinatedPublicPackages(workspaceRoot);
+const packageManifests = await Promise.all(
+  packages.map(async (packageInfo) => ({
+    packageInfo,
+    packageJson: JSON.parse(await readFile(packageInfo.packageJsonPath, 'utf8')) as PackageJson
+  }))
+);
 
-for (const packageInfo of packages) {
+for (const { packageInfo, packageJson } of packageManifests) {
   const packageDirectory = path.join('packages', packageInfo.directory);
-  const packageJson = JSON.parse(await readFile(packageInfo.packageJsonPath, 'utf8')) as PackageJson;
   const attwArguments = ['exec', 'attw', '--pack', packageDirectory, '--profile', 'esm-only'];
 
   if (packageJson.exports && Object.hasOwn(packageJson.exports, './styles.css')) {

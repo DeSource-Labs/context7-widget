@@ -21,6 +21,32 @@ const CHAT_ENDPOINT = 'https://context7.com/api/v2/widget/chat';
 })
 class ProjectedTriggerHost {}
 
+@Component({
+  standalone: true,
+  imports: [Context7Widget],
+  template: `
+    <div
+      (keydown)="parentKeys.push($event.type)"
+      (keyup)="parentKeys.push($event.type)"
+      (keypress)="parentKeys.push($event.type)"
+    >
+      <context7-widget
+        [defaultOpen]="true"
+        library="/owner/repo"
+        (keydown)="rootKeys.push($event.type)"
+        (keyup)="rootKeys.push($event.type)"
+        (keypress)="rootKeys.push($event.type)"
+      >
+        <button data-testid="consumer-child">Host action</button>
+      </context7-widget>
+    </div>
+  `
+})
+class KeyboardHost {
+  readonly parentKeys: string[] = [];
+  readonly rootKeys: string[] = [];
+}
+
 describe('Context7Widget', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [provideZonelessChangeDetection()] });
@@ -35,6 +61,29 @@ describe('Context7Widget', () => {
     document.body.replaceChildren();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  it('preserves host keyboard listeners and bubbling from projected content', async () => {
+    const fixture = TestBed.createComponent(KeyboardHost);
+    document.body.append(fixture.nativeElement);
+    await fixture.whenStable();
+    for (const selector of ['.c7-input', '[data-testid="consumer-child"]']) {
+      const target = (fixture.nativeElement as HTMLElement).querySelector(selector)!;
+      for (const type of ['keydown', 'keyup', 'keypress']) {
+        target.dispatchEvent(new KeyboardEvent(type, { bubbles: true, charCode: 47, key: '/' }));
+      }
+    }
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.rootKeys).toEqual([
+      'keydown',
+      'keyup',
+      'keypress',
+      'keydown',
+      'keyup',
+      'keypress'
+    ]);
+    expect(fixture.componentInstance.parentKeys).toEqual(['keydown', 'keyup', 'keypress']);
   });
 
   it('renders native Angular DOM, public attributes, branding, and ready detail', async () => {

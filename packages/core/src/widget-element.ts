@@ -194,7 +194,12 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.scheduleAnchorUpdate();
   };
 
+  private readonly stopPanelKeyPropagation = (event: Event) => {
+    if (this.panel.contains(event.target as Node)) event.stopPropagation();
+  };
+
   private readonly onKeyDown = (event: KeyboardEvent) => {
+    this.stopPanelKeyPropagation(event);
     if (event.key === 'Escape' && this.isOpen()) {
       event.preventDefault();
       this.close();
@@ -524,6 +529,8 @@ export class Context7WidgetElement extends BaseHTMLElement {
     this.messagesElement.addEventListener('click', this.onDelegatedCopyClick);
     this.messagesElement.addEventListener('scroll', this.onScroll);
     this.root.addEventListener('keydown', this.onKeyDown as (event: Event) => void);
+    this.root.addEventListener('keyup', this.stopPanelKeyPropagation);
+    this.root.addEventListener('keypress', this.stopPanelKeyPropagation);
   }
 
   private syncConfig(): void {

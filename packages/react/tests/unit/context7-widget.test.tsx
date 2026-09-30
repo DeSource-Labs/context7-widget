@@ -124,6 +124,42 @@ describe('@desource/context7-widget-react', () => {
     expect(onKeyDown).toHaveBeenCalledOnce();
   });
 
+  it('preserves root keyboard callbacks and bubbling from consumer children', async () => {
+    const onRootKey = vi.fn();
+    const onParentKey = vi.fn();
+    const container = mount(
+      <div onKeyDown={onParentKey} onKeyUp={onParentKey} onKeyPress={onParentKey}>
+        <Context7Widget
+          defaultOpen
+          library="/owner/repo"
+          rootProps={{ onKeyDown: onRootKey, onKeyUp: onRootKey, onKeyPress: onRootKey }}
+        >
+          <button data-testid="consumer-child">Host action</button>
+        </Context7Widget>
+      </div>
+    );
+    await flush();
+
+    for (const selector of ['.c7-input', '[data-testid="consumer-child"]']) {
+      const target = required(container.querySelector(selector), selector);
+      for (const type of ['keydown', 'keyup', 'keypress']) {
+        await act(async () => {
+          target.dispatchEvent(new KeyboardEvent(type, { bubbles: true, charCode: 47, key: '/' }));
+        });
+      }
+    }
+
+    expect(onRootKey.mock.calls.map(([event]) => event.type)).toEqual([
+      'keydown',
+      'keyup',
+      'keypress',
+      'keydown',
+      'keyup',
+      'keypress'
+    ]);
+    expect(onParentKey.mock.calls.map(([event]) => event.type)).toEqual(['keydown', 'keyup', 'keypress']);
+  });
+
   it('memoizes completed Markdown until a rendering input changes', async () => {
     let setCopyCode: ((value: string) => void) | null = null;
     let setLibrary: ((value: string) => void) | null = null;
@@ -416,6 +452,35 @@ describe('@desource/context7-widget-react', () => {
     expect(container.querySelector('.context7-widget')?.hasAttribute('open')).toBe(false);
   });
 
+  it('renders the localized fallback when a stream error has no message', async () => {
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.error(new Error(''));
+      }
+    });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(stream)));
+    const controllerRef: { current: Context7WidgetHandle | null } = { current: null };
+    const container = mount(
+      <Context7Widget
+        ref={(value) => {
+          controllerRef.current = value;
+        }}
+        labels={{ errorFallback: 'Documentation is temporarily unavailable.' }}
+        library="/owner/repo"
+      />
+    );
+    const controller = required(controllerRef.current, 'Expected a React widget controller.');
+
+    await act(async () => {
+      expect(await controller.send('Find the documentation')).toMatchObject({ error: '', status: 'error' });
+    });
+
+    expect(container.querySelector('.c7-message--error')?.textContent).toContain(
+      'Documentation is temporarily unavailable.'
+    );
+    expect(controller.isBusy()).toBe(false);
+  });
+
   it('handles composition, keyboard submission, cancellation, and modal focus wrapping', async () => {
     const deferred = createDeferredSseStream();
     const fetchMock = vi.fn(async () => new Response(deferred.stream));
@@ -463,6 +528,15 @@ describe('@desource/context7-widget-react', () => {
     });
     expect(submitEvent.defaultPrevented).toBe(true);
     await vi.waitFor(() => expect(controller.isBusy()).toBe(true));
+
+    const stop = required(container.querySelector<HTMLButtonElement>('.c7-send'), 'Expected the Stop control.');
+    stop.focus();
+    await act(async () => {
+      await controller.retry();
+    });
+    expect(controller.isBusy()).toBe(true);
+    expect(document.activeElement).toBe(stop);
+    expect(fetchMock).toHaveBeenCalledOnce();
 
     await act(async () => container.querySelector<HTMLButtonElement>('.c7-send')?.click());
     await vi.waitFor(() => expect(controller.isBusy()).toBe(false));
@@ -1028,6 +1102,33 @@ describe('@desource/context7-widget-react', () => {
     await act(async () => setVisible?.(false));
     await new Promise<void>((resolve) => queueMicrotask(resolve));
     expect(secondTarget.querySelector('.context7-widget-programmatic-root')).toBeNull();
+  });
+
+  it('does not recreate an owned widget after unmounting before a queued prop update', async () => {
+    const controlsRef: { current: ReturnType<typeof useContext7Widget> | null } = { current: null };
+    let setPreset: ((value: 'default' | 'glass') => void) | null = null;
+
+    function Harness() {
+      const [preset, updatePreset] = useState<'default' | 'glass'>('default');
+      setPreset = updatePreset;
+      controlsRef.current = useContext7Widget({ library: '/owner/repo', preset });
+      return null;
+    }
+
+    mount(<Harness />);
+    const controls = required(controlsRef.current, 'Expected hook controls.');
+    await act(async () => {
+      controls.mount();
+    });
+    expect(document.querySelector('.context7-widget-programmatic-root')).not.toBeNull();
+
+    act(() => setPreset?.('glass'));
+    act(() => controls.unmount());
+    await flush();
+
+    expect(document.querySelector('.context7-widget-programmatic-root')).toBeNull();
+    expect(controlsRef.current?.widget).toBeNull();
+    expect(controlsRef.current?.isOpen).toBe(false);
   });
 
   it('cancels a queued auto-mount when the hook owner unmounts first', async () => {

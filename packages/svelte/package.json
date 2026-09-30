@@ -1,6 +1,6 @@
 {
   "name": "@desource/context7-widget-svelte",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Svelte 5 component and reactive controller for the customizable Context7 documentation chat widget.",
   "keywords": [
     "context7",
@@ -73,9 +73,9 @@
   },
   "devDependencies": {
     "@sveltejs/package": "^2.5.8",
-    "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@testing-library/svelte": "^5.4.2",
-    "svelte": "^5.57.0",
+    "svelte": "^5.57.1",
     "svelte-check": "^4.7.6"
   }
 }
