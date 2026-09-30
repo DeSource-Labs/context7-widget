@@ -4,19 +4,21 @@ import path from 'node:path';
 const packageEntries = await readdir('packages', { withFileTypes: true });
 let formattedCount = 0;
 
-for (const entry of packageEntries) {
-  if (!entry.isDirectory()) continue;
+await Promise.all(
+  packageEntries.map(async (entry) => {
+    if (!entry.isDirectory()) return;
 
-  const changelogPath = path.join('packages', entry.name, 'CHANGELOG.md');
-  const original = await readOptionalFile(changelogPath);
-  if (original === null) continue;
+    const changelogPath = path.join('packages', entry.name, 'CHANGELOG.md');
+    const original = await readOptionalFile(changelogPath);
+    if (original === null) return;
 
-  const formatted = formatUpdatedDependenciesSpacing(original);
-  if (formatted === original) continue;
+    const formatted = formatUpdatedDependenciesSpacing(original);
+    if (formatted === original) return;
 
-  await writeFile(changelogPath, formatted);
-  formattedCount += 1;
-}
+    await writeFile(changelogPath, formatted);
+    formattedCount += 1;
+  })
+);
 
 console.log(`Formatted dependency changelog spacing in ${formattedCount} file(s).`);
 
