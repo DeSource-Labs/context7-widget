@@ -131,8 +131,10 @@ changelogs.
 ## Dependency Policy
 
 - Prefer the latest stable release that satisfies every direct peer and toolchain constraint.
-- Keep TypeScript 5.9 at the workspace/Nuxt layer and TypeScript 6.0 inside the Angular package while the current Nuxt
-  module builder and Angular compiler require non-overlapping TypeScript peer ranges.
+- Use TypeScript 6.0 for shared tooling and Angular: the Angular compiler requires `>=6.0 <6.1`, and
+  `@typescript-eslint` requires `<6.1`. Keep TypeScript 5.9 inside the Nuxt package because `@nuxt/module-builder`
+  requires `^5.9.3`. Resolve these peers from each package with `resolvePeersFromWorkspaceRoot: false`.
+- Declare Vitest directly in the Nuxt package so `@nuxt/test-utils` and the test runner resolve the same version.
 - Run `pnpm update -r --latest`, `pnpm check:peers`, and `pnpm audit:prod` after changing manifests.
 - Keep a dependency below `latest` only when a named consumer cannot support the newer release. Document that reason
   next to the constraint or in the change that introduces it.
