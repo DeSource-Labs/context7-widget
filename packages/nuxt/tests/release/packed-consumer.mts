@@ -45,9 +45,11 @@ try {
     vue: await packPackage(PACKAGE_NAMES.vue)
   };
 
-  for (const matrixEntry of PACKAGE_MATRIX) {
+  // Keep full consumer builds sequential to avoid competing for memory.
+  await PACKAGE_MATRIX.reduce(async (previous, matrixEntry) => {
+    await previous;
     await verifyConsumer(matrixEntry, tarballs, rootManifest.packageManager);
-  }
+  }, Promise.resolve());
 
   console.info(`Packed Nuxt consumer proof passed for ${PACKAGE_MATRIX.map(({ label }) => label).join(' and ')}.`);
 } finally {
@@ -76,8 +78,10 @@ async function ensureBuiltArtifacts(): Promise<void> {
     ]
   ]);
 
-  for (const [packageName, artifacts] of packageArtifacts) {
-    if ((await findMissingArtifacts(artifacts)).length === 0) continue;
+  // Build core before the Vue and Nuxt packages that consume its artifacts.
+  await [...packageArtifacts].reduce(async (previous, [packageName, artifacts]) => {
+    await previous;
+    if ((await findMissingArtifacts(artifacts)).length === 0) return;
 
     await run('pnpm', ['--filter', packageName, 'build'], {
       cwd: repositoryRoot,
@@ -89,21 +93,21 @@ async function ensureBuiltArtifacts(): Promise<void> {
     if (missing.length > 0) {
       throw new Error(`${packageName} build did not create required publish artifacts: ${missing.join(', ')}`);
     }
-  }
+  }, Promise.resolve());
 }
 
 async function findMissingArtifacts(artifacts: readonly string[]): Promise<string[]> {
-  const missing: string[] = [];
-
-  for (const artifact of artifacts) {
-    try {
-      await access(join(repositoryRoot, artifact));
-    } catch {
-      missing.push(artifact);
-    }
-  }
-
-  return missing;
+  const checked = await Promise.all(
+    artifacts.map(async (artifact) => {
+      try {
+        await access(join(repositoryRoot, artifact));
+        return null;
+      } catch {
+        return artifact;
+      }
+    })
+  );
+  return checked.filter((artifact) => artifact !== null);
 }
 
 async function packPackage(packageName: string): Promise<string> {
@@ -359,11 +363,16 @@ async function assertBrowserHydration(serverUrl: string): Promise<void> {
   }
 }
 
-async function fetchWhenReady(url: string, child: ReturnType<typeof spawn>, output: string[]): Promise<string> {
+function fetchWhenReady(url: string, child: ReturnType<typeof spawn>, output: string[]): Promise<string> {
   const deadline = Date.now() + 90_000;
   let lastError = 'server did not respond';
 
-  while (Date.now() < deadline) {
+  return poll();
+
+  async function poll(): Promise<string> {
+    if (Date.now() >= deadline) {
+      throw new Error(`Production server readiness timed out: ${lastError}.\n${trimOutput(output.join(''))}`);
+    }
     if (child.exitCode !== null || child.signalCode !== null) {
       throw new Error(`Production server exited before readiness.\n${trimOutput(output.join(''))}`);
     }
@@ -377,12 +386,11 @@ async function fetchWhenReady(url: string, child: ReturnType<typeof spawn>, outp
     }
 
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 200));
+    return poll();
   }
-
-  throw new Error(`Production server readiness timed out: ${lastError}.\n${trimOutput(output.join(''))}`);
 }
 
-async function reservePort(): Promise<number> {
+function reservePort(): Promise<number> {
   return new Promise<number>((resolvePort, reject) => {
     const server = createServer();
     server.once('error', reject);

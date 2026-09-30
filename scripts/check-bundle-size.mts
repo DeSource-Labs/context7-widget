@@ -225,47 +225,53 @@ if (!existsSync(kitDeclarationsUrl)) {
   }
 }
 
-for (const budget of consumerBudgets) {
-  try {
-    const output = await buildConsumer(budget);
-    const outputText = new TextDecoder().decode(output);
-    const retainedMarker = budget.forbiddenMarkers?.find((marker) => outputText.includes(marker));
-    const gzipBytes = gzipSync(output, { level: 9 }).byteLength;
-    const passed = !retainedMarker && gzipBytes <= budget.maxGzipBytes;
+await Promise.all(
+  consumerBudgets.map(async (budget) => {
+    try {
+      const output = await buildConsumer(budget);
+      const outputText = new TextDecoder().decode(output);
+      const retainedMarker = budget.forbiddenMarkers?.find((marker) => outputText.includes(marker));
+      const gzipBytes = gzipSync(output, { level: 9 }).byteLength;
+      const passed = !retainedMarker && gzipBytes <= budget.maxGzipBytes;
 
-    console.log(
-      `${passed ? 'PASS' : 'FAIL'} ${budget.name}: ${formatKilobytes(gzipBytes)} gzip / ${formatKilobytes(budget.maxGzipBytes)} budget`
-    );
-    if (retainedMarker) {
-      console.error(`${budget.name} unexpectedly retained "${retainedMarker}".`);
+      console.log(
+        `${passed ? 'PASS' : 'FAIL'} ${budget.name}: ${formatKilobytes(gzipBytes)} gzip / ${formatKilobytes(budget.maxGzipBytes)} budget`
+      );
+      if (retainedMarker) {
+        console.error(`${budget.name} unexpectedly retained "${retainedMarker}".`);
+      }
+      if (!passed) failed = true;
+    } catch (error) {
+      console.error(`FAIL ${budget.name} could not be bundled.`, error);
+      failed = true;
     }
-    if (!passed) failed = true;
-  } catch (error) {
-    console.error(`FAIL ${budget.name} could not be bundled.`, error);
-    failed = true;
-  }
-}
+  })
+);
 
 for (const budget of svelteConsumerBudgets) {
   checkSvelteConsumer(budget);
 }
 
-for (const [name, url] of [
-  ['core root', new URL('../packages/core/dist/index.js', import.meta.url)],
-  ['core /core', new URL('../packages/core/dist/core.js', import.meta.url)],
-  ['core /kit', new URL('../packages/core/dist/kit.js', import.meta.url)],
-  ['Nuxt root', new URL('../packages/nuxt/dist/module.mjs', import.meta.url)],
-  ['Vue root', new URL('../packages/vue/dist/index.js', import.meta.url)],
-  ['React root', new URL('../packages/react/dist/index.js', import.meta.url)]
-] as const) {
-  try {
-    await import(url.href);
-    console.log(`PASS ${name} SSR import`);
-  } catch (error) {
-    console.error(`FAIL ${name} SSR import`, error);
-    failed = true;
-  }
-}
+await Promise.all(
+  (
+    [
+      ['core root', new URL('../packages/core/dist/index.js', import.meta.url)],
+      ['core /core', new URL('../packages/core/dist/core.js', import.meta.url)],
+      ['core /kit', new URL('../packages/core/dist/kit.js', import.meta.url)],
+      ['Nuxt root', new URL('../packages/nuxt/dist/module.mjs', import.meta.url)],
+      ['Vue root', new URL('../packages/vue/dist/index.js', import.meta.url)],
+      ['React root', new URL('../packages/react/dist/index.js', import.meta.url)]
+    ] as const
+  ).map(async ([name, url]) => {
+    try {
+      await import(url.href);
+      console.log(`PASS ${name} SSR import`);
+    } catch (error) {
+      console.error(`FAIL ${name} SSR import`, error);
+      failed = true;
+    }
+  })
+);
 
 if (failed) {
   throw new Error('One or more bundle, tree-shaking, declaration, or SSR checks failed.');
