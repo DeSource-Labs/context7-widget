@@ -204,7 +204,7 @@ export function testContext7WidgetDemo(containerSelector: string, selectors: Con
       await expect(panel(widget)).toBeVisible();
 
       await expect
-        .poll(async () =>
+        .poll(() =>
           widget.evaluate((element) => {
             const backdrop =
               element.shadowRoot?.querySelector('[part~="backdrop"]') ?? element.querySelector('[part~="backdrop"]');
@@ -309,7 +309,7 @@ async function mockContext7Chat(page: Page): Promise<void> {
   });
 }
 
-async function copiedValues(page: Page): Promise<string[]> {
+function copiedValues(page: Page): Promise<string[]> {
   return page.evaluate(() => [...((window as Window & { __context7Copies?: string[] }).__context7Copies ?? [])]);
 }
 
