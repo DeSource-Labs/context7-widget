@@ -12,7 +12,7 @@ By participating, you agree to follow the [Code of Conduct](./CODE_OF_CONDUCT.md
 Requirements:
 
 - Node.js >= 22.22.3 (Node.js 26 is used in GitHub Actions)
-- pnpm 12.3.4
+- pnpm 12.8.1
 
 ```bash
 pnpm install
