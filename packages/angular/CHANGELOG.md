@@ -1,5 +1,20 @@
 # @desource/context7-widget-angular
 
+## 0.2.2
+
+### Patch Changes
+
+- Core | Angular | Nuxt | React | Svelte | Vue Upgrades:
+  - Updates framework, build, linting, and testing dependencies, including pnpm 12.10.1, while preserving compatibility, security, and release-age restrictions.
+  - Updates CI dependencies.
+  - Removes npm tarball checks from `size:check`, preventing documentation changes from affecting bundle-size validation. Preserves all bundle-size, tree-shaking, stylesheet, declaration-boundary, and SSR checks with unchanged limits.
+  - Adds Svelte regression coverage for controlling the default registered widget without an explicit ID, including opening, closing, avoiding duplicate widgets, and preserving the component when its linked controller unmounts.
+  - Adds Context7 and DeepWiki badges with service links and logos to the root and package READMEs.
+  - Updates contributor setup instructions for the new pnpm version and clarifies that dependency releases must satisfy the minimum release-age window.
+
+- Updated dependencies []:
+  - @desource/context7-widget@0.2.2
+
 ## 0.2.1
 
 ### Patch Changes
