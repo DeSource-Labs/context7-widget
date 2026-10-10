@@ -10,9 +10,6 @@ overrides:
   '@bomb.sh/tab': ^0.0.22
   brace-expansion: ^5.0.12
   glob: ^13.0.6
-  # Fix simple-git advisories while Nuxt DevTools still requires vulnerable v3.
-  # The companion patch updates DevTools to the v4 named export.
-  '@nuxt/devtools@3.4.2>simple-git': ^4.0.2
   # Replace retired native bindings used by ng-packagr's declaration bundler.
   # Pin the versions tested with Angular's declarationMap: false. Enabling maps
   # requires an upstream sourceMaps-to-sourceMap fix or removing these overrides.
