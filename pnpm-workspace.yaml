@@ -10,6 +10,15 @@ overrides:
   '@bomb.sh/tab': ^0.0.22
   brace-expansion: ^5.0.12
   glob: ^13.0.6
+  # Fix simple-git advisories while Nuxt DevTools still requires vulnerable v3.
+  # The companion patch updates DevTools to the v4 named export.
+  '@nuxt/devtools@3.4.2>simple-git': ^4.0.2
+  # Replace retired native bindings used by ng-packagr's declaration bundler.
+  # Pin the versions tested with Angular's declarationMap: false. Enabling maps
+  # requires an upstream sourceMaps-to-sourceMap fix or removing these overrides.
+  # Recheck and remove these overrides when rolldown-plugin-dts updates Yuku.
+  'rolldown-plugin-dts@0.28.6>yuku-codegen': 0.18.0
+  'rolldown-plugin-dts@0.28.6>yuku-parser': 0.18.0
 
 # @nuxt/module-builder 1.0.3 requires vue-sfc-transformer 0.2.x while its
 # bundled mkdist 2.4.1 still declares the compatible 0.1.x line.

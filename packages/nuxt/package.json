@@ -67,8 +67,8 @@
   "dependencies": {
     "@desource/context7-widget": "workspace:*",
     "@desource/context7-widget-vue": "workspace:*",
-    "@nuxt/kit": "^4.5.2",
-    "@nuxt/schema": "^4.5.2"
+    "@nuxt/kit": "^4.6.0",
+    "@nuxt/schema": "^4.6.0"
   },
   "peerDependencies": {
     "nuxt": "^3.17.0 || ^4.0.0",
@@ -76,10 +76,10 @@
   },
   "devDependencies": {
     "@nuxt/module-builder": "^1.0.3",
-    "@nuxt/test-utils": "^4.3.2",
-    "nuxt": "^4.5.2",
+    "@nuxt/test-utils": "^4.3.3",
+    "nuxt": "^4.6.0",
     "typescript": "~5.9.3",
-    "vitest": "^5.0.2",
+    "vitest": "^5.0.3",
     "vue": "^3.5.43"
   }
 }
