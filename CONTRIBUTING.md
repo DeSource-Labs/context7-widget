@@ -12,7 +12,7 @@ By participating, you agree to follow the [Code of Conduct](./CODE_OF_CONDUCT.md
 Requirements:
 
 - Node.js >= 22.22.3 (Node.js 26 is used in GitHub Actions)
-- pnpm 12.8.1
+- pnpm 12.10.1
 
 ```bash
 pnpm install
@@ -137,7 +137,8 @@ changelogs.
 - Declare Vitest directly in the Nuxt package so `@nuxt/test-utils` and the test runner resolve the same version.
 - Run `pnpm update -r --latest`, `pnpm check:peers`, and `pnpm audit:prod` after changing manifests.
 - Keep a dependency below `latest` only when a named consumer cannot support the newer release. Document that reason
-  next to the constraint or in the change that introduces it.
+  next to the constraint or in the change that introduces it. Releases inside pnpm's minimum release age window must
+  also wait until they are eligible.
 - Do not add `minimumReleaseAgeExclude` entries without a documented security or compatibility reason.
 - Treat install scripts as denied by default. Add an `allowBuilds` entry only when a verified build or runtime path
   needs it.
