@@ -233,6 +233,24 @@ describe('@desource/context7-widget-svelte', () => {
     expect(linked.element).toBeNull();
   });
 
+  it('controls the default registered widget without an explicit widget id', () => {
+    const result = render(Context7Widget, { library: '/owner/repo' });
+    flushSync();
+    const linked = createContext7Widget();
+
+    linked.open();
+    flushSync();
+    expect(linked.element).toBe(result.component.element());
+    expect(result.component.isOpen()).toBe(true);
+    expect(document.querySelectorAll('.context7-widget')).toHaveLength(1);
+
+    linked.close();
+    flushSync();
+    expect(result.component.isOpen()).toBe(false);
+    linked.unmount();
+    expect(result.component.element()?.isConnected).toBe(true);
+  });
+
   it('keeps exported controls safe after component unmount', async () => {
     const result = render(Context7Widget, { library: '/owner/repo' });
     const component = result.component;
