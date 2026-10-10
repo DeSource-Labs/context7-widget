@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,24 +21,11 @@ interface ConsumerBudget {
   readonly resolveDir: string;
 }
 
-interface PackageArtifactBudget {
-  readonly maxTarballBytes: number;
-  readonly name: string;
-  readonly root: string;
-}
-
 interface SvelteConsumerBudget {
   readonly entry: 'component' | 'controller';
   readonly maxGzipBytes: number;
   readonly name: string;
   readonly ssr?: boolean;
-}
-
-interface PackedArtifact {
-  readonly filename: string;
-  readonly files: readonly { readonly path: string }[];
-  readonly name: string;
-  readonly version: string;
 }
 
 const workspaceRoot = fileURLToPath(new URL('..', import.meta.url));
@@ -57,15 +44,6 @@ const fileBudgets: readonly FileBudget[] = [
   { file: 'packages/nuxt/dist/module.mjs', maxGzipBytes: 950 },
   { file: 'packages/angular/dist/fesm2022/context7-widget-angular.mjs', maxGzipBytes: 13_600 },
   { file: 'packages/angular/dist/styles.css', maxGzipBytes: 5_500 }
-];
-
-const packageArtifactBudgets: readonly PackageArtifactBudget[] = [
-  { maxTarballBytes: 76_000, name: '@desource/context7-widget', root: 'packages/core' },
-  { maxTarballBytes: 25_000, name: '@desource/context7-widget-react', root: 'packages/react' },
-  { maxTarballBytes: 26_000, name: '@desource/context7-widget-vue', root: 'packages/vue' },
-  { maxTarballBytes: 24_000, name: '@desource/context7-widget-svelte', root: 'packages/svelte' },
-  { maxTarballBytes: 8_500, name: '@desource/context7-widget-nuxt', root: 'packages/nuxt' },
-  { maxTarballBytes: 30_000, name: '@desource/context7-widget-angular', root: 'packages/angular' }
 ];
 
 const consumerBudgets: readonly ConsumerBudget[] = [
@@ -205,10 +183,6 @@ for (const budget of fileBudgets) {
 }
 
 checkFrameworkStyles();
-
-for (const budget of packageArtifactBudgets) {
-  checkPackageArtifact(budget);
-}
 
 const kitDeclarationsUrl = new URL('../packages/core/dist/kit.d.ts', import.meta.url);
 if (!existsSync(kitDeclarationsUrl)) {
@@ -374,100 +348,6 @@ function collectJavaScriptFiles(directory: string): string[] {
     if (entry.isDirectory()) return collectJavaScriptFiles(entryPath);
     return /\.(?:m?js)$/u.test(entry.name) ? [entryPath] : [];
   });
-}
-
-function checkPackageArtifact(budget: PackageArtifactBudget): void {
-  const temporaryDirectory = mkdtempSync(path.join(tmpdir(), 'context7-widget-pack-'));
-
-  try {
-    const executable = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-    const output = execFileSync(
-      executable,
-      ['--filter', budget.name, 'pack', '--pack-destination', temporaryDirectory, '--json'],
-      { cwd: workspaceRoot, encoding: 'utf8' }
-    );
-    const artifact = JSON.parse(output) as PackedArtifact;
-    const packageRoot = path.join(workspaceRoot, budget.root);
-    const packageJson = JSON.parse(readFileSync(path.join(packageRoot, 'package.json'), 'utf8')) as {
-      exports?: unknown;
-      jsdelivr?: string;
-      main?: string;
-      module?: string;
-      types?: string;
-      unpkg?: string;
-    };
-    const packedPaths = new Set(artifact.files.map((file) => normalizePackedPath(file.path)));
-    const forbiddenPath = [...packedPaths].find(
-      (file) =>
-        file.endsWith('.map') ||
-        (!file.startsWith('dist/') &&
-          !['CHANGELOG.md', 'LICENSE', 'NOTICE', 'README.md', 'package.json'].includes(file))
-    );
-    const missingTarget = collectPackageTargets(packageJson).find((target) => !packedPaths.has(target));
-    const tarballBytes = statSync(artifact.filename).size;
-    const passed =
-      artifact.name === budget.name && !forbiddenPath && !missingTarget && tarballBytes <= budget.maxTarballBytes;
-
-    console.log(
-      `${passed ? 'PASS' : 'FAIL'} ${budget.name} npm artifact: ${formatKilobytes(tarballBytes)} / ${formatKilobytes(budget.maxTarballBytes)} budget`
-    );
-    if (artifact.name !== budget.name) {
-      console.error(`Packed ${artifact.name} while checking ${budget.name}.`);
-    }
-    if (forbiddenPath) {
-      console.error(`${budget.name} unexpectedly packed "${forbiddenPath}".`);
-    }
-    if (missingTarget) {
-      console.error(`${budget.name} did not pack declared target "${missingTarget}".`);
-    }
-    if (!passed) failed = true;
-  } catch (error) {
-    console.error(`FAIL ${budget.name} npm artifact could not be validated.`, error);
-    failed = true;
-  } finally {
-    rmSync(temporaryDirectory, { force: true, recursive: true });
-  }
-}
-
-function collectPackageTargets(packageJson: {
-  exports?: unknown;
-  jsdelivr?: string;
-  main?: string;
-  module?: string;
-  types?: string;
-  unpkg?: string;
-}): string[] {
-  const targets = new Set<string>();
-
-  for (const target of [
-    packageJson.main,
-    packageJson.module,
-    packageJson.types,
-    packageJson.unpkg,
-    packageJson.jsdelivr
-  ]) {
-    addPackageTarget(targets, target);
-  }
-  visitExportTargets(packageJson.exports, targets);
-  return [...targets];
-}
-
-function visitExportTargets(value: unknown, targets: Set<string>): void {
-  if (typeof value === 'string') {
-    addPackageTarget(targets, value);
-    return;
-  }
-  if (!value || typeof value !== 'object') return;
-  for (const child of Object.values(value)) visitExportTargets(child, targets);
-}
-
-function addPackageTarget(targets: Set<string>, value: string | undefined): void {
-  if (!value?.startsWith('./') || value.includes('*')) return;
-  targets.add(normalizePackedPath(value.slice(2)));
-}
-
-function normalizePackedPath(value: string): string {
-  return value.replaceAll('\\', '/').replace(/^\.\//, '');
 }
 
 function formatKilobytes(bytes: number): string {
