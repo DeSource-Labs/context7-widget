@@ -1,4 +1,5 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from './fixtures';
 
 type Context7WidgetSelectors = {
   accent: string;
@@ -20,7 +21,7 @@ const CONTEXT7_CHAT_ENDPOINT = 'https://context7.com/api/v2/widget/chat';
 
 export function testContext7WidgetDemo(containerSelector: string, selectors: Context7WidgetSelectors): void {
   test.describe('Context7Widget demo', () => {
-    let browserErrors: string[];
+    let browserErrors: string[] = [];
     let container: Locator;
     let widget: Locator;
 
