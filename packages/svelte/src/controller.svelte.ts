@@ -1,9 +1,9 @@
 import {
   assertBrowser,
+  createContext7WidgetControls,
   callContext7ListenerSafely,
   resolveTarget,
-  type Context7Message,
-  type Context7WidgetSendResult
+  type Context7Message
 } from '@desource/context7-widget/kit';
 import { flushSync, mount as mountSvelte, unmount as unmountSvelte } from 'svelte';
 import Context7Widget from './Context7Widget.svelte';
@@ -125,47 +125,11 @@ export function createContext7Widget(initialOptions: CreateContext7WidgetOptions
     return () => listeners.delete(listener);
   }
 
-  function open(): void {
-    resolveController()?.open();
-    syncState();
-  }
-  function close(): void {
-    resolveController()?.close();
-    syncState();
-  }
-  function toggle(): void {
-    resolveController()?.toggle();
-    syncState();
-  }
-  async function send(message: string): Promise<Context7WidgetSendResult | undefined> {
-    const pending = resolveController()?.send(message);
-    syncState();
-    const result = await pending;
-    syncState();
-    return result;
-  }
-  function cancel(): void {
-    resolveController()?.cancel();
-    syncState();
-  }
-  async function retry(): Promise<Context7WidgetSendResult | undefined> {
-    const pending = resolveController()?.retry();
-    syncState();
-    const result = await pending;
-    syncState();
-    return result;
-  }
-  function reset(): void {
-    resolveController()?.reset();
-    syncState();
-  }
-  function getMessages(): readonly Context7Message[] {
-    return resolveController()?.getMessages() ?? [];
-  }
+  const controls = createContext7WidgetControls(resolveController, syncState);
 
   return {
-    cancel,
-    close,
+    cancel: controls.cancel,
+    close: controls.close,
     get element() {
       return element;
     },
@@ -178,16 +142,16 @@ export function createContext7Widget(initialOptions: CreateContext7WidgetOptions
     get messages() {
       return messages;
     },
-    getMessages,
+    getMessages: controls.getMessages,
     isBusy: () => resolveController()?.isBusy() ?? false,
     isOpen: () => resolveController()?.isOpen() ?? false,
     mount,
-    open,
-    reset,
-    retry,
-    send,
+    open: controls.open,
+    reset: controls.reset,
+    retry: controls.retry,
+    send: controls.send,
     subscribe,
-    toggle,
+    toggle: controls.toggle,
     unmount,
     update
   };

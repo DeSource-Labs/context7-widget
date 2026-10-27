@@ -1,4 +1,4 @@
-import { setElementRect, setElementSize } from '@common/tests/unit/dom';
+import { setElementRect, setElementSize, stubAnimationFrames } from '@common/tests/unit/dom';
 import { createSseStream } from '@common/tests/unit/stream';
 import { cleanup, fireEvent, render } from '@testing-library/svelte';
 import { flushSync, tick } from 'svelte';
@@ -343,16 +343,7 @@ describe('native Svelte widget behavior', () => {
   });
 
   it('observes anchored geometry, coalesces layout frames, and cancels stale closed work', async () => {
-    let nextFrame = 0;
-    const frames = new Map<number, FrameRequestCallback>();
-    const requestFrame = vi.fn((callback: FrameRequestCallback) => {
-      const id = ++nextFrame;
-      frames.set(id, callback);
-      return id;
-    });
-    const cancelFrame = vi.fn((id: number) => frames.delete(id));
-    vi.stubGlobal('requestAnimationFrame', requestFrame);
-    vi.stubGlobal('cancelAnimationFrame', cancelFrame);
+    const { frames, requestFrame, cancelFrame } = stubAnimationFrames();
 
     const observe = vi.fn();
     const disconnect = vi.fn();

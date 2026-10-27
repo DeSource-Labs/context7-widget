@@ -1,30 +1,17 @@
 import react from '@vitejs/plugin-react';
-import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vitest/config';
+import { defineConfig, mergeConfig } from 'vitest/config';
+import { createFrameworkTestConfig } from '../../common/tests/vitest.config.js';
 
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      '@src': fileURLToPath(new URL('./src', import.meta.url)),
-      '@common': fileURLToPath(new URL('../../common', import.meta.url)),
-      '@desource/context7-widget/kit': fileURLToPath(new URL('../core/src/kit.ts', import.meta.url))
+export default mergeConfig(
+  createFrameworkTestConfig(import.meta.url),
+  defineConfig({
+    plugins: [react()],
+    test: {
+      include: ['tests/unit/**/*.{test,spec}.{ts,tsx}'],
+      setupFiles: ['tests/setup.ts'],
+      coverage: {
+        include: ['src/**/*.{ts,tsx}']
+      }
     }
-  },
-  test: {
-    environment: 'jsdom',
-    pool: 'forks',
-    isolate: true,
-    fsModuleCache: true,
-    globals: true,
-    include: ['tests/unit/**/*.{test,spec}.{ts,tsx}'],
-    setupFiles: ['tests/setup.ts'],
-    restoreMocks: true,
-    unstubGlobals: true,
-    coverage: {
-      exclude: ['src/**/*.d.ts'],
-      include: ['src/**/*.{ts,tsx}'],
-      thresholds: { branches: 95, functions: 99, lines: 99, statements: 98 }
-    }
-  }
-});
+  })
+);

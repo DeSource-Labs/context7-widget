@@ -135,59 +135,56 @@ describe('markdown', () => {
     }
   );
 
-  it.each([
-    {
-      language: 'js',
-      code: `'/* text */' /* "comment" */ return 1.5`,
-      tokens: [
-        ['string', "'/* text */'"],
-        ['comment', '/* "comment" */'],
-        ['keyword', 'return'],
-        ['number', '1.5']
-      ]
-    },
-    {
-      language: 'jsonc',
-      code: '{"key": "value", "count": -1.5e+2, "ready": TRUE}',
-      tokens: [
-        ['property', '"key"'],
-        ['string', '"value"'],
-        ['property', '"count"'],
-        ['number', '-1.5e+2'],
-        ['property', '"ready"'],
-        ['keyword', 'TRUE']
-      ]
-    },
-    {
-      language: 'css',
-      code: `.card { content: '/* text */'; margin: 1.5rem; color: #abc; }`,
-      tokens: [
-        ['string', "'/* text */'"],
-        ['number', '1.5rem'],
-        ['comment', '#abc']
-      ]
-    },
-    {
-      language: 'bash',
-      code: 'echo "$HOME # text" $HOME 2\n# comment\necho 3',
-      tokens: [
-        ['string', '"$HOME # text"'],
-        ['variable', '$HOME'],
-        ['number', '2'],
-        ['comment', '# comment'],
-        ['number', '3']
-      ]
-    },
-    {
-      language: 'xml',
-      code: '<!-- <tag> --><tag title="&">text & more</tag>',
-      tokens: [
-        ['comment', '<!-- <tag> -->'],
-        ['keyword', '<tag title="&">'],
-        ['keyword', '</tag>']
-      ]
-    }
-  ])('preserves token precedence and classification in $language code', ({ language, code, tokens }) => {
+  it.each(
+    Object.entries({
+      js: {
+        code: `'/* text */' /* "comment" */ return 1.5`,
+        tokens: [
+          ['string', "'/* text */'"],
+          ['comment', '/* "comment" */'],
+          ['keyword', 'return'],
+          ['number', '1.5']
+        ]
+      },
+      jsonc: {
+        code: '{"key": "value", "count": -1.5e+2, "ready": TRUE}',
+        tokens: [
+          ['property', '"key"'],
+          ['string', '"value"'],
+          ['property', '"count"'],
+          ['number', '-1.5e+2'],
+          ['property', '"ready"'],
+          ['keyword', 'TRUE']
+        ]
+      },
+      css: {
+        code: `.card { content: '/* text */'; margin: 1.5rem; color: #abc; }`,
+        tokens: [
+          ['string', "'/* text */'"],
+          ['number', '1.5rem'],
+          ['comment', '#abc']
+        ]
+      },
+      bash: {
+        code: 'echo "$HOME # text" $HOME 2\n# comment\necho 3',
+        tokens: [
+          ['string', '"$HOME # text"'],
+          ['variable', '$HOME'],
+          ['number', '2'],
+          ['comment', '# comment'],
+          ['number', '3']
+        ]
+      },
+      xml: {
+        code: '<!-- <tag> --><tag title="&">text & more</tag>',
+        tokens: [
+          ['comment', '<!-- <tag> -->'],
+          ['keyword', '<tag title="&">'],
+          ['keyword', '</tag>']
+        ]
+      }
+    })
+  )('preserves token precedence and classification in %s code', (language, { code, tokens }) => {
     const container = document.createElement('div');
     container.innerHTML = renderMarkdown(`\`\`\`${language}\n${code}\n\`\`\``);
 
@@ -341,14 +338,16 @@ describe('markdown', () => {
       ].join('\n')
     );
 
-    expect(html).toContain('<h3>Heading</h3>');
-    expect(html).toContain('<hr>');
-    expect(html).toContain('<strong>strong</strong>');
-    expect(html).toContain('<em>emphasis</em>');
-    expect(html).toContain('<del>removed</del>');
-    expect(html).toContain('<ol>');
-    expect(html).toContain('<ul><li>Nested with tab</li></ul>');
-    expect(html).toContain('type="checkbox"');
+    expectHtmlContains(html, [
+      '<h3>Heading</h3>',
+      '<hr>',
+      '<strong>strong</strong>',
+      '<em>emphasis</em>',
+      '<del>removed</del>',
+      '<ol>',
+      '<ul><li>Nested with tab</li></ul>',
+      'type="checkbox"'
+    ]);
     expect(html).not.toContain('type="checkbox" checked');
   });
 
@@ -391,16 +390,18 @@ describe('markdown', () => {
       ].join('\n')
     );
 
-    expect(html).toContain('data-language="markup"');
-    expect(html).toContain('c7-token--comment');
-    expect(html).toContain('c7-token--keyword');
-    expect(html).toContain('data-language="css"');
-    expect(html).toContain('c7-token--number');
-    expect(html).toContain('data-language="shell"');
-    expect(html).toContain('c7-token--variable');
-    expect(html).toContain('c7-token--property');
-    expect(html).toContain('c7-token--string');
-    expect(html).toContain('&lt;raw&gt;');
+    expectHtmlContains(html, [
+      'data-language="markup"',
+      'c7-token--comment',
+      'c7-token--keyword',
+      'data-language="css"',
+      'c7-token--number',
+      'data-language="shell"',
+      'c7-token--variable',
+      'c7-token--property',
+      'c7-token--string',
+      '&lt;raw&gt;'
+    ]);
   });
 
   it('normalizes safe link bases and falls back for invalid or unsafe values', () => {
@@ -459,3 +460,7 @@ describe('markdown', () => {
     expect(trimLibraryPath(` /${path}/ `)).toBe(path);
   });
 });
+
+function expectHtmlContains(html: string, fragments: readonly string[]): void {
+  for (const fragment of fragments) expect(html).toContain(fragment);
+}

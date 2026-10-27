@@ -1132,19 +1132,7 @@ describe('@desource/context7-widget-vue', () => {
   });
 
   it('safely ignores a queued input resize when the widget unmounts during send', async () => {
-    let signal: AbortSignal | undefined;
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(
-        async (_url, init?: RequestInit) =>
-          await new Promise<Response>((_resolve, reject) => {
-            signal = init?.signal ?? undefined;
-            signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), {
-              once: true
-            });
-          })
-      )
-    );
+    const request = stubPendingFetch();
     const widgetRef = ref<Context7WidgetExpose | null>(null);
     const root = document.createElement('div');
     document.body.append(root);
@@ -1164,7 +1152,7 @@ describe('@desource/context7-widget-vue', () => {
     mountedApps.splice(mountedApps.indexOf(app), 1);
 
     await pending;
-    expect(signal?.aborted).toBe(true);
+    expect(request.signal?.aborted).toBe(true);
     expect(root.childElementCount).toBe(0);
   });
 
@@ -1335,19 +1323,7 @@ describe('@desource/context7-widget-vue', () => {
     );
     await nextTick();
 
-    const messages = root.querySelector<HTMLElement>('.c7-messages')!;
-    const scrollWrites: number[] = [];
-    Object.defineProperties(messages, {
-      clientHeight: { configurable: true, value: 200 },
-      scrollHeight: { configurable: true, value: 600 },
-      scrollTop: {
-        configurable: true,
-        get: () => scrollWrites.at(-1) ?? 400,
-        set(value: number) {
-          scrollWrites.push(value);
-        }
-      }
-    });
+    const scrollWrites = trackMessageScroll(root);
 
     await widgetRef.value!.send('Search three times');
     await vi.waitFor(() => expect(root.querySelectorAll('.c7-tool-call')).toHaveLength(3));
@@ -1456,19 +1432,7 @@ describe('@desource/context7-widget-vue', () => {
     );
     await nextTick();
 
-    const messages = root.querySelector<HTMLElement>('.c7-messages')!;
-    const scrollWrites: number[] = [];
-    Object.defineProperties(messages, {
-      clientHeight: { configurable: true, value: 200 },
-      scrollHeight: { configurable: true, value: 600 },
-      scrollTop: {
-        configurable: true,
-        get: () => scrollWrites.at(-1) ?? 400,
-        set(value: number) {
-          scrollWrites.push(value);
-        }
-      }
-    });
+    const scrollWrites = trackMessageScroll(root);
     expect(frames).toHaveLength(1);
 
     widgetRef.value!.reset();
@@ -1483,19 +1447,7 @@ describe('@desource/context7-widget-vue', () => {
   });
 
   it('does not execute a queued bottom snap after the reader moves away', async () => {
-    let signal: AbortSignal | undefined;
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(
-        async (_url, init?: RequestInit) =>
-          await new Promise<Response>((_resolve, reject) => {
-            signal = init?.signal ?? undefined;
-            signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), {
-              once: true
-            });
-          })
-      )
-    );
+    const request = stubPendingFetch();
     const widgetRef = ref<Context7WidgetExpose | null>(null);
     const root = mount(() =>
       h(Context7Widget, {
@@ -1532,7 +1484,7 @@ describe('@desource/context7-widget-vue', () => {
 
     widgetRef.value!.cancel();
     await pending;
-    expect(signal?.aborted).toBe(true);
+    expect(request.signal?.aborted).toBe(true);
   });
 
   it('delegates explicit code copies and ignores non-element or detached-code clicks', async () => {
@@ -1728,4 +1680,42 @@ function mount(renderWidget: () => ReturnType<typeof h>): HTMLElement {
   mountedApps.push(app);
   app.mount(root);
   return root;
+}
+
+function stubPendingFetch() {
+  let signal: AbortSignal | undefined;
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(
+      async (_url, init?: RequestInit) =>
+        await new Promise<Response>((_resolve, reject) => {
+          signal = init?.signal ?? undefined;
+          signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), {
+            once: true
+          });
+        })
+    )
+  );
+  return {
+    get signal() {
+      return signal;
+    }
+  };
+}
+
+function trackMessageScroll(root: HTMLElement): number[] {
+  const messages = root.querySelector<HTMLElement>('.c7-messages')!;
+  const scrollWrites: number[] = [];
+  Object.defineProperties(messages, {
+    clientHeight: { configurable: true, value: 200 },
+    scrollHeight: { configurable: true, value: 600 },
+    scrollTop: {
+      configurable: true,
+      get: () => scrollWrites.at(-1) ?? 400,
+      set(value: number) {
+        scrollWrites.push(value);
+      }
+    }
+  });
+  return scrollWrites;
 }
