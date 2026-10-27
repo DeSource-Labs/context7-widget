@@ -1,5 +1,5 @@
 import { createSseStream } from '@common/tests/unit/stream';
-import { setElementRect, setElementSize } from '@common/tests/unit/dom';
+import { setElementRect, setElementSize, stubAnimationFrames } from '@common/tests/unit/dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -908,16 +908,7 @@ describe('@desource/context7-widget-react', () => {
   });
 
   it('coalesces anchored layout frames and ignores widget scrolling and stale closed frames', async () => {
-    let nextFrame = 0;
-    const frames = new Map<number, FrameRequestCallback>();
-    const requestFrame = vi.fn((callback: FrameRequestCallback) => {
-      const id = ++nextFrame;
-      frames.set(id, callback);
-      return id;
-    });
-    const cancelFrame = vi.fn((id: number) => frames.delete(id));
-    vi.stubGlobal('requestAnimationFrame', requestFrame);
-    vi.stubGlobal('cancelAnimationFrame', cancelFrame);
+    const { frames, requestFrame, cancelFrame } = stubAnimationFrames();
     vi.stubGlobal('ResizeObserver', undefined);
     const controllerRef: { current: Context7WidgetHandle | null } = { current: null };
     const container = mount(

@@ -49,7 +49,8 @@ describe('server entry', () => {
     `;
     const { stderr, stdout } = await execFileAsync(process.execPath, ['--input-type=module', '--eval', script], {
       cwd: packageDirectory,
-      env: { ...process.env, NO_COLOR: '1' },
+      // Prevent inherited FORCE_COLOR from conflicting with NO_COLOR and warning on stderr.
+      env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: undefined },
       signal
     });
 

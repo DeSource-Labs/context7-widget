@@ -3,17 +3,10 @@ import type {
   Context7DisplayItem,
   Context7MessageDisplayItem,
   Context7ToolDisplayItem,
-  Context7WidgetAnswerCompleteEventDetail,
-  Context7WidgetAnswerEventDetail,
-  Context7WidgetCancelEventDetail,
+  Context7WidgetCallbacks as SharedContext7WidgetCallbacks,
   Context7WidgetController,
-  Context7WidgetErrorEventDetail,
-  Context7WidgetLifecycleEventDetail,
   Context7WidgetOptions,
-  Context7WidgetQuestionEventDetail,
-  Context7WidgetTarget,
-  Context7WidgetToolCallEventDetail,
-  Context7WidgetToolResultEventDetail
+  Context7WidgetTarget
 } from '@desource/context7-widget/kit';
 import type { HTMLAttributes } from 'svelte/elements';
 import type { Snippet } from 'svelte';
@@ -38,19 +31,7 @@ export interface Context7WidgetTriggerSnippetOptions {
   readonly triggerId: string;
 }
 
-export interface Context7WidgetCallbacks {
-  onAnswer?(detail: Context7WidgetAnswerEventDetail): void;
-  onAnswerComplete?(detail: Context7WidgetAnswerCompleteEventDetail): void;
-  onCancel?(detail: Context7WidgetCancelEventDetail): void;
-  onClose?(detail: Context7WidgetLifecycleEventDetail): void;
-  onError?(detail: Context7WidgetErrorEventDetail): void;
-  onFirstToken?(detail: Context7WidgetAnswerEventDetail): void;
-  onOpen?(detail: Context7WidgetLifecycleEventDetail): void;
-  onQuestion?(detail: Context7WidgetQuestionEventDetail): void;
-  onReady?(detail: Context7WidgetLifecycleEventDetail): void;
-  onToolCall?(detail: Context7WidgetToolCallEventDetail): void;
-  onToolResult?(detail: Context7WidgetToolResultEventDetail): void;
-}
+export interface Context7WidgetCallbacks extends SharedContext7WidgetCallbacks {}
 
 export interface Context7WidgetProps extends Omit<Context7WidgetOptions, 'customTrigger'>, Context7WidgetCallbacks {
   /** Optional content rendered next to the widget element inside the Svelte root. */

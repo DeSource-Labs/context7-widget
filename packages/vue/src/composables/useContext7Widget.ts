@@ -1,5 +1,6 @@
 import {
   assertBrowser,
+  createContext7WidgetControls,
   compactContext7WidgetOptions,
   mergeContext7WidgetOptions,
   resolveTarget,
@@ -192,50 +193,7 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
     messages.value = [];
   }
 
-  function open(): void {
-    resolveController()?.open();
-    syncState();
-  }
-
-  function close(): void {
-    resolveController()?.close();
-    syncState();
-  }
-
-  function toggle(): void {
-    resolveController()?.toggle();
-    syncState();
-  }
-
-  async function send(message: string): Promise<Context7WidgetSendResult | undefined> {
-    const pending = resolveController()?.send(message);
-    syncState();
-    const result = await pending;
-    syncState();
-    return result;
-  }
-
-  function cancel(): void {
-    resolveController()?.cancel();
-    syncState();
-  }
-
-  function reset(): void {
-    resolveController()?.reset();
-    syncState();
-  }
-
-  async function retry(): Promise<Context7WidgetSendResult | undefined> {
-    const pending = resolveController()?.retry();
-    syncState();
-    const result = await pending;
-    syncState();
-    return result;
-  }
-
-  function getMessages(): readonly Context7Message[] {
-    return resolveController()?.getMessages() ?? [];
-  }
+  const controls = createContext7WidgetControls(resolveController, syncState);
 
   onMounted(() => {
     if (options.value.autoMount && !ownsWidget.value) mount();
@@ -269,18 +227,18 @@ export function useContext7Widget(source: MaybeRefOrGetter<UseContext7WidgetOpti
   });
 
   return {
-    cancel,
-    close,
-    getMessages,
+    cancel: controls.cancel,
+    close: controls.close,
+    getMessages: controls.getMessages,
     isBusy: readonly(isBusy) as Readonly<Ref<boolean>>,
     isOpen: readonly(isOpen) as Readonly<Ref<boolean>>,
     messages: readonly(messages) as Readonly<ShallowRef<readonly Context7Message[]>>,
     mount,
-    open,
-    reset,
-    retry,
-    send,
-    toggle,
+    open: controls.open,
+    reset: controls.reset,
+    retry: controls.retry,
+    send: controls.send,
+    toggle: controls.toggle,
     unmount,
     widget: readonly(widget) as Readonly<ShallowRef<HTMLElement | null>>
   };

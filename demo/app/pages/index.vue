@@ -239,6 +239,17 @@ export class DocsHelp {}`;
 
 const heroMarqueeItems = librariesArray.map(({ key, href, label, logo }) => ({ key, href, label, logo }));
 
+function createFrameworkPath(framework: string, title: string, copy: string) {
+  return {
+    class: '',
+    copy,
+    cta: `View ${title}`,
+    href: `https://github.com/DeSource-Labs/context7-widget/tree/main/packages/${framework}`,
+    logo: `/img/${framework}.png`,
+    title
+  };
+}
+
 const paths = [
   {
     class: 'path-card--large',
@@ -256,46 +267,31 @@ const paths = [
     logo: '/img/ts.png',
     title: 'Core TypeScript'
   },
-  {
-    class: '',
-    copy: 'Add a native Vue component, style it with your CSS, and open it from a slot or the composable.',
-    cta: 'View Vue package',
-    href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/vue',
-    logo: '/img/vue.png',
-    title: 'Vue package'
-  },
-  {
-    class: '',
-    copy: 'Register one module for auto-imports, styles, and shared defaults across your Nuxt site.',
-    cta: 'View Nuxt module',
-    href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/nuxt',
-    logo: '/img/nuxt.png',
-    title: 'Nuxt module'
-  },
-  {
-    class: '',
-    copy: 'Use a native React component with controlled state, typed callbacks, custom triggers, and a hook.',
-    cta: 'View React package',
-    href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/react',
-    logo: '/img/react.png',
-    title: 'React package'
-  },
-  {
-    class: '',
-    copy: 'Use Svelte 5 snippets for your trigger, bind visibility, and control chat through a reactive controller.',
-    cta: 'View Svelte package',
-    href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/svelte',
-    logo: '/img/svelte.png',
-    title: 'Svelte package'
-  },
-  {
-    class: '',
-    copy: 'Add a standalone component with signals, app defaults, custom trigger content, and an injectable service.',
-    cta: 'View Angular package',
-    href: 'https://github.com/DeSource-Labs/context7-widget/tree/main/packages/angular',
-    logo: '/img/angular.png',
-    title: 'Angular package'
-  }
+  createFrameworkPath(
+    'vue',
+    'Vue package',
+    'Add a native Vue component, style it with your CSS, and open it from a slot or the composable.'
+  ),
+  createFrameworkPath(
+    'nuxt',
+    'Nuxt module',
+    'Register one module for auto-imports, styles, and shared defaults across your Nuxt site.'
+  ),
+  createFrameworkPath(
+    'react',
+    'React package',
+    'Use a native React component with controlled state, typed callbacks, custom triggers, and a hook.'
+  ),
+  createFrameworkPath(
+    'svelte',
+    'Svelte package',
+    'Use Svelte 5 snippets for your trigger, bind visibility, and control chat through a reactive controller.'
+  ),
+  createFrameworkPath(
+    'angular',
+    'Angular package',
+    'Add a standalone component with signals, app defaults, custom trigger content, and an injectable service.'
+  )
 ];
 
 const audiences = [

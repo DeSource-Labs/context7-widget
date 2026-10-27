@@ -1,3 +1,19 @@
+import { vi } from 'vitest';
+
+export function stubAnimationFrames() {
+  let nextFrame = 0;
+  const frames = new Map<number, FrameRequestCallback>();
+  const requestFrame = vi.fn((callback: FrameRequestCallback) => {
+    const id = ++nextFrame;
+    frames.set(id, callback);
+    return id;
+  });
+  const cancelFrame = vi.fn((id: number) => frames.delete(id));
+  vi.stubGlobal('requestAnimationFrame', requestFrame);
+  vi.stubGlobal('cancelAnimationFrame', cancelFrame);
+  return { frames, requestFrame, cancelFrame };
+}
+
 export function setViewportSize(width: number, height: number): void {
   Object.defineProperty(window, 'innerWidth', {
     configurable: true,

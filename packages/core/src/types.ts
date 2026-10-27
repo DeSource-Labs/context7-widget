@@ -226,6 +226,21 @@ export interface Context7WidgetController {
   toggle(): void;
 }
 
+/** Optional callbacks shared by framework components with callback props. */
+export interface Context7WidgetCallbacks {
+  onAnswer?(detail: Context7WidgetAnswerEventDetail): void;
+  onAnswerComplete?(detail: Context7WidgetAnswerCompleteEventDetail): void;
+  onCancel?(detail: Context7WidgetCancelEventDetail): void;
+  onClose?(detail: Context7WidgetLifecycleEventDetail): void;
+  onError?(detail: Context7WidgetErrorEventDetail): void;
+  onFirstToken?(detail: Context7WidgetAnswerEventDetail): void;
+  onOpen?(detail: Context7WidgetLifecycleEventDetail): void;
+  onQuestion?(detail: Context7WidgetQuestionEventDetail): void;
+  onReady?(detail: Context7WidgetLifecycleEventDetail): void;
+  onToolCall?(detail: Context7WidgetToolCallEventDetail): void;
+  onToolResult?(detail: Context7WidgetToolResultEventDetail): void;
+}
+
 /** A core custom-element instance with its imperative widget controls. */
 export type Context7WidgetInstance = HTMLElement & Context7WidgetController;
 

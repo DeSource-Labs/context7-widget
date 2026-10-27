@@ -219,17 +219,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       const harness = await mount();
       const { controller, flush, view } = harness;
 
-      let pending!: ReturnType<typeof controller.send>;
-      await interact(harness, () => {
-        pending = controller.send('Stop after the first token');
-      });
-      await expect
-        .poll(async () => {
-          await interact(harness, () => vi.advanceTimersToNextFrame());
-          await flush();
-          return view.textContent;
-        })
-        .toContain('Partial answer');
+      const { pending } = await sendUntilAnswer(harness, 'Stop after the first token', 'Partial answer');
 
       const result = await interact(harness, async () => {
         controller.cancel();
@@ -278,17 +268,7 @@ export function testContext7WidgetContract(adapter: Context7WidgetContractAdapte
       const harness = await mount();
       const { controller, flush, view } = harness;
 
-      let pending!: ReturnType<typeof controller.send>;
-      await interact(harness, () => {
-        pending = controller.send('Break after a token');
-      });
-      await expect
-        .poll(async () => {
-          await interact(harness, () => vi.advanceTimersToNextFrame());
-          await flush();
-          return view.textContent;
-        })
-        .toContain('Uncommitted partial');
+      const { pending } = await sendUntilAnswer(harness, 'Break after a token', 'Uncommitted partial');
 
       const result = await interact(harness, async () => {
         stream?.error(new Error('Transport <img src=x onerror=alert(1)> broke'));
@@ -896,4 +876,20 @@ function lastRequired<ElementType extends Element>(elements: NodeListOf<ElementT
   const element = elements.item(elements.length - 1);
   if (!element) throw new Error('Expected at least one matching element.');
   return element;
+}
+
+async function sendUntilAnswer(harness: Context7WidgetContractHarness, question: string, answer: string) {
+  const { controller, flush, view } = harness;
+  let pending!: ReturnType<Context7WidgetContractController['send']>;
+  await interact(harness, () => {
+    pending = controller.send(question);
+  });
+  await expect
+    .poll(async () => {
+      await interact(harness, () => vi.advanceTimersToNextFrame());
+      await flush();
+      return view.textContent;
+    })
+    .toContain(answer);
+  return { pending };
 }
