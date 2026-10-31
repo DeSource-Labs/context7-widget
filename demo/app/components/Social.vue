@@ -1,6 +1,8 @@
 <template>
-  <a class="social" :href="href" :target="target" rel="noopener noreferrer">
+  <a class="social" :aria-label="ariaLabel || type" :href="href" :target="target" rel="noopener noreferrer">
     <svg
+      aria-hidden="true"
+      focusable="false"
       stroke-width="2"
       stroke-linecap="round"
       stroke-linejoin="round"
@@ -21,6 +23,7 @@ const props = withDefaults(
   defineProps<{
     href: string;
     type: SocialMediaKey;
+    ariaLabel?: string;
     size?: string;
     color?: string;
     background?: string;

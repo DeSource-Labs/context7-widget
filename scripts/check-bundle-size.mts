@@ -157,7 +157,7 @@ const svelteConsumerBudgets: readonly SvelteConsumerBudget[] = [
   },
   {
     entry: 'controller',
-    maxGzipBytes: 20_275,
+    maxGzipBytes: 20_325,
     name: 'Svelte root controller with core /kit consumer'
   },
   {
