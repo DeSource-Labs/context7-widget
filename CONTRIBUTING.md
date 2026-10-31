@@ -12,7 +12,7 @@ By participating, you agree to follow the [Code of Conduct](./CODE_OF_CONDUCT.md
 Requirements:
 
 - Node.js >= 22.22.3 (Node.js 26 is used in GitHub Actions)
-- pnpm 12.15.0
+- pnpm 12.16.1
 
 ```bash
 pnpm install
@@ -135,6 +135,9 @@ changelogs.
   `@typescript-eslint` requires `<6.1`. Keep TypeScript 5.9 inside the Nuxt package because `@nuxt/module-builder`
   requires `^5.9.3`. Resolve these peers from each package with `resolvePeersFromWorkspaceRoot: false`.
 - Declare Vitest directly in the Nuxt package so `@nuxt/test-utils` and the test runner resolve the same version.
+- Keep `@angular/build` at `22.2.4`: `22.2.5` adds `@oxc-parser/binding-wasm32-wasi@0.150.0`, which pins
+  `@emnapi/core` and `@emnapi/runtime` to `2.0.0-alpha.3`. Its `@napi-rs/wasm-runtime` dependency requires newer
+  peers, so `pnpm check:peers` fails. Remove the pin when Angular ships a compatible WASM dependency tree.
 - Run `pnpm update -r --latest`, `pnpm check:peers`, and `pnpm audit:prod` after changing manifests.
 - Keep a dependency below `latest` only when a named consumer cannot support the newer release. Document that reason
   next to the constraint or in the change that introduces it. Releases inside pnpm's minimum release age window must

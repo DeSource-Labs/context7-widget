@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@types/three": "^0.186.0",
-    "nuxt": "^4.6.2",
-    "vue-tsc": "^3.3.13"
+    "nuxt": "^4.6.3",
+    "vue-tsc": "^3.3.14"
   }
 }
