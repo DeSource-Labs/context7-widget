@@ -1,5 +1,21 @@
 # @desource/context7-widget-angular
 
+## 0.2.3
+
+### Patch Changes
+
+- Core | Angular | Nuxt | React | Svelte | Vue Upgrades:
+  - Updates framework, build, linting, testing, and release dependencies, including pnpm 12.16.1.
+  - Consolidates Vue and Svelte imperative controls in the shared core helper `createContext7WidgetControls`, preserving controller resolution, state synchronization, return values, and error propagation.
+  - Shares event callback types between React and Svelte through `Context7WidgetCallbacks`. Exports the shared controls helper and callback types from the core `/kit` entry point.
+  - Adds regression coverage for controller replacement, unmounted controls, asynchronous send and retry operations, error propagation, and message fallbacks.
+  - Consolidates React, Vue, and Svelte test configuration and reusable test helpers, preserving coverage thresholds and existing assertions.
+  - Fixes Firefox end-to-end test startup by isolating browser application data in temporary directories for each worker and cleaning them up afterward.
+  - Fixes Svelte SSR test failures caused by inherited `FORCE_COLOR` conflicting with `NO_COLOR`.
+
+- Updated dependencies []:
+  - @desource/context7-widget@0.2.3
+
 ## 0.2.2
 
 ### Patch Changes
