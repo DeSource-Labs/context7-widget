@@ -8,14 +8,19 @@ resolvePeersFromWorkspaceRoot: false
 
 overrides:
   '@bomb.sh/tab': ^0.0.22
-  brace-expansion: ^5.0.12
-  glob: ^14.0.3
+  brace-expansion: ^5.0.13
+  glob: ^14.0.6
+  # Update tldts and its core together after the partial 7.4.20 release.
+  # https://github.com/remusao/tldts/issues/2735
+  'tough-cookie@6>tldts': ^7.5.2
+  # Oxc 0.156.0 pins emnapi alpha.6, which wasm-runtime 1.2.6+ no longer supports.
+  '@oxc-parser/binding-wasm32-wasi@0.156.0>@napi-rs/wasm-runtime': 1.2.5
 
-# @nuxt/module-builder 1.0.3 requires vue-sfc-transformer 0.2.x while its
+# @nuxt/module-builder 1.0.4 requires vue-sfc-transformer 0.3.x while its
 # bundled mkdist 2.4.1 still declares the compatible 0.1.x line.
 peerDependencyRules:
   allowedVersions:
-    'mkdist@2.4.1>vue-sfc-transformer': 0.2.5
+    'mkdist@2.4.1>vue-sfc-transformer': 0.3.3
 
 allowBuilds:
   '@parcel/watcher': true
