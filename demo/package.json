@@ -18,13 +18,13 @@
     "@desource/context7-widget": "workspace:*",
     "@desource/context7-widget-nuxt": "workspace:*",
     "@desource/context7-widget-vue": "workspace:*",
-    "postprocessing": "^6.39.5",
-    "three": "^0.186.1",
-    "vue": "^3.5.44"
+    "postprocessing": "^6.39.6",
+    "three": "^0.187.0",
+    "vue": "^3.5.45"
   },
   "devDependencies": {
-    "@types/three": "^0.186.0",
-    "nuxt": "^4.6.3",
+    "@types/three": "^0.187.0",
+    "nuxt": "^4.6.4",
     "vue-tsc": "^3.3.14"
   }
 }
