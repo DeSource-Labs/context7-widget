@@ -1,5 +1,18 @@
 # @desource/context7-widget-vue
 
+## 0.3.0
+
+### Minor Changes
+
+- Core | Angular | Nuxt | React | Svelte | Vue Upgrades:
+  - Fixes close icon visibility across all integrations with an explicit 20px SVG size, prevents the button and icon from shrinking, and matches the header title color in default and hover states.
+  - Updates framework, build, linting, testing, and demo dependencies, including pnpm 12.21.0.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @desource/context7-widget@0.3.0
+
 ## 0.2.3
 
 ### Patch Changes
